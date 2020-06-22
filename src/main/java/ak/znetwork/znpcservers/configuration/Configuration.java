@@ -15,19 +15,17 @@ public class Configuration {
 
   public Plugin core;
 
-  public String string;
+  protected final String name;
 
-  public Configuration(final Plugin core, String string) {
+  public Configuration(final Plugin core, String name) {
     this.core = core;
-
-    this.string = string;
+    this.name = name;
 
     if (!core.getDataFolder().exists()) {
       core.getDataFolder().mkdir();
     }
 
-    file = new File(core.getDataFolder(), string + ".yml");
-
+    this.file = new File(core.getDataFolder(), this.name + ".yml");
 
     if (!file.exists()) {
       file.getParentFile().mkdirs();
@@ -35,8 +33,7 @@ public class Configuration {
 
     configuration = new YamlConfiguration();
 
-    core.saveResource(string + ".yml", false);
-
+    core.saveResource(this.name + ".yml", false);
     try {
       configuration.load(file);
     } catch (IOException | InvalidConfigurationException e) {
@@ -48,13 +45,9 @@ public class Configuration {
     return configuration;
   }
 
-  public File getFile() {
-    return file;
-  }
-
   public void save(){
     try {
-      configuration.save(getFile());
+      configuration.save(this.file);
     } catch (IOException e) {
       e.printStackTrace();
     }

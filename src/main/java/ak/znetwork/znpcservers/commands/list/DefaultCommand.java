@@ -18,20 +18,23 @@
  *
  *
  */
-package ak.znetwork.znpcservers.manager;
+package ak.znetwork.znpcservers.commands.list;
 
-import ak.znetwork.znpcservers.npc.NPC;
-import java.util.LinkedHashSet;
+import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.commands.ZNCommand;
+import ak.znetwork.znpcservers.commands.enums.CommandType;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 
-public class NPCManager {
+public class DefaultCommand extends ZNCommand {
 
-    protected LinkedHashSet<NPC> npcs;
-
-    public NPCManager() {
-        this.npcs = new LinkedHashSet<>();
+    public DefaultCommand(final ServersNPC serversNPC) {
+        super(serversNPC,"" , "" , CommandType.ALL);
     }
 
-    public LinkedHashSet<NPC> getNpcs() {
-        return npcs;
+    @Override
+    public boolean dispatchCommand(CommandSender sender, String... args) {
+        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> sender.sendMessage(ChatColor.RED + "/znservers " + znCommand.getUsage()));
+        return true;
     }
 }

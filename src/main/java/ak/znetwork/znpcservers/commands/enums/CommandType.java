@@ -18,20 +18,8 @@
  *
  *
  */
-package ak.znetwork.znpcservers.manager;
+package ak.znetwork.znpcservers.commands.enums;
 
-import ak.znetwork.znpcservers.npc.NPC;
-import java.util.LinkedHashSet;
-
-public class NPCManager {
-
-    protected LinkedHashSet<NPC> npcs;
-
-    public NPCManager() {
-        this.npcs = new LinkedHashSet<>();
-    }
-
-    public LinkedHashSet<NPC> getNpcs() {
-        return npcs;
-    }
+public enum CommandType {
+    PLAYER,CONSOLE,ALL;
 }

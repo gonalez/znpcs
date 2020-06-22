@@ -1,3 +1,6 @@
 name: ServersNPC
 main: ak.znetwork.znpcservers.ServersNPC
 version: 0.1
+
+commands:
+  znservers:
