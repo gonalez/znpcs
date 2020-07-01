@@ -34,15 +34,22 @@ public abstract class ZNCommand {
 
     protected CommandType commandType;
 
-    public ZNCommand(final ServersNPC serversNPC , final String cmd , final String usage , CommandType commandType) {
+    protected String permission;
+
+    public ZNCommand(final ServersNPC serversNPC , final String cmd , final String usage , final String permission, CommandType commandType) {
         this.serversNPC = serversNPC;
 
         this.cmd = cmd;
         this.usage = usage;
+        this.permission = permission;
         this.commandType = commandType;
     }
 
     public abstract boolean dispatchCommand(CommandSender sender, String... args);
+
+    public String getPermission() {
+        return permission;
+    }
 
     public String getCmd() {
         return cmd;
@@ -57,7 +64,7 @@ public abstract class ZNCommand {
     }
 
     public void runUsage(final CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "Correct usage: /znservers " + usage);
+        sender.sendMessage(ChatColor.RED + "Correct usage: /znpcs " + usage);
     }
 }
 

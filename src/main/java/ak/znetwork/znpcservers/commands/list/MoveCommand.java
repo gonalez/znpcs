@@ -23,32 +23,38 @@ package ak.znetwork.znpcservers.commands.list;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class DeleteCommand extends ZNCommand {
+import java.util.Comparator;
 
-    public DeleteCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "delete" , "delete <id>" , "znpcs.cmd.delete", CommandType.PLAYER);
+public class MoveCommand extends ZNCommand {
+
+    public MoveCommand(final ServersNPC serversNPC) {
+        super(serversNPC , "move" , "move <id>" , "znpcs.cmd.move" ,CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        switch (args.length) {
-            case 2:
-                if (serversNPC.getNpcManager().getNpcs().stream().noneMatch(npc -> npc.getId() == Integer.parseInt(args[1]))) {
-                    sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-not-found")));
-                    return true;
-                }
+        final Player player = (Player) sender;
 
-                serversNPC.deleteNPC(Integer.parseInt(args[1]));
+        if (args.length == 2 && Utils.isInteger(args[1])) {
+            final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getId() == Integer.parseInt(args[1])).findFirst().orElse(null);
 
-                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            if (npc == null) {
+                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-not-found")));
                 return true;
-            default:
-                runUsage(sender);
-                return false;
+            }
+
+
+            npc.setLocation(player.getLocation());
+            player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            return true;
         }
+        runUsage(sender);
+        return false;
     }
 }

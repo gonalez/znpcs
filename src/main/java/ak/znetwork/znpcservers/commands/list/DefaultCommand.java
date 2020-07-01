@@ -29,12 +29,14 @@ import org.bukkit.command.CommandSender;
 public class DefaultCommand extends ZNCommand {
 
     public DefaultCommand(final ServersNPC serversNPC) {
-        super(serversNPC,"" , "" , CommandType.ALL);
+        super(serversNPC,"" , "" ,"", CommandType.ALL);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> sender.sendMessage(ChatColor.RED + "/znservers " + znCommand.getUsage()));
+        sender.sendMessage(ChatColor.GREEN + "ZNPCS BY ZNETWORK <3 " + ChatColor.GOLD + "(https://www.spigotmc.org/members/znetwork.156341/)");
+        sender.sendMessage(" ");
+        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> sender.sendMessage(ChatColor.RED + "/znpcs " + znCommand.getUsage()));
         return true;
     }
 }

@@ -21,10 +21,10 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.netty.PlayerNetty;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerListeners implements Listener {
 
@@ -38,8 +38,17 @@ public class PlayerListeners implements Listener {
 
     @EventHandler
     public void onJoin(final PlayerJoinEvent event) {
-        final PlayerNetty playerNetty = new PlayerNetty(event.getPlayer());
+        this.serversNPC.setupNetty(event.getPlayer());
+    }
 
-        this.serversNPC.getPlayerNetties().add(playerNetty);
+    @EventHandler
+    public void onQuit(final PlayerQuitEvent event) {
+        this.serversNPC.getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
+            playerNetty.ejectNetty(event.getPlayer());
+
+            this.serversNPC.getPlayerNetties().remove(playerNetty);
+        });
+
+        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer().getUniqueId())).forEach(npc -> npc.delete(event.getPlayer() , true));
     }
 }

@@ -24,23 +24,25 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Comparator;
 
-public class ToggleCommand extends ZNCommand {
+public class EquipCommand extends ZNCommand {
 
-    public ToggleCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "toggle" , "toggle <holo:name:look>" ,"znpcs.cmd.toggle", CommandType.PLAYER);
+    public EquipCommand(final ServersNPC serversNPC) {
+        super(serversNPC , "equip" , "equip <hand:helmet:chestplate:leggings:boots>" , "znpcs.cmd.equip" ,CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length == 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo")) {
+        if (args.length == 2) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {
@@ -48,18 +50,12 @@ public class ToggleCommand extends ZNCommand {
                 return true;
             }
 
-            switch (args[1]) {
-                case "name":
-                    npc.toggleName();
-                    break;
-                case "holo":
-                    npc.toggleHolo();
-                    break;
-                case  "look":
-                    npc.toggleLookAt();
-                    break;
+            if (NPC.NPCItemSlot.fromString(args[1]) == null) {
+                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("item-slot-not-found")));
+                return true;
             }
 
+            npc.equip(null , NPC.NPCItemSlot.fromString(args[1]) , (player.getItemInHand() == null ? Material.AIR : player.getItemInHand().getType()));
             player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
             return true;
         }

@@ -20,7 +20,10 @@
  */
 package ak.znetwork.znpcservers.hologram;
 
+import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -32,14 +35,20 @@ import java.util.*;
 
 public class Hologram {
 
-    public final Location location;
-    public final String[] lines;
+    public Location location;
+    public String[] lines;
 
     protected List<Object> entityArmorStands;
 
     protected List<UUID> viewers;
 
-    public Hologram(final Location location , final String... lines) {
+    protected Object nmsWorld;
+    protected Constructor<?> getArmorStandConstructor;
+
+    protected final ServersNPC serversNPC;
+
+    public Hologram(final ServersNPC serversNPC , final Location location , final String... lines) {
+        this.serversNPC = serversNPC;
         this.viewers = new ArrayList<>();
 
         this.entityArmorStands = new ArrayList<>();
@@ -50,26 +59,13 @@ public class Hologram {
         Collections.reverse(Arrays.asList(lines));
 
         try {
-            Object nmsWorld = location.getWorld().getClass().getMethod("getHandle").invoke(location.getWorld());
+            nmsWorld = location.getWorld().getClass().getMethod("getHandle").invoke(location.getWorld());
 
             Class<?> entityArmorStandClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand");
-            Constructor<?> getArmorStandConstructor = entityArmorStandClass.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World") , double.class , double.class , double.class);
+            getArmorStandConstructor = entityArmorStandClass.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World") , double.class , double.class , double.class);
 
-            double y = 0;
-
-            for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-                Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
-
-                armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , this.lines[i]));
-
-                armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
-
-                entityArmorStands.add(armorStand);
-
-                y+=0.3;
-            }
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException e) {
+            createHolos();
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -79,7 +75,7 @@ public class Hologram {
      *
      * @param player player to show hologram
      */
-    public void spawn(final Player player) {
+    public void spawn(final Player player , boolean add) {
         try {
             Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving");
             Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving"));
@@ -93,7 +89,8 @@ public class Hologram {
                 }
             });
 
-            viewers.add(player.getUniqueId());
+            if (add)
+                viewers.add(player.getUniqueId());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -104,7 +101,7 @@ public class Hologram {
      *
      * @param player to delete npc
      */
-    public void delete(final Player player) {
+    public void delete(final Player player , boolean remove) {
         try {
             Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
             Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int[].class);
@@ -120,9 +117,116 @@ public class Hologram {
                 }
             });
 
-            viewers.remove(player.getUniqueId());
+            if (remove)
+                viewers.remove(player.getUniqueId());
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     */
+    public void createHolos() {
+        viewers.forEach(uuid -> delete(Bukkit.getPlayer(uuid) , false));
+
+        double y = 0;
+        try {
+            this.entityArmorStands.clear();
+
+            for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
+                Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
+
+                armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
+                armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , this.lines[i]));
+                armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
+
+                entityArmorStands.add(armorStand);
+
+                y+=0.3;
+            }
+
+            viewers.forEach(uuid -> spawn(Bukkit.getPlayer(uuid) , false));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     */
+    public void updateNames(final Player player) {
+        for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
+            Object armorStand =  entityArmorStands.get(i);
+
+            try {
+                Class<?> packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
+                Constructor<?> getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
+
+                armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
+
+                int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
+
+                Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
+
+                ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Update new loc
+     */
+    public void updateLoc() {
+        try {
+            Class<?> packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
+            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
+
+            entityArmorStands.forEach(o ->  {
+                viewers.forEach(uuid -> {
+                    try {
+                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutNamedEntitySpawnConstructor.newInstance(o));
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                });
+            });
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * @param location
+     */
+    public void setLocation(Location location) {
+        this.location = location;
+
+        double y = 0;
+
+        for (Object o : entityArmorStands) {
+            try {
+                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() , location.getY() + y,
+                        location.getZ() , location.getYaw() , location.getPitch());
+
+                y+=0.3;
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+
+        updateLoc();
+    }
+
+    public String getLinesFormated() {
+        StringJoiner joiner = new StringJoiner(":");
+        for(int i = 0; i < lines.length; i++) {
+            joiner.add(lines[i]);
+        }
+
+        return joiner.toString();
     }
 }

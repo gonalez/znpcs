@@ -25,22 +25,23 @@ import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Comparator;
 
-public class ToggleCommand extends ZNCommand {
+public class LinesCommand extends ZNCommand {
 
-    public ToggleCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "toggle" , "toggle <holo:name:look>" ,"znpcs.cmd.toggle", CommandType.PLAYER);
+    public LinesCommand(final ServersNPC serversNPC) {
+        super(serversNPC , "lines" , "lines <text... text>" , "znpcs.cmd.lines" ,CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length == 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo")) {
+        if (args.length >= 2) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {
@@ -48,17 +49,20 @@ public class ToggleCommand extends ZNCommand {
                 return true;
             }
 
-            switch (args[1]) {
-                case "name":
-                    npc.toggleName();
-                    break;
-                case "holo":
-                    npc.toggleHolo();
-                    break;
-                case  "look":
-                    npc.toggleLookAt();
-                    break;
-            }
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            for (int i=1; i<=args.length - 1; i++)
+                stringBuilder.append(args[i]).append(":");
+
+            final String toString = stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
+
+            final String[] strings = new String[toString.split(":").length];
+
+            for (int i=0; i <= strings.length - 1; i++)
+                strings[i] = toString.split(":")[i];
+
+            npc.getHologram().lines = strings;
+            npc.getHologram().createHolos();
 
             player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
             return true;

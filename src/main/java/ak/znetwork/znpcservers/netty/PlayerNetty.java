@@ -20,14 +20,19 @@
  */
 package ak.znetwork.znpcservers.netty;
 
+import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.UUID;
 
 public class PlayerNetty {
 
@@ -36,7 +41,17 @@ public class PlayerNetty {
     protected Object networkManager;
     protected Object channel;
 
-    public PlayerNetty(final Player player) {
+    protected UUID uuid;
+
+    protected Field idField;
+
+    protected final ServersNPC serversNPC;
+
+    public PlayerNetty(final ServersNPC serversNPC , final Player player) {
+        this.serversNPC = serversNPC;
+
+        this.uuid = player.getUniqueId();
+
         try {
             packetPlayInUseEntity = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayInUseEntity");
 
@@ -45,24 +60,66 @@ public class PlayerNetty {
 
             networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
             channel = networkManager.getClass().getField("channel").get(networkManager);
+
+            idField = packetPlayInUseEntity.getDeclaredField("a");
+            idField.setAccessible(true);
         } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
     public void injectNetty(final Player player) {
         try {
             Channel channel = (Channel) this.channel;
-            if (channel != null) {
-                channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
-                    @Override
-                    protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
-                        if (packet.getClass() == packetPlayInUseEntity) {
-                            player.sendMessage("test");
+
+            if (channel.pipeline().get("npc_interact") != null) {
+                channel.pipeline().remove("npc_interact");
+            }
+
+            channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
+                @Override
+                protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
+                    if (packet.getClass() == packetPlayInUseEntity) {
+                        try {
+                            Object className = ReflectionUtils.getValue(packet , "action");
+
+                            if (className.toString().equalsIgnoreCase("INTERACT"))
+                                return;
+
+                            int entityId2 = (int) idField.get(packet);
+
+                            final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId2).findFirst().orElse(null);
+
+                            if (npc == null)
+                                return;
+
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    if (npc.getAction() != null) {
+                                        switch (npc.getNpcAction()) {
+                                            case CMD:
+                                                player.performCommand(npc.getAction());
+                                                break;
+                                            case SERVER:
+                                                serversNPC.sendPlayerToServer(player , npc.getAction());
+                                                break;
+                                            default:break;
+                                        }
+                                    }
+                                }
+                            }.runTaskLater(serversNPC , 2L);
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
-                });
-            }
+                    out.add(packet);
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,6 +136,8 @@ public class PlayerNetty {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
     }
 }
 

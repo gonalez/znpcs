@@ -23,6 +23,7 @@ package ak.znetwork.znpcservers.commands.list;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,19 +31,23 @@ import org.bukkit.entity.Player;
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "create" , "create <id> <text... text>" , CommandType.PLAYER);
+        super(serversNPC , "create" , "create <id> <skin> <text... text>" , "znpcs.cmd.create", CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        if (args.length >= 2 && Utils.isInteger(args[1])) {
+        if (args.length >= 3 && Utils.isInteger(args[1])) {
+            if (serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == Integer.parseInt(args[1])))  {
+                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-found")));
+                return true;
+            }
+
             final StringBuilder stringBuilder = new StringBuilder();
 
-            for (int i=2; i<=args.length - 1; i++)
+            for (int i=3; i<=args.length - 1; i++)
                 stringBuilder.append(args[i]).append(":");
 
-            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) , stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
-
+            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) ,args[2], stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
             return true;
         }
         runUsage(sender);

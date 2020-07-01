@@ -20,10 +20,7 @@
  */
 package ak.znetwork.znpcservers;
 
-import ak.znetwork.znpcservers.commands.list.CreateCommand;
-import ak.znetwork.znpcservers.commands.list.DefaultCommand;
-import ak.znetwork.znpcservers.commands.list.DeleteCommand;
-import ak.znetwork.znpcservers.commands.list.ToggleCommand;
+import ak.znetwork.znpcservers.commands.list.*;
 import ak.znetwork.znpcservers.configuration.Configuration;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
@@ -32,15 +29,24 @@ import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationUtils;
+import ak.znetwork.znpcservers.utils.MetricsLite;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -49,6 +55,7 @@ import java.util.concurrent.Executors;
 public class ServersNPC extends JavaPlugin {
 
     protected Configuration data;
+    protected Configuration messages;
 
     protected CommandsManager commandsManager;
     protected NPCManager npcManager;
@@ -57,16 +64,26 @@ public class ServersNPC extends JavaPlugin {
 
     protected LinkedHashSet<PlayerNetty> playerNetties;
 
+    protected boolean placeHolderSupport;
+
     @Override
     public void onEnable() {
+        placeHolderSupport = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
+
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
         playerNetties = new LinkedHashSet<>();
 
         npcManager = new NPCManager();
 
-        commandsManager = new CommandsManager("znservers", this);
-        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ToggleCommand(this));
-
         this.data = new Configuration(this , "data");
+        this.messages = new Configuration(this , "messages");
+
+        commandsManager = new CommandsManager("znpcs", this);
+        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this));
+
+        int pluginId = 8054;
+        new MetricsLite(this, pluginId);
 
         // Check if data contains any npc
         if (this.data.getConfig().contains("znpcs")) {
@@ -86,14 +103,29 @@ public class ServersNPC extends JavaPlugin {
                     for (int i=0; i <= strings.length - 1; i++)
                         strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
 
-                    npcManager.getNpcs().add(new NPC(Integer.parseInt(keys) , location , new Hologram(location , strings)));
-                }
+                    final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
+
+                    npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
+                    npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
+                    npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
+                    npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
+                    npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
+
+                    for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
+                        npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
+                       }
+
+                    npcManager.getNpcs().add(npc);
+            }
             });
 
             System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
 
             // Init task for all npc
             new NPCTask(this);
+
+            // Setup netty again for online players
+            Bukkit.getOnlinePlayers().forEach(this::setupNetty);
         }
 
         new PlayerListeners(this);
@@ -102,9 +134,40 @@ public class ServersNPC extends JavaPlugin {
     @Override
     public void onDisable() {
         npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(uuid -> {
-            if (Bukkit.getPlayer(uuid) != null)
-                npc.delete(Bukkit.getPlayer(uuid) , true);
+            npc.delete(Bukkit.getPlayer(uuid) , false);
         }));
+
+        Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(playerNetty -> playerNetty.ejectNetty(o)));
+
+        // Save values on config (???)
+
+        CompletableFuture.runAsync(() -> {
+            long startMs = System.currentTimeMillis();
+
+            System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
+
+            for (final NPC npc : getNpcManager().getNpcs()) {
+                this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
+                if (npc.getAction() != null)
+                    this.data.getConfig().set("znpcs." + npc.getId() + ".action" , npc.getAction());
+
+                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
+
+                for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {
+                    this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());
+                }
+            }
+
+            this.data.save();
+            System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+        });
+    }
+
+    public Configuration getMessages() {
+        return messages;
     }
 
     public CommandsManager getCommandsManager() {
@@ -119,6 +182,22 @@ public class ServersNPC extends JavaPlugin {
         return playerNetties;
     }
 
+    public boolean isPlaceHolderSupport() {
+        return placeHolderSupport;
+    }
+
+    /**
+     * Setup netty for player
+     *
+     * @param player receiver
+     */
+    public void setupNetty(final Player player) {
+        final PlayerNetty playerNetty = new PlayerNetty(this , player);
+
+        playerNetty.injectNetty(player);
+        this.getPlayerNetties().add(playerNetty);
+    }
+
     /**
      * Creation of a new npc
      *
@@ -126,24 +205,22 @@ public class ServersNPC extends JavaPlugin {
      * @param player the creator of the npc
      * @return val
      */
-    public final boolean createNPC(int id , final Player player , final String holo_lines) {
-        final NPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
-
-        // Try find
-        if (npc != null) {
-            return false;
-        }
+    public final boolean createNPC(int id , final Player player , final String skin, final String holo_lines) {
+        final String[] skinFetcher = JSONUtils.getFromUrl("https://sessionserver.mojang.com/session/minecraft/profile/" + JSONUtils.fetchUUID(skin) + "?unsigned=false");
 
         final String[] strings = new String[holo_lines.split(":").length];
 
         for (int i=0; i <= strings.length - 1; i++)
             strings[i] = holo_lines.split(":")[i];
 
-        this.getNpcManager().getNpcs().add(new NPC(id , player.getLocation() , new Hologram(player.getLocation()  , strings)));
+        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher[0] , skinFetcher[1] , player.getLocation() ,NPCAction.CMD, new Hologram(this , player.getLocation(), strings)));
 
+        this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher[0] + ":" + skinFetcher[1]);
         this.data.getConfig().set("znpcs." + id + ".location" , LocationUtils.getStringLocation(player.getLocation()));
         this.data.getConfig().set("znpcs." + id + ".lines" , holo_lines);
         this.data.save();
+
+        player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
         return true;
     }
 
@@ -180,5 +257,25 @@ public class ServersNPC extends JavaPlugin {
         }, executor);
 
         return false;
+    }
+
+    /**
+     * Send player to server bungee
+     *
+     * @param p receiver
+     * @param server target
+     */
+    public void sendPlayerToServer(Player p, String server){
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(b);
+
+        try {
+            out.writeUTF("Connect");
+            out.writeUTF(server);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        p.sendPluginMessage(this, "BungeeCord", b.toByteArray());
     }
 }

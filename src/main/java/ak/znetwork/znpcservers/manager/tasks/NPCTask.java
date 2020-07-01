@@ -23,13 +23,8 @@ package ak.znetwork.znpcservers.manager.tasks;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.NPC;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class NPCTask extends BukkitRunnable {
 
@@ -52,6 +47,9 @@ public class NPCTask extends BukkitRunnable {
 
                 if (npc.isHasLookAt())
                     npc.lookAt(player , player.getLocation());
+
+                if (npc.getViewers().contains(player.getUniqueId()))
+                    npc.getHologram().updateNames(player);
             }
         }
     }
