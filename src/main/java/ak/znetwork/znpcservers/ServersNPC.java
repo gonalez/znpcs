@@ -121,12 +121,12 @@ public class ServersNPC extends JavaPlugin {
 
             System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
 
-            // Init task for all npc
-            new NPCTask(this);
-
             // Setup netty again for online players
             Bukkit.getOnlinePlayers().forEach(this::setupNetty);
         }
+
+        // Init task for all npc
+        new NPCTask(this);
 
         new PlayerListeners(this);
     }

@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
+import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import org.bukkit.Bukkit;
@@ -40,6 +41,10 @@ import java.util.*;
  * NPC API
  *
  * @author ZNetwork
+ *
+ *
+ * TODO
+ * - CACHE MORE
  */
 public class NPC {
 
@@ -121,7 +126,7 @@ public class NPC {
 
             Object getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
-            getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
+            //getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
 
             Class<?> enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
             enumPlayerInfoAction = enumPlayerInfoActionClass.getField("ADD_PLAYER").get(null);
@@ -271,20 +276,27 @@ public class NPC {
             Object stack = craftItemStack.getMethod("asNMSCopy" , ItemStack.class).invoke(craftItemStack , new ItemStack(material));
 
             Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , int.class , ItemStack);
+            Class<?> enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
+
+            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
+
+            if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
+                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , int.class , ItemStack);
+            else
+                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , enumItemSlot , ItemStack);
 
             npcItemSlotMaterialHashMap.put(slot , material);
 
             if (player == null) {
                 getViewers().forEach(uuid -> {
                     try {
-                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , slot.getId() , stack));
+                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (!ReflectionUtils.getFriendlyBukkitPackage().startsWith("8") ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
                 });
             } else
-                ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , slot.getId() , stack));
+                ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (!ReflectionUtils.getFriendlyBukkitPackage().startsWith("8") ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
         } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             e.printStackTrace();
         }
@@ -426,20 +438,33 @@ public class NPC {
         try {
             Object packetPlayOutScoreboardTeam = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam").getConstructor().newInstance();
 
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
 
-            Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
-            f.setAccessible(true);
+            if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8")) {
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
 
-            Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
-            collection.add(gameProfile.getName());
+                Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
+                f.setAccessible(true);
+
+                Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
+                collection.add(gameProfile.getName());
+            } else {
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", getHologram().getStringNewestVersion(gameProfile.getName()));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
+
+                Collection<String> collection = Lists.newArrayList();
+                collection.add(gameProfile.getName());
+
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
+            }
 
             this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
-
             viewers.forEach(uuid -> ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , packetPlayOutScoreboardTeam));
         } catch (Exception e) {
             e.printStackTrace();
@@ -539,16 +564,22 @@ public class NPC {
      * Get slot by id
      */
     public enum NPCItemSlot  {
-        HAND(0) , HELMET(4) , CHESTPLATE(3) , LEGGINGS(2) , BOOTS(1);
+        HAND(0 , 0) , HELMET(4 , 5) , CHESTPLATE(3 , 4) , LEGGINGS(2 , 3) , BOOTS(1 ,  2);
 
         int id;
+        int newerv;
 
-        NPCItemSlot(int id) {
+        NPCItemSlot(int id , int newerv) {
             this.id = id;
+            this.newerv = newerv;
         }
 
         public int getId() {
             return id;
+        }
+
+        public int getNewerv() {
+            return newerv;
         }
 
         public static NPCItemSlot fromString(String text) {

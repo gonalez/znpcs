@@ -69,4 +69,16 @@ public class ReflectionUtils {
     public static String getBukkitPackage() {
         return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     }
+
+    /**
+     * Gets friendly current bukkit name version
+     *
+     * @return bukkit friendly version name
+     */
+    public static String getFriendlyBukkitPackage() {
+        String version = getBukkitPackage().replace("v" , "").replace("R" , "");
+        version = version.substring(2 , version.length() - 2);
+
+        return version;
+    }
 }

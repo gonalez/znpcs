@@ -31,8 +31,18 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
+/**
+ * Hologram API
+ *
+ * @author ZNetwork
+ *
+ *
+ * TODO
+ * - CACHE MORE
+ */
 public class Hologram {
 
     public Location location;
@@ -47,6 +57,9 @@ public class Hologram {
 
     protected final ServersNPC serversNPC;
 
+    protected Class<?> IChatBaseComponent;
+    protected Method IChatBaseComponentMethod;
+
     public Hologram(final ServersNPC serversNPC , final Location location , final String... lines) {
         this.serversNPC = serversNPC;
         this.viewers = new ArrayList<>();
@@ -59,6 +72,9 @@ public class Hologram {
         Collections.reverse(Arrays.asList(lines));
 
         try {
+            IChatBaseComponent =  Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".IChatBaseComponent");
+            IChatBaseComponentMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
+
             nmsWorld = location.getWorld().getClass().getMethod("getHandle").invoke(location.getWorld());
 
             Class<?> entityArmorStandClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand");
@@ -138,7 +154,10 @@ public class Hologram {
                 Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
 
                 armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , this.lines[i]));
+                if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
+                else
+                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
                 armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
 
                 entityArmorStands.add(armorStand);
@@ -163,7 +182,10 @@ public class Hologram {
                 Class<?> packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
                 Constructor<?> getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
 
-                armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
+                if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
+                 else
+                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
 
                 int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
@@ -174,6 +196,18 @@ public class Hologram {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * @return
+     */
+    public Object getStringNewestVersion(final String text) {
+        try {
+            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + text + "\"}");
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
