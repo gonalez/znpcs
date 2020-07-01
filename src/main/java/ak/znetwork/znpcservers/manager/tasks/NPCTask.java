@@ -38,17 +38,21 @@ public class NPCTask extends BukkitRunnable {
     public NPCTask(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
 
-        this.runTaskTimerAsynchronously(this.serversNPC , 0L , 20L);
+        this.runTaskTimerAsynchronously(this.serversNPC , 0L , 1L);
     }
 
     @Override
     public void run() {
         for (final NPC npc : this.serversNPC.getNpcManager().getNpcs()) {
-            final List<UUID> spawn = npc.getLocation().getWorld().getNearbyEntities(npc.getLocation() , 5 ,5 , 5).stream().filter(entity -> entity instanceof Player && !npc.getViewers().contains(entity.getUniqueId())).map(Entity::getUniqueId).collect(Collectors.toList());
-            final List<UUID> despawn = npc.getViewers().stream().filter(uuid -> Bukkit.getPlayer(uuid) == null || Bukkit.getPlayer(uuid).getWorld() != npc.getLocation().getWorld() || Bukkit.getPlayer(uuid).getLocation().distanceSquared(npc.getLocation()) >= 5).collect(Collectors.toList());
+            for (final Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= 30D && !npc.getViewers().contains(player.getUniqueId()))
+                    npc.spawn(player);
+                else  if (player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player.getUniqueId()) ||  player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) > 30D && npc.getViewers().contains(player.getUniqueId()))
+                    npc.delete(player , true);
 
-            spawn.forEach(uuid1 -> npc.spawn(Bukkit.getPlayer(uuid1)));
-            despawn.forEach(uuid1 -> npc.delete(Bukkit.getPlayer(uuid1)));
+                if (npc.isHasLookAt())
+                    npc.lookAt(player , player.getLocation());
+            }
         }
     }
 }

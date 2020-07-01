@@ -20,15 +20,17 @@
  */
 package ak.znetwork.znpcservers.npc;
 
+import ak.znetwork.znpcservers.hologram.Hologram;
+import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import com.mojang.authlib.GameProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * NPC API
@@ -44,6 +46,9 @@ public class NPC {
     protected Constructor<?> getPacketPlayOutPlayerInfoConstructor;
 
     protected boolean hasGlow = false;
+    protected boolean hasToggleName = false;
+    protected boolean hasToggleHolo = true;
+    protected boolean hasLookAt = false;
 
     protected int id;
     protected int entity_id;
@@ -52,14 +57,22 @@ public class NPC {
 
     protected List<UUID> viewers;
 
+    protected Hologram hologram;
+
+    protected GameProfile gameProfile;
+
+    protected Object packetPlayOutScoreboardTeam;
+
     /**
      * Init of the necessary functionalities for the npc
      *
      * @param id the npc id
      * @param location the location for the npc
      */
-    public NPC(final int id,final Location location) {
+    public NPC(final int id, final Location location , Hologram hologram) {
         this.viewers = new ArrayList<>();
+
+        this.hologram = hologram;
 
         this.id = id;
         this.location = location;
@@ -68,28 +81,30 @@ public class NPC {
             Object nmsServer = Bukkit.getServer().getClass().getMethod("getServer").invoke(Bukkit.getServer());
             Object nmsWorld = location.getWorld().getClass().getMethod("getHandle").invoke(location.getWorld());
 
-            Class<?> playerInteractManager = Class.forName("net.minecraft.server." + getBukkitPackage() + ".PlayerInteractManager");
+            Class<?> playerInteractManager = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerInteractManager");
             Constructor<?> getPlayerInteractManagerConstructor = playerInteractManager.getDeclaredConstructors()[0];
 
-            Class<?> entityPlayerClass = Class.forName("net.minecraft.server." + getBukkitPackage() + ".EntityPlayer");
+            Class<?> entityPlayerClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer");
             Constructor<?> getPlayerConstructor = entityPlayerClass.getDeclaredConstructors()[0];
 
-            GameProfile gameProfile = new GameProfile(Bukkit.getOfflinePlayer("Notch").getUniqueId() , "test");
+            gameProfile = new GameProfile(Bukkit.getOfflinePlayer("Notch").getUniqueId() , "test");
 
             entityPlayer = getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld));
             entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() , location.getY(),
                     location.getZ() , location.getYaw() , location.getPitch());
 
-            Class<?> enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
+            Class<?> enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
             enumPlayerInfoAction = enumPlayerInfoActionClass.getField("ADD_PLAYER").get(null);
 
-            Class<?> packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + getBukkitPackage() + ".PacketPlayOutPlayerInfo");
-            getPacketPlayOutPlayerInfoConstructor = packetPlayOutPlayerInfoClass.getConstructor(enumPlayerInfoActionClass , Class.forName("[Lnet.minecraft.server." + getBukkitPackage() + ".EntityPlayer;"));
+            Class<?> packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
+            getPacketPlayOutPlayerInfoConstructor = packetPlayOutPlayerInfoClass.getConstructor(enumPlayerInfoActionClass , Class.forName("[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;"));
 
             entityPlayerArray = Array.newInstance(entityPlayerClass, 1);
             Array.set(entityPlayerArray, 0, entityPlayer);
 
             entity_id = (Integer) entityPlayerClass.getMethod("getId").invoke(entityPlayer);
+
+            toggleName();
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | NoSuchFieldException e) {
             e.printStackTrace();
         }
@@ -106,14 +121,34 @@ public class NPC {
 
             Field glowing = entityPlayer.getClass().getField("glowing");
             glowing.set("glowing" , Boolean.TRUE);
-
-            /*
-
-             */
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Equip npc
+     *
+     * @param player receiver
+     * @param slot item slot
+     * @param material material
+     */
+    public void equip(final Player player , NPCItemSlot slot , Material material) {
+        try {
+            Class<?> ItemStack = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack");
+            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack");
+
+            Object stack = craftItemStack.getMethod("asNMSCopy" , ItemStack.class).invoke(craftItemStack , new ItemStack(material));
+
+            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
+            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , int.class , ItemStack);
+
+
+            ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , slot.getId() , stack));
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -124,16 +159,22 @@ public class NPC {
         try {
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
-            sendPacket(player ,packetPlayOutPlayerInfoConstructor);
+            ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
 
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + getBukkitPackage() + ".EntityHuman"));
+            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn");
+            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman"));
 
             Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
 
-            sendPacket(player ,entityPlayerPacketSpawn);
+            ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
 
             viewers.add(player.getUniqueId());
+
+            if (packetPlayOutScoreboardTeam != null)
+                ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
+
+            if (hasToggleHolo)
+                hologram.spawn(player);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException e) {
             e.printStackTrace();
         }
@@ -141,51 +182,102 @@ public class NPC {
 
 
     /**
-     * Delete npc for palyer
+     * Delete npc for player
      *
      * @param player to delete npc
      */
-    public void delete(final Player player) {
+    public void delete(final Player player , boolean removeViewer) {
         try {
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + getBukkitPackage() + ".PacketPlayOutEntityDestroy");
+            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
             Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int[].class);
 
             Object entityPlayerArray = Array.newInstance(int.class, 1);
             Array.set(entityPlayerArray, 0, entity_id);
 
-            sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayerArray));
+            ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayerArray));
 
-            viewers.remove(player.getUniqueId());
+            if (removeViewer)
+                viewers.remove(player.getUniqueId());
+
+            hologram.delete(player);
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
+
     /**
-     * Sends the packet to the receiver
+     * Makes the npc look at the location
      *
      * @param player receiver
-     * @param object packet to send
+     * @param location look at
      */
-    protected final void sendPacket(final Player player , final Object object) {
+    public void lookAt(final Player player , final Location location) {
+        final Location direction = this.location.setDirection(location.subtract(this.location).toVector());
+
         try {
-            Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
+            Class<?> packetPlayOutEntityHeadRotation = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation");
+            Constructor<?> getPacketPlayOutEntityHeadRotationConstructor = packetPlayOutEntityHeadRotation.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity") , byte.class);
 
-            Method sendPacket = playerConnection.getClass().getMethod("sendPacket" , Class.forName("net.minecraft.server." + getBukkitPackage() + ".Packet"));
+            Class<?> packetPlayOutEntityLook = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook");
+            Constructor<?> getPacketPlayOutEntityLookConstructor = packetPlayOutEntityLook.getConstructor(int.class , byte.class , byte.class , boolean.class);
 
-            sendPacket.invoke(playerConnection , object);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
+            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) ((direction.getYaw() %360.)*256/360) , (byte) ((direction.getPitch() %360.)*256/360) , false));
+            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(entityPlayer , (byte) ((direction.getYaw() %360.)*256/360)));
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
+
     }
 
     /**
-     * Gets current bukkit version
-     *
-     * @return bukkit version name
+     * Toggle (hide / show) look
      */
-    protected final String getBukkitPackage() {
-        return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    public void toggleLookAt() {
+        hasLookAt = !hasLookAt;
+    }
+
+    /**
+     * Toggle npc holo
+     */
+    public void toggleHolo() {
+        hasToggleHolo = !hasToggleHolo;
+
+        if (hasToggleHolo)
+            viewers.forEach(uuid -> hologram.delete(Bukkit.getPlayer(uuid)));
+        else
+            viewers.forEach(uuid -> hologram.spawn(Bukkit.getPlayer(uuid)));
+    }
+
+    /**
+     * Toggle npc name
+     *
+     * Hide/Show
+     */
+    @SuppressWarnings("unchecked")
+    public void toggleName() {
+        hasToggleName = !hasToggleName;
+
+        try {
+            Object packetPlayOutScoreboardTeam = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam").getConstructor().newInstance();
+
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
+
+            Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
+            f.setAccessible(true);
+
+            Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
+            collection.add(gameProfile.getName());
+
+            this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
+
+            viewers.forEach(uuid -> ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , packetPlayOutScoreboardTeam));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -213,5 +305,28 @@ public class NPC {
      */
     public List<UUID> getViewers() {
         return viewers;
+    }
+
+    public boolean isHasLookAt() {
+        return hasLookAt;
+    }
+
+    /**
+     * NPC ITEM SLOT
+     *
+     * Get slot by id
+     */
+    public enum NPCItemSlot  {
+        HAND(1) , HELMET(4) , CHESTPLATE(3) , LEGGINGS(2) , BOOTS(0);
+
+        int id;
+
+        NPCItemSlot(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
     }
 }

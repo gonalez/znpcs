@@ -23,24 +23,29 @@ package ak.znetwork.znpcservers.commands.list;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "create" , "create <id>" , CommandType.PLAYER);
+        super(serversNPC , "create" , "create <id> <text... text>" , CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        switch (args.length) {
-            case 2:
-                serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender));
-                return true;
-            default:
-                runUsage(sender);
-                return false;
+        if (args.length >= 2 && Utils.isInteger(args[1])) {
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            for (int i=2; i<=args.length - 1; i++)
+                stringBuilder.append(args[i]).append(":");
+
+            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) , stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
+
+            return true;
         }
+        runUsage(sender);
+        return false;
     }
 }
