@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
+import ak.znetwork.znpcservers.utils.Utils;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -81,6 +82,31 @@ public class NPC {
 
     protected final ServersNPC serversNPC;
 
+    protected Class<?> ItemStack ;
+    protected Class<?> craftItemStack;
+
+    protected Class<?> packetPlayOutEntityEquipment;
+    protected Class<?> enumItemSlot;
+
+    protected Class<?> packetPlayOutEntityDestroy;
+    protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
+
+    protected Class<?> packetPlayOutEntityHeadRotation;
+    protected Constructor<?> getPacketPlayOutEntityHeadRotationConstructor;
+
+    protected Class<?> packetPlayOutEntityLook;
+    protected Constructor<?> getPacketPlayOutEntityLookConstructor;
+
+    protected Class<?> packetPlayOutEntityTeleport;
+    protected Constructor<?> getPacketPlayOutEntityTeleportConstructor;
+
+    protected Class<?> packetPlayOutNamedEntitySpawn;
+    protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
+
+    protected Class<?> packetPlayOutPlayerInfoClass ;
+    protected Class<?> enumPlayerInfoActionClass;
+
+
     /**
      * Init of the necessary functionalities for the npc
      *
@@ -117,6 +143,31 @@ public class NPC {
             Class<?> entityPlayerClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer");
             Constructor<?> getPlayerConstructor = entityPlayerClass.getDeclaredConstructors()[0];
 
+            ItemStack = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack");
+            craftItemStack = Class.forName("org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack");
+
+            packetPlayOutEntityDestroy = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
+            getPacketPlayOutEntityDestroyConstructor = packetPlayOutEntityDestroy.getConstructor(int[].class);;
+
+            packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn");
+            getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman"));
+
+            packetPlayOutEntityEquipment = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
+            enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
+
+            packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
+
+            enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
+
+            packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
+            getPacketPlayOutEntityTeleportConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
+
+            packetPlayOutEntityHeadRotation = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation");
+            getPacketPlayOutEntityHeadRotationConstructor = packetPlayOutEntityHeadRotation.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity") , byte.class);
+
+            packetPlayOutEntityLook = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook");
+            getPacketPlayOutEntityLookConstructor = packetPlayOutEntityLook.getConstructor(int.class , byte.class , byte.class , boolean.class);
+
             gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
             gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
@@ -128,10 +179,8 @@ public class NPC {
 
             //getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
 
-            Class<?> enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
             enumPlayerInfoAction = enumPlayerInfoActionClass.getField("ADD_PLAYER").get(null);
 
-            Class<?> packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
             getPacketPlayOutPlayerInfoConstructor = packetPlayOutPlayerInfoClass.getConstructor(enumPlayerInfoActionClass , Class.forName("[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;"));
 
             entityPlayerArray = Array.newInstance(entityPlayerClass, 1);
@@ -143,6 +192,34 @@ public class NPC {
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | NoSuchFieldException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @return get skin value
+     */
+    public String getSkin() {
+        return skin;
+    }
+
+    /**
+     * @return get skin signature
+     */
+    public String getSignature() {
+        return signature;
+    }
+
+    /**
+     * @param skin
+     */
+    public void setSkin(String skin) {
+        this.skin = skin;
+    }
+
+    /**
+     * @param signature
+     */
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 
     /**
@@ -270,34 +347,28 @@ public class NPC {
      */
     public void equip(final Player player , NPCItemSlot slot , Material material) {
         try {
-            Class<?> ItemStack = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack");
-            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack");
-
             Object stack = craftItemStack.getMethod("asNMSCopy" , ItemStack.class).invoke(craftItemStack , new ItemStack(material));
-
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
-            Class<?> enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
 
             Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
-            if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
-                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , int.class , ItemStack);
+            if (!Utils.isVersionNewestThan(9))
+                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , int.class , ItemStack);
             else
-                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int.class , enumItemSlot , ItemStack);
+                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , enumItemSlot , ItemStack);
 
             npcItemSlotMaterialHashMap.put(slot , material);
 
             if (player == null) {
                 getViewers().forEach(uuid -> {
                     try {
-                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (!ReflectionUtils.getFriendlyBukkitPackage().startsWith("8") ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
+                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
                     }
                 });
             } else
-                ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (!ReflectionUtils.getFriendlyBukkitPackage().startsWith("8") ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
-        } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+                ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             e.printStackTrace();
         }
     }
@@ -311,9 +382,6 @@ public class NPC {
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
             ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
-
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman"));
 
             Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
 
@@ -337,17 +405,15 @@ public class NPC {
                     hideFromTablist(player);
                 }
             }.runTaskLater(serversNPC , 20L);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException e) {
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
     }
 
     public void hideFromTablist(final Player player) {
         try {
-            Class<?> enumPlayerInfoActionClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
             Object enumPlayerInfoAction = enumPlayerInfoActionClass.getField("REMOVE_PLAYER").get(null);
 
-            Class<?> packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
             Constructor<?> getPacketPlayOutPlayerInfoConstructor = packetPlayOutPlayerInfoClass.getConstructor(enumPlayerInfoActionClass , Class.forName("[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;"));
 
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
@@ -366,19 +432,16 @@ public class NPC {
      */
     public void delete(final Player player , boolean removeViewer) {
         try {
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int[].class);
-
             Object entityPlayerArray = Array.newInstance(int.class, 1);
             Array.set(entityPlayerArray, 0, entity_id);
 
-            ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayerArray));
+            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityPlayerArray));
 
             if (removeViewer)
                 viewers.remove(player.getUniqueId());
 
             hologram.delete(player , removeViewer);
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -393,15 +456,9 @@ public class NPC {
         final Location direction = this.location.setDirection(location.subtract(this.location).toVector());
 
         try {
-            Class<?> packetPlayOutEntityHeadRotation = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation");
-            Constructor<?> getPacketPlayOutEntityHeadRotationConstructor = packetPlayOutEntityHeadRotation.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity") , byte.class);
-
-            Class<?> packetPlayOutEntityLook = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook");
-            Constructor<?> getPacketPlayOutEntityLookConstructor = packetPlayOutEntityLook.getConstructor(int.class , byte.class , byte.class , boolean.class);
-
             ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) ((direction.getYaw() %360.)*256/360) , (byte) ((direction.getPitch() %360.)*256/360) , false));
             ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(entityPlayer , (byte) ((direction.getYaw() %360.)*256/360)));
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
             e.printStackTrace();
         }
 
@@ -439,7 +496,18 @@ public class NPC {
             Object packetPlayOutScoreboardTeam = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam").getConstructor().newInstance();
 
 
-            if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8")) {
+            if (Utils.isVersionNewestThan(9)) {
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(gameProfile.getName()) : gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
+
+                Collection<String> collection = Lists.newArrayList();
+                collection.add(gameProfile.getName());
+
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
+            } else {
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
@@ -451,17 +519,6 @@ public class NPC {
 
                 Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
                 collection.add(gameProfile.getName());
-            } else {
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", getHologram().getStringNewestVersion(gameProfile.getName()));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
-
-                Collection<String> collection = Lists.newArrayList();
-                collection.add(gameProfile.getName());
-
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
             }
 
             this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
@@ -509,20 +566,13 @@ public class NPC {
      * Update new loc
      */
     public void updateLoc() {
-        try {
-            Class<?> packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
-
-            viewers.forEach(uuid -> {
-                try {
-                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer));
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        viewers.forEach(uuid -> {
+            try {
+                ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutEntityTeleportConstructor.newInstance(entityPlayer));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**

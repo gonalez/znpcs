@@ -80,7 +80,7 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this));
+        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
@@ -155,6 +155,7 @@ public class ServersNPC extends JavaPlugin {
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".skin" , npc.getSkin() + ":" + npc.getSignature());
 
                 for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {
                     this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());

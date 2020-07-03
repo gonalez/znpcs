@@ -23,6 +23,7 @@ package ak.znetwork.znpcservers.hologram;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -60,6 +61,19 @@ public class Hologram {
     protected Class<?> IChatBaseComponent;
     protected Method IChatBaseComponentMethod;
 
+    protected Class<?> packetPlayOutEntityTeleport;
+    protected Constructor<?> getPacketPlayOutEntityTeleportConstructor;
+
+    protected Class<?> packetPlayOutEntityMetadata;
+    protected Constructor<?> getPacketPlayOutEntityMetadataConstructor;
+
+    protected Class<?> packetPlayOutEntityDestroy;
+    protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
+
+    protected Class<?> packetPlayOutNamedEntitySpawn;
+    protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
+
+
     public Hologram(final ServersNPC serversNPC , final Location location , final String... lines) {
         this.serversNPC = serversNPC;
         this.viewers = new ArrayList<>();
@@ -72,6 +86,19 @@ public class Hologram {
         Collections.reverse(Arrays.asList(lines));
 
         try {
+            packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving");
+            getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving"));
+
+            packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
+            getPacketPlayOutEntityTeleportConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
+
+            packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
+            getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
+
+            packetPlayOutEntityDestroy = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
+            getPacketPlayOutEntityDestroyConstructor = packetPlayOutEntityDestroy.getConstructor(int[].class);
+
+
             IChatBaseComponent =  Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".IChatBaseComponent");
             IChatBaseComponentMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
 
@@ -92,24 +119,17 @@ public class Hologram {
      * @param player player to show hologram
      */
     public void spawn(final Player player , boolean add) {
-        try {
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving"));
+        entityArmorStands.forEach(entityArmorStand -> {
+            try {
+                Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorStand);
+                ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        });
 
-            entityArmorStands.forEach(entityArmorStand -> {
-                try {
-                    Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorStand);
-                    ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            if (add)
-                viewers.add(player.getUniqueId());
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        if (add)
+            viewers.add(player.getUniqueId());
     }
 
     /**
@@ -118,26 +138,19 @@ public class Hologram {
      * @param player to delete npc
      */
     public void delete(final Player player , boolean remove) {
-        try {
-            Class<?> packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getConstructor(int[].class);
+        entityArmorStands.forEach(entityArmorStand -> {
+            try {
+                Object entityArmorArray = Array.newInstance(int.class, 1);
+                Array.set(entityArmorArray, 0, entityArmorStand.getClass().getMethod("getId").invoke(entityArmorStand));
 
-            entityArmorStands.forEach(entityArmorStand -> {
-                try {
-                    Object entityArmorArray = Array.newInstance(int.class, 1);
-                    Array.set(entityArmorArray, 0, entityArmorStand.getClass().getMethod("getId").invoke(entityArmorStand));
+                ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityArmorArray));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        });
 
-                    ReflectionUtils.sendPacket(player , getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorArray));
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            if (remove)
-                viewers.remove(player.getUniqueId());
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        if (remove)
+            viewers.remove(player.getUniqueId());
     }
 
     /**
@@ -154,7 +167,7 @@ public class Hologram {
                 Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
 
                 armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
+                if (Utils.isVersionNewestThan(12))
                     armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
                 else
                     armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
@@ -176,13 +189,13 @@ public class Hologram {
      */
     public void updateNames(final Player player) {
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
+            if (i >= entityArmorStands.size())
+                continue;
+
             Object armorStand =  entityArmorStands.get(i);
 
             try {
-                Class<?> packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
-                Constructor<?> getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
-
-                if (ReflectionUtils.getFriendlyBukkitPackage().startsWith("8"))
+                if (Utils.isVersionNewestThan(12))
                     armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
                  else
                     armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
@@ -192,7 +205,7 @@ public class Hologram {
                 Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
 
                 ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
                 e.printStackTrace();
             }
         }
@@ -214,22 +227,15 @@ public class Hologram {
      * Update new loc
      */
     public void updateLoc() {
-        try {
-            Class<?> packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
-
-            entityArmorStands.forEach(o ->  {
-                viewers.forEach(uuid -> {
-                    try {
-                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutNamedEntitySpawnConstructor.newInstance(o));
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                });
+        entityArmorStands.forEach(o ->  {
+            viewers.forEach(uuid -> {
+                try {
+                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutEntityTeleportConstructor.newInstance(o));
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             });
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        });
 
     }
 

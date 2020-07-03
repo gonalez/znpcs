@@ -33,6 +33,10 @@ public class Utils {
         return true;
     }
 
+    public static boolean isVersionNewestThan(int ver) {
+        return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage()) >= ver;
+    }
+
     public static String tocolor(String tocolor) {
         return ChatColor.translateAlternateColorCodes('&' , tocolor);
     }
