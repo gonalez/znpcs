@@ -20,12 +20,13 @@
  */
 package ak.znetwork.znpcservers.utils;
 
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class JSONUtils {
         final String[] properties = new String[2];
 
         try {
-            String getJSON = IOUtils.toString(new URL(url));
+            String getJSON = readUrl(url);
             JSONObject jsonObject = (JSONObject) JSONValue.parse(getJSON);
 
             final JSONArray jsonArray = (JSONArray) jsonObject.get("properties");
@@ -45,15 +46,33 @@ public class JSONUtils {
 
             properties[0] = jsonObject1.get("value").toString();
             properties[1] = jsonObject1.get("signature").toString();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return properties;
     }
 
+    public static String readUrl(String urlString) throws Exception {
+        BufferedReader reader = null;
+        try {
+            URL url = new URL(urlString);
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            StringBuffer buffer = new StringBuffer();
+            int read;
+            char[] chars = new char[1024];
+            while ((read = reader.read(chars)) != -1)
+                buffer.append(chars, 0, read);
+
+            return buffer.toString();
+        } finally {
+            if (reader != null)
+                reader.close();
+        }
+    }
+
     public static UUID fetchUUID(String name) {
         try {
-            String getJSON = IOUtils.toString(new URL("https://api.mojang.com/users/profiles/minecraft/" + name));
+            String getJSON = readUrl("https://api.mojang.com/users/profiles/minecraft/" + name);
             JSONObject jsonObject = (JSONObject) JSONValue.parse(getJSON);
 
             final String uuid = jsonObject.get("id").toString();
@@ -61,7 +80,7 @@ public class JSONUtils {
             String realUUID = uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-" + uuid.substring(16, 20) + "-" + uuid.substring(20, 32);
 
             return UUID.fromString(realUUID);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

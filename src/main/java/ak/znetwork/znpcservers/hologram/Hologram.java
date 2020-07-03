@@ -167,10 +167,11 @@ public class Hologram {
                 Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
 
                 armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                if (Utils.isVersionNewestThan(12))
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
-                else
+                if (Utils.isVersionNewestThan(13))
                     armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
+                else
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
+
                 armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
 
                 entityArmorStands.add(armorStand);
@@ -195,10 +196,10 @@ public class Hologram {
             Object armorStand =  entityArmorStands.get(i);
 
             try {
-                if (Utils.isVersionNewestThan(12))
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
-                 else
+                if (Utils.isVersionNewestThan(13))
                     armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
+                else
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
 
                 int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
