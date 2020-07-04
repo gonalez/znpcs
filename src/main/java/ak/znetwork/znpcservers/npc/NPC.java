@@ -153,6 +153,7 @@ public class NPC {
             getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman"));
 
             packetPlayOutEntityEquipment = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
+            if (Utils.isVersionNewestThan(9))
             enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
 
             packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
@@ -177,7 +178,16 @@ public class NPC {
 
             Object getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
-            //getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
+
+            if (Utils.isVersionNewestThan(9)) {
+                Class<?> dataWatcherObject = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherObject");
+                Constructor<?> dataWatcherObjectConstructor = dataWatcherObject.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
+                Object dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
+
+                getDataWatcher.getClass().getMethod("set", dataWatcherObject, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance(13, dataWatcherRegistryEnum) , (byte) 0xFF);
+            }
+            else
+                getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
 
             enumPlayerInfoAction = enumPlayerInfoActionClass.getField("ADD_PLAYER").get(null);
 

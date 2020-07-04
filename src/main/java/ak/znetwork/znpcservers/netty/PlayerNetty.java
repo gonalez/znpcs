@@ -83,6 +83,8 @@ public class PlayerNetty {
             channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
                 @Override
                 protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
+                    out.add(packet);
+
                     if (packet.getClass() == packetPlayInUseEntity) {
                         try {
                             Object className = ReflectionUtils.getValue(packet , "action");
@@ -117,7 +119,6 @@ public class PlayerNetty {
                             e.printStackTrace();
                         }
                     }
-                    out.add(packet);
                 }
             });
         } catch (Exception e) {
