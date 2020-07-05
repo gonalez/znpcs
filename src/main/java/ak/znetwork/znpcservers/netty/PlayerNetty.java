@@ -103,12 +103,14 @@ public class PlayerNetty {
                                 @Override
                                 public void run() {
                                     if (npc.getAction() != null) {
+                                        final String action = npc.getAction().replace("_" , " ");
+
                                         switch (npc.getNpcAction()) {
                                             case CMD:
-                                                player.performCommand(npc.getAction());
+                                                player.performCommand(action);
                                                 break;
                                             case SERVER:
-                                                serversNPC.sendPlayerToServer(player , npc.getAction());
+                                                serversNPC.sendPlayerToServer(player , action);
                                                 break;
                                             default:break;
                                         }

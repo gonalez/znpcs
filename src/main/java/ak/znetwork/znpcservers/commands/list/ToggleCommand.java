@@ -33,14 +33,14 @@ import java.util.Comparator;
 public class ToggleCommand extends ZNCommand {
 
     public ToggleCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "toggle" , "toggle <holo:name:look>" ,"znpcs.cmd.toggle", CommandType.PLAYER);
+        super(serversNPC , "toggle" , "toggle <holo:name:glow:look>" ,"znpcs.cmd.toggle", CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length == 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo")) {
+        if (args.length == 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo") || (args[1]).equalsIgnoreCase("glow")) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {
@@ -57,6 +57,9 @@ public class ToggleCommand extends ZNCommand {
                     break;
                 case  "look":
                     npc.toggleLookAt();
+                    break;
+                case  "glow":
+                    npc.toggleGlow();
                     break;
             }
 

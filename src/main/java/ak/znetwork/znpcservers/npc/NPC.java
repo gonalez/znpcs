@@ -106,6 +106,13 @@ public class NPC {
     protected Class<?> packetPlayOutPlayerInfoClass ;
     protected Class<?> enumPlayerInfoActionClass;
 
+    protected Class<?> packetPlayOutEntityMetadata;
+    protected Constructor<?> getPacketPlayOutEntityMetadataConstructor;
+
+    protected Object getDataWatcher;
+    protected Class<?> dataWatcherObject;
+    protected Constructor<?> dataWatcherObjectConstructor;
+    protected Object dataWatcherRegistryEnum;
 
     /**
      * Init of the necessary functionalities for the npc
@@ -152,9 +159,12 @@ public class NPC {
             packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn");
             getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman"));
 
+            packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
+            getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
+
             packetPlayOutEntityEquipment = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment");
             if (Utils.isVersionNewestThan(9))
-            enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
+                enumItemSlot = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot");
 
             packetPlayOutPlayerInfoClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo");
 
@@ -176,15 +186,16 @@ public class NPC {
             entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() , location.getY(),
                     location.getZ() , location.getYaw() , location.getPitch());
 
-            Object getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
-
+            getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
             if (Utils.isVersionNewestThan(9)) {
-                Class<?> dataWatcherObject = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherObject");
-                Constructor<?> dataWatcherObjectConstructor = dataWatcherObject.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
-                Object dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
+                dataWatcherObject = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherObject");
+                dataWatcherObjectConstructor = dataWatcherObject.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
+                dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
 
-                getDataWatcher.getClass().getMethod("set", dataWatcherObject, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance(13, dataWatcherRegistryEnum) , (byte) 0xFF);
+                int version = Utils.getVersion();
+
+                getDataWatcher.getClass().getMethod("set", dataWatcherObject, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
             }
             else
                 getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
@@ -335,17 +346,21 @@ public class NPC {
      * Toggle the npc glow
      */
     public void toggleGlow()  {
+        if (!Utils.isVersionNewestThan(9))
+            return;
+
         hasGlow = !hasGlow;
 
         try {
-            Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
+            getDataWatcher.getClass().getMethod("set", dataWatcherObject, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
-            Field glowing = entityPlayer.getClass().getField("glowing");
-            glowing.set("glowing" , Boolean.TRUE);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
+            Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
+            Object packete = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
+
+            viewers.forEach(uuid -> ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , packete));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -369,12 +384,10 @@ public class NPC {
             npcItemSlotMaterialHashMap.put(slot , material);
 
             if (player == null) {
+                Object packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+
                 getViewers().forEach(uuid -> {
-                    try {
-                        ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
+                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,packete);
                 });
             } else
                 ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
@@ -390,12 +403,15 @@ public class NPC {
     public void spawn(final Player player) {
         try {
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
+            Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
             ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
 
             Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
 
             ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
+
+            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
 
             viewers.add(player.getUniqueId());
 
@@ -415,7 +431,7 @@ public class NPC {
                     hideFromTablist(player);
                 }
             }.runTaskLater(serversNPC , 20L);
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
@@ -576,13 +592,15 @@ public class NPC {
      * Update new loc
      */
     public void updateLoc() {
-        viewers.forEach(uuid -> {
-            try {
-                ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutEntityTeleportConstructor.newInstance(entityPlayer));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        });
+        try {
+            Object packete = getPacketPlayOutEntityTeleportConstructor.newInstance(entityPlayer);
+
+            viewers.forEach(uuid -> {
+                ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,  packete);
+            });
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

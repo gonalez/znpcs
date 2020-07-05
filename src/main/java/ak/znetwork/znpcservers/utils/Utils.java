@@ -34,7 +34,11 @@ public class Utils {
     }
 
     public static boolean isVersionNewestThan(int ver) {
-        return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage()) >= ver;
+        return getVersion() >= ver;
+    }
+
+    public static int getVersion() {
+        return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage());
     }
 
     public static String tocolor(String tocolor) {

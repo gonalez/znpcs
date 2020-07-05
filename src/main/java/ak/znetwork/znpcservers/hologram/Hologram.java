@@ -195,11 +195,13 @@ public class Hologram {
 
             Object armorStand =  entityArmorStands.get(i);
 
+            final String line = lines[i].replace("_" , " ");
+
             try {
                 if (Utils.isVersionNewestThan(13))
-                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
+                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(line));
                 else
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : lines[i])));
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , line) : line)));
 
                 int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
@@ -215,9 +217,9 @@ public class Hologram {
     /**
      * @return
      */
-    public Object getStringNewestVersion(final String text) {
+    public Object getStringNewestVersion(String text) {
         try {
-            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + text + "\"}");
+            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + ChatColor.translateAlternateColorCodes('&' , text) + "\"}");
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
@@ -229,13 +231,15 @@ public class Hologram {
      */
     public void updateLoc() {
         entityArmorStands.forEach(o ->  {
-            viewers.forEach(uuid -> {
-                try {
-                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , getPacketPlayOutEntityTeleportConstructor.newInstance(o));
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            });
+            try {
+                Object packete = getPacketPlayOutEntityTeleportConstructor.newInstance(o);
+
+                viewers.forEach(uuid -> {
+                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,packete);
+                });
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
         });
 
     }

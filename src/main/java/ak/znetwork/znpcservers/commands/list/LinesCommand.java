@@ -29,6 +29,8 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 
 public class LinesCommand extends ZNCommand {
@@ -60,6 +62,8 @@ public class LinesCommand extends ZNCommand {
 
             for (int i=0; i <= strings.length - 1; i++)
                 strings[i] = toString.split(":")[i];
+
+            Collections.reverse(Arrays.asList(strings));
 
             npc.getHologram().lines = strings;
             npc.getHologram().createHolos();
