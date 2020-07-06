@@ -26,10 +26,10 @@ public enum NPCAction {
 
     public static NPCAction fromString(String text) {
         for (NPCAction b : NPCAction.values()) {
-            if (b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
+            if (text != null && b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
                 return b;
             }
         }
-        return null;
+        return NPCAction.CMD;
     }
 }

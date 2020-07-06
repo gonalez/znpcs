@@ -113,10 +113,10 @@ public class ServersNPC extends JavaPlugin {
 
                     for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
                         npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
-                       }
+                    }
 
                     npcManager.getNpcs().add(npc);
-            }
+                }
             });
 
             System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");

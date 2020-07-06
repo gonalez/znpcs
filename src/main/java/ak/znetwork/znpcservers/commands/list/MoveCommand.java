@@ -49,6 +49,8 @@ public class MoveCommand extends ZNCommand {
                 return true;
             }
 
+            if (npc.isHasLookAt())
+                npc.toggleLookAt();
 
             npc.setLocation(player.getLocation());
             player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));

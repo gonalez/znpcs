@@ -28,6 +28,7 @@ import ak.znetwork.znpcservers.utils.Utils;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.datafixers.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -376,22 +377,39 @@ public class NPC {
 
             Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
+            Object v16b = null;
+
             if (!Utils.isVersionNewestThan(9))
                 getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , int.class , ItemStack);
-            else
-                getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , enumItemSlot , ItemStack);
+            else   {
+                if (Utils.isVersionNewestThan(16)) {
+                    getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , List.class);
 
+                    v16b = ReflectionUtils.getValue(packetPlayOutEntityEquipment.newInstance() , "b");
+                }
+                else
+                    getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutEntityEquipment.getConstructor(int.class , enumItemSlot , ItemStack);
+            }
             npcItemSlotMaterialHashMap.put(slot , material);
 
-            if (player == null) {
-                Object packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+            Object packete;
 
+            if (Utils.isVersionNewestThan(16)) {
+                List<Pair<?, ?>> asd = (List<Pair<?, ?>>) v16b;
+                asd.add(new Pair<>(enumItemSlot.getEnumConstants()[slot.getNewerv()]  , stack));
+
+                packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , asd);
+            } else  {
+                packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+            }
+
+            if (player == null) {
                 getViewers().forEach(uuid -> {
-                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,packete);
+                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid), packete);
                 });
             } else
-                ReflectionUtils.sendPacket(player ,getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? enumItemSlot.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+                ReflectionUtils.sendPacket(player, packete);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -520,7 +538,6 @@ public class NPC {
 
         try {
             Object packetPlayOutScoreboardTeam = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam").getConstructor().newInstance();
-
 
             if (Utils.isVersionNewestThan(9)) {
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
