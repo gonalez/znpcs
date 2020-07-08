@@ -6,6 +6,6 @@ import org.bukkit.entity.Player;
 public class PlaceholderUtils {
 
     public static String getWithPlaceholders(final Player player , final String get) {
-        return PlaceholderAPI.setPlaceholders(player , get);
+        return PlaceholderAPI.setPlaceholders(player , get).replace("_" , " ");
     }
 }

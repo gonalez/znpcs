@@ -23,6 +23,7 @@ package ak.znetwork.znpcservers.manager;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -65,7 +66,7 @@ public class CommandsManager implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Command not found.");
         else {
             if (znCommand.getPermission().length() >= 1 && !sender.hasPermission(znCommand.getPermission())) {
-                sender.sendMessage(serversNPC.getMessages().getConfig().getString("no-permission"));
+                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("no-permission")));
                 return false;
             }
 

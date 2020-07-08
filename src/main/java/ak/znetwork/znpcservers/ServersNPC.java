@@ -110,6 +110,7 @@ public class ServersNPC extends JavaPlugin {
                     npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
                     npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
                     npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
+                    npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
 
                     for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
                         npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
@@ -155,6 +156,7 @@ public class ServersNPC extends JavaPlugin {
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.mirror" , npc.isHasMirror());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".skin" , npc.getSkin() + ":" + npc.getSignature());
 
                 for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {

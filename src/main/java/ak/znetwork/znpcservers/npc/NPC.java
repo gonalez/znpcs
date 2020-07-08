@@ -60,6 +60,7 @@ public class NPC {
     protected boolean hasToggleName = false;
     protected boolean hasToggleHolo = true;
     protected boolean hasLookAt = false;
+    protected boolean hasMirror = false;
 
     protected int id;
     protected int entity_id;
@@ -291,6 +292,20 @@ public class NPC {
     }
 
     /**
+     * @return has same skin of players
+     */
+    public boolean isHasMirror() {
+        return hasMirror;
+    }
+
+    /**
+     * @param hasMirror set mirror mode
+     */
+    public void setHasMirror(boolean hasMirror) {
+        this.hasMirror = hasMirror;
+    }
+
+    /**
      * Set glow visibility
      *
      * @param hasGlow set
@@ -423,6 +438,18 @@ public class NPC {
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
             Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
+            if (hasMirror) {
+                final GameProfile gameProfile = getGameProfileForPlayer(player);
+                try {
+                    Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
+
+                    ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
+                    ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
 
             Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
@@ -525,6 +552,32 @@ public class NPC {
             viewers.forEach(uuid -> hologram.delete(Bukkit.getPlayer(uuid) , true));
         else
             viewers.forEach(uuid -> hologram.spawn(Bukkit.getPlayer(uuid) , true));
+    }
+
+    public void toggleMirror() {
+        hasMirror = !hasMirror;
+    }
+
+    /**
+     * Get clone of gameprofile for player
+     *
+     * @param player object
+     * @return game profile for player
+     */
+    public GameProfile getGameProfileForPlayer(final Player player) {
+        try {
+            Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+            Object gameProfileObj = craftPlayer.getClass().getMethod("getProfile").invoke(craftPlayer);
+
+            GameProfile gameProfileClone = (GameProfile) gameProfileObj;
+            GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
+            newProfile.getProperties().putAll(gameProfileClone.getProperties());
+
+            return newProfile;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

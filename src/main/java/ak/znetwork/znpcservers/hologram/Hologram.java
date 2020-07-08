@@ -201,7 +201,7 @@ public class Hologram {
                 if (Utils.isVersionNewestThan(13))
                     armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(line));
                 else
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , line) : line)));
+                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
                 int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
