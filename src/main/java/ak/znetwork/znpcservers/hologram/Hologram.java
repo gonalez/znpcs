@@ -164,7 +164,7 @@ public class Hologram {
             this.entityArmorStands.clear();
 
             for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-                Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() , location.getY() + (y) , location.getZ());
+                Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, location.getY() + (y) , location.getZ() + 0.5);
 
                 armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
                 if (Utils.isVersionNewestThan(13))
@@ -254,8 +254,8 @@ public class Hologram {
 
         for (Object o : entityArmorStands) {
             try {
-                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() , location.getY() + y,
-                        location.getZ() , location.getYaw() , location.getPitch());
+                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() + 0.5, location.getY() + y,
+                        location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
                 y+=0.3;
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

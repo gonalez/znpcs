@@ -80,7 +80,7 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
+        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ListCommand(this), new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
