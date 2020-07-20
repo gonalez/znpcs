@@ -185,8 +185,8 @@ public class NPC {
             gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
             entityPlayer = getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld));
-            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() , location.getY(),
-                    location.getZ() , location.getYaw() , location.getPitch());
+            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() + 0.5, location.getY(),
+                    location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
             getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
@@ -211,7 +211,7 @@ public class NPC {
 
             entity_id = (Integer) entityPlayerClass.getMethod("getId").invoke(entityPlayer);
 
-            toggleName();
+            toggleName(true);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | NoSuchFieldException e) {
             e.printStackTrace();
         }
@@ -435,6 +435,8 @@ public class NPC {
      */
     public void spawn(final Player player) {
         try {
+            toggleName(false);
+
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
             Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
@@ -586,8 +588,9 @@ public class NPC {
      * Hide/Show
      */
     @SuppressWarnings("unchecked")
-    public void toggleName() {
-        hasToggleName = !hasToggleName;
+    public void toggleName(boolean fix) {
+        if (fix)
+            hasToggleName = !hasToggleName;
 
         try {
             Object packetPlayOutScoreboardTeam = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam").getConstructor().newInstance();
@@ -595,7 +598,7 @@ public class NPC {
             if (Utils.isVersionNewestThan(9)) {
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(gameProfile.getName()) : gameProfile.getName());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
 
@@ -606,7 +609,7 @@ public class NPC {
             } else {
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", gameProfile.getName());
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
 

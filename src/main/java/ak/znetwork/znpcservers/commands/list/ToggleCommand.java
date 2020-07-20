@@ -50,7 +50,7 @@ public class ToggleCommand extends ZNCommand {
 
             switch (args[1]) {
                 case "name":
-                    npc.toggleName();
+                    npc.toggleName(true);
                     break;
                 case "holo":
                     npc.toggleHolo();

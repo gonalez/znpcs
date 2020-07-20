@@ -47,6 +47,8 @@ public class PlayerNetty {
 
     protected final ServersNPC serversNPC;
 
+    protected long last_interact = 0;
+
     public PlayerNetty(final ServersNPC serversNPC , final Player player) {
         this.serversNPC = serversNPC;
 
@@ -89,7 +91,7 @@ public class PlayerNetty {
                         try {
                             Object className = ReflectionUtils.getValue(packet , "action");
 
-                            if (className.toString().equalsIgnoreCase("INTERACT"))
+                            if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT"))
                                 return;
 
                             int entityId2 = (int) idField.get(packet);
@@ -98,6 +100,8 @@ public class PlayerNetty {
 
                             if (npc == null)
                                 return;
+
+                            last_interact = System.currentTimeMillis();
 
                             new BukkitRunnable() {
                                 @Override

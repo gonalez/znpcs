@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers.utils;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.ChatColor;
 
 public class Utils {
@@ -41,6 +42,9 @@ public class Utils {
         return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage());
     }
 
+    public static String generateRandom()  {
+        return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
+    }
     public static String tocolor(String tocolor) {
         return ChatColor.translateAlternateColorCodes('&' , tocolor);
     }
