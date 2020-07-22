@@ -48,9 +48,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class ServersNPC extends JavaPlugin {
 
@@ -61,6 +59,7 @@ public class ServersNPC extends JavaPlugin {
     protected NPCManager npcManager;
 
     final ExecutorService executor = Executors.newFixedThreadPool(2);
+    final ScheduledExecutorService schedule_executor = new ScheduledThreadPoolExecutor(0);
 
     protected LinkedHashSet<PlayerNetty> playerNetties;
 
@@ -94,36 +93,42 @@ public class ServersNPC extends JavaPlugin {
             System.out.println("Loading " + size + " npcs...");
 
             // Load all npc from config (Async)
-            CompletableFuture.runAsync(() -> {
-                for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
-                    final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
+            schedule_executor.schedule(() -> { // Add a bit delay before loading npcs since plugins creates the world before
+                CompletableFuture.runAsync(() -> {
+                    for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
+                        final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
 
-                    final String[] strings = new String[this.data.getConfig().getString("znpcs." + keys + ".lines").split(":").length];
+                        final String[] strings = new String[this.data.getConfig().getString("znpcs." + keys + ".lines").split(":").length];
 
-                    for (int i=0; i <= strings.length - 1; i++)
-                        strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
+                        for (int i=0; i <= strings.length - 1; i++)
+                            strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
 
-                    final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
+                        final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
 
-                    npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
-                    npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
-                    npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
-                    npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
-                    npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
-                    npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
+                        npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
+                        npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
+                        npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
+                        npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
+                        npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
+                        npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
+                        npc.setHasGlow(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.glow" , false));
 
-                    for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
-                        npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
+                        for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
+                            npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
+                        }
+
+                        if (npc.isHasGlow())
+                            npc.toggleGlow(false);
+
+                        npcManager.getNpcs().add(npc);
                     }
+                });
 
-                    npcManager.getNpcs().add(npc);
-                }
-            });
+                System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
 
-            System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-
-            // Setup netty again for online players
-            Bukkit.getOnlinePlayers().forEach(this::setupNetty);
+                // Setup netty again for online players
+                Bukkit.getOnlinePlayers().forEach(this::setupNetty);
+            }, (5) , TimeUnit.SECONDS);
         }
 
         // Init task for all npc
@@ -157,6 +162,7 @@ public class ServersNPC extends JavaPlugin {
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.mirror" , npc.isHasMirror());
+                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.glow" , npc.isHasGlow());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".skin" , npc.getSkin() + ":" + npc.getSignature());
 
                 for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {

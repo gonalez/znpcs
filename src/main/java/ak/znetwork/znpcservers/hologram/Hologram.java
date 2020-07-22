@@ -83,8 +83,6 @@ public class Hologram {
         this.location = location;
         this.lines = lines;
 
-        Collections.reverse(Arrays.asList(lines));
-
         try {
             packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving");
             getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving"));

@@ -55,13 +55,13 @@ public class ToggleCommand extends ZNCommand {
                 case "holo":
                     npc.toggleHolo();
                     break;
-                case  "look":
+                case "look":
                     npc.toggleLookAt();
                     break;
-                case  "glow":
-                    npc.toggleGlow();
+                case "glow":
+                    npc.toggleGlow(true);
                     break;
-                case  "mirror":
+                case "mirror":
                     npc.toggleMirror();
                     break;
             }

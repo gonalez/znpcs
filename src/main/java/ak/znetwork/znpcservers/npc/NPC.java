@@ -105,7 +105,7 @@ public class NPC {
     protected Class<?> packetPlayOutNamedEntitySpawn;
     protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
-    protected Class<?> packetPlayOutPlayerInfoClass ;
+    protected Class<?> packetPlayOutPlayerInfoClass;
     protected Class<?> enumPlayerInfoActionClass;
 
     protected Class<?> packetPlayOutEntityMetadata;
@@ -361,10 +361,11 @@ public class NPC {
     /**
      * Toggle the npc glow
      */
-    public void toggleGlow()  {
+    public void toggleGlow(boolean fix)  {
         if (!Utils.isVersionNewestThan(9))
             return;
 
+        if (fix)
         hasGlow = !hasGlow;
 
         try {
