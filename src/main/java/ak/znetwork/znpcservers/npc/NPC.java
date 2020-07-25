@@ -185,7 +185,8 @@ public class NPC {
             gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
             entityPlayer = getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld));
-            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() + 0.5, location.getY(),
+
+            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() + 0.5, (location.getBlock().getType().name().toUpperCase().contains("STEP") ? location.getY() + 0.5: location.getY()),
                     location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
             getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);

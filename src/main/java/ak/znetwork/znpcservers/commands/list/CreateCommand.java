@@ -36,7 +36,7 @@ public class CreateCommand extends ZNCommand {
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        if (args.length >= 3 && Utils.isInteger(args[1])) {
+        if (args.length >= 4 && Utils.isInteger(args[1])) {
             if (serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == Integer.parseInt(args[1])))  {
                 sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-found")));
                 return true;

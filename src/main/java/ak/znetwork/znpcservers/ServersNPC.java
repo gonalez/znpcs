@@ -153,8 +153,10 @@ public class ServersNPC extends JavaPlugin {
             System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
 
             for (final NPC npc : getNpcManager().getNpcs()) {
+                this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation()));
                 this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
                 this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
+
                 if (npc.getAction() != null)
                     this.data.getConfig().set("znpcs." + npc.getId() + ".action" , npc.getAction());
 
@@ -222,7 +224,9 @@ public class ServersNPC extends JavaPlugin {
         for (int i=0; i <= strings.length - 1; i++)
             strings[i] = holo_lines.split(":")[i];
 
-        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher[0] , skinFetcher[1] , player.getLocation() ,NPCAction.CMD, new Hologram(this , player.getLocation(), strings)));
+        final Location fixed = player.getLocation().clone().subtract(0.5 , 0 , 0.5);
+
+        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher[0] , skinFetcher[1] , fixed,NPCAction.CMD, new Hologram(this ,fixed, strings)));
 
         this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher[0] + ":" + skinFetcher[1]);
         this.data.getConfig().set("znpcs." + id + ".location" , LocationUtils.getStringLocation(player.getLocation()));

@@ -252,8 +252,8 @@ public class Hologram {
 
         for (Object o : entityArmorStands) {
             try {
-                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() + 0.5, location.getY() + y,
-                        location.getZ() + 0.5, location.getYaw() , location.getPitch());
+                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX(), location.getY() + y,
+                        location.getZ(), location.getYaw() , location.getPitch());
 
                 y+=0.3;
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
