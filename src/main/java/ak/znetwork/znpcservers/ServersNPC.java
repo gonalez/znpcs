@@ -91,7 +91,7 @@ public class ServersNPC extends JavaPlugin {
 
             System.out.println("Loading " + size + " npcs...");
 
-            // Load all npc from config (Async)
+            // Load all npc from config
             schedule_executor.schedule(() -> { // Add a bit delay before loading npcs since plugins creates the world before
                 for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
                     final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
@@ -143,35 +143,32 @@ public class ServersNPC extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(playerNetty -> playerNetty.ejectNetty(o)));
 
         // Save values on config (???)
+        long startMs = System.currentTimeMillis();
 
-        CompletableFuture.runAsync(() -> {
-            long startMs = System.currentTimeMillis();
+        System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
 
-            System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
+        for (final NPC npc : getNpcManager().getNpcs()) {
+            this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation()));
+            this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
 
-            for (final NPC npc : getNpcManager().getNpcs()) {
-                this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation()));
-                this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
+            if (npc.getAction() != null)
+                this.data.getConfig().set("znpcs." + npc.getId() + ".action" , npc.getAction());
 
-                if (npc.getAction() != null)
-                    this.data.getConfig().set("znpcs." + npc.getId() + ".action" , npc.getAction());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.mirror" , npc.isHasMirror());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.glow" , npc.isHasGlow());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".skin" , npc.getSkin() + ":" + npc.getSignature());
 
-                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.mirror" , npc.isHasMirror());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.glow" , npc.isHasGlow());
-                this.data.getConfig().set("znpcs." + npc.getId() + ".skin" , npc.getSkin() + ":" + npc.getSignature());
-
-                for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {
-                    this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());
-                }
+            for (Map.Entry<NPC.NPCItemSlot, Material> npcItemSlot : npc.getNpcItemSlotMaterialHashMap().entrySet()) {
+                this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());
             }
+        }
 
-            this.data.save();
-            System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-        });
+        this.data.save();
+        System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
     }
 
     public Configuration getMessages() {
