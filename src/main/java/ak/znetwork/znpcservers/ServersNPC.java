@@ -58,7 +58,6 @@ public class ServersNPC extends JavaPlugin {
     protected CommandsManager commandsManager;
     protected NPCManager npcManager;
 
-    final ExecutorService executor = Executors.newFixedThreadPool(2);
     final ScheduledExecutorService schedule_executor = new ScheduledThreadPoolExecutor(0);
 
     protected LinkedHashSet<PlayerNetty> playerNetties;
@@ -94,35 +93,33 @@ public class ServersNPC extends JavaPlugin {
 
             // Load all npc from config (Async)
             schedule_executor.schedule(() -> { // Add a bit delay before loading npcs since plugins creates the world before
-                CompletableFuture.runAsync(() -> {
-                    for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
-                        final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
+                for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
+                    final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
 
-                        final String[] strings = new String[this.data.getConfig().getString("znpcs." + keys + ".lines").split(":").length];
+                    final String[] strings = new String[this.data.getConfig().getString("znpcs." + keys + ".lines").split(":").length];
 
-                        for (int i=0; i <= strings.length - 1; i++)
-                            strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
+                    for (int i=0; i <= strings.length - 1; i++)
+                        strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
 
-                        final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
+                    final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
 
-                        npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
-                        npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
-                        npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
-                        npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
-                        npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
-                        npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
-                        npc.setHasGlow(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.glow" , false));
+                    npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
+                    npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
+                    npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
+                    npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
+                    npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
+                    npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
+                    npc.setHasGlow(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.glow" , false));
 
-                        for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
-                            npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
-                        }
-
-                        if (npc.isHasGlow())
-                            npc.toggleGlow(false);
-
-                        npcManager.getNpcs().add(npc);
+                    for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) {
+                        npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
                     }
-                });
+
+                    if (npc.isHasGlow())
+                        npc.toggleGlow(false);
+
+                    npcManager.getNpcs().add(npc);
+                }
 
                 System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
 
@@ -244,32 +241,28 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean deleteNPC(int id) {
-        CompletableFuture.supplyAsync(() -> {
-            final NPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
+        final NPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
 
-            // Try find
-            if (npc == null) {
-                return false;
-            }
+        // Try find
+        if (npc == null) {
+            return false;
+        }
 
-            getNpcManager().getNpcs().remove(npc);
+        getNpcManager().getNpcs().remove(npc);
 
-            final Iterator<UUID> it = npc.getViewers().iterator();
+        final Iterator<UUID> it = npc.getViewers().iterator();
 
-            while (it.hasNext())  {
-                final UUID uuid = it.next();
+        while (it.hasNext())  {
+            final UUID uuid = it.next();
 
-                npc.delete(Bukkit.getPlayer(uuid) , false);
+            npc.delete(Bukkit.getPlayer(uuid) , false);
 
-                it.remove();
-            }
+            it.remove();
+        }
 
-            this.data.getConfig().set("znpcs." + id , null);
-            this.data.save();
-            return true;
-        }, executor);
-
-        return false;
+        this.data.getConfig().set("znpcs." + id , null);
+        this.data.save();
+        return true;
     }
 
     /**
