@@ -89,7 +89,7 @@ public class Hologram {
             getArmorStandConstructor = ClazzCache.ENTITY_ARMOR_STAND_CLASS.aClass.getDeclaredConstructor(ClazzCache.WORLD_CLASS.aClass , double.class , double.class , double.class);
 
             createHolos();
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -104,7 +104,7 @@ public class Hologram {
             try {
                 Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -125,7 +125,7 @@ public class Hologram {
                 Array.set(entityArmorArray, 0, entityArmorStand.getClass().getMethod("getId").invoke(entityArmorStand));
 
                 ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityArmorArray));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -159,7 +159,7 @@ public class Hologram {
             }
 
             viewers.forEach(uuid -> spawn(Bukkit.getPlayer(uuid) , false));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -184,7 +184,7 @@ public class Hologram {
                 Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
 
                 ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -197,7 +197,7 @@ public class Hologram {
         text = Utils.tocolor(text);
         try {
             return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (serversNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -214,7 +214,7 @@ public class Hologram {
                 viewers.forEach(uuid -> {
                     ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,packete);
                 });
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
@@ -235,7 +235,7 @@ public class Hologram {
                         location.getZ(), location.getYaw() , location.getPitch());
 
                 y+=0.3;
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

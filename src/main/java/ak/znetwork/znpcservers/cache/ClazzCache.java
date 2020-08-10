@@ -44,6 +44,7 @@ public enum ClazzCache {
 
     ENUM_ITEM_SLOT_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(9) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot" : ""), null),
     ENUM_PLAYER_INFO_ACTION_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction", null),
+    ENUM_CHAT_FORMAT_CLASS(ClazzType.CLASS,  (Utils.isVersionNewestThan(9) ?"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumChatFormat" : ""), null),
 
     PACKET_PLAY_OUT_PLAYER_INFO(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo", null),
 

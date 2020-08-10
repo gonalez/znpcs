@@ -30,7 +30,9 @@ import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.server.v1_16_R1.EnumChatFormat;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -83,6 +85,9 @@ public class NPC {
     protected HashMap<NPCItemSlot , Material> npcItemSlotMaterialHashMap;
 
     protected String skin,signature;
+
+    protected String glowName;
+    protected Object glowColor;
 
     protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
     protected Constructor<?> getPacketPlayOutEntityHeadRotationConstructor;
@@ -171,7 +176,7 @@ public class NPC {
             entity_id = (Integer) ClazzCache.ENTITY_PLAYER_CLASS.aClass.getMethod("getId").invoke(entityPlayer);
 
             toggleName(true);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | NoSuchFieldException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -273,6 +278,25 @@ public class NPC {
         this.hasGlow = hasGlow;
     }
 
+
+    /**
+     * Set glow color
+     *
+     * @param glowColor set
+     */
+    public void setGlowColor(Object glowColor) {
+        this.glowColor = glowColor;
+    }
+
+    /**
+     * Set glow color name
+     *
+     * @param glowName set
+     */
+    public void setGlowName(String glowName) {
+        this.glowName = glowName;
+    }
+
     /**
      * Set holo visibility
      *
@@ -301,7 +325,15 @@ public class NPC {
     }
 
     /**
+     * Get color for glow
+     *
+     * @return glow color
+     */
+    public String getGlowName() {
+        return glowName;
+    }
 
+    /**
      * Get action type
      *
      * @return get npc action
@@ -320,23 +352,39 @@ public class NPC {
     /**
      * Toggle the npc glow
      */
-    public void toggleGlow(boolean fix)  {
-        if (!Utils.isVersionNewestThan(9))
-            return;
-
-        if (fix)
-        hasGlow = !hasGlow;
+    public void toggleGlow(final Player player, final String color, boolean fix) {
+        if (!Utils.isVersionNewestThan(9)) return;
+        if (fix) hasGlow = !hasGlow;
 
         try {
             getDataWatcher.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(getDataWatcher , dataWatcherObjectConstructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
             Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
-            Object packete = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
+            Object packet = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
 
-            viewers.forEach(uuid -> ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , packete));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
+            this.glowColor = getGlowColor(color);
+            this.glowName = color;
+
+            if (player != null) ReflectionUtils.sendPacket(player , packet);
+
+            // Update glow color
+            toggleName(false);
+        } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Object getGlowColor(final String string) {
+        try {
+            try {
+                return ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass.getField(string.toUpperCase()).get(null);
+            } catch (NoSuchFieldException e) {
+                throw new NoSuchFieldException("Couldn't locate color " + string);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -356,7 +404,7 @@ public class NPC {
 
             if (!Utils.isVersionNewestThan(9))
                 getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
-            else   {
+            else{
                 if (Utils.isVersionNewestThan(16)) {
                     getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , List.class);
 
@@ -368,7 +416,6 @@ public class NPC {
             npcItemSlotMaterialHashMap.put(slot , material);
 
             Object packete;
-
             if (Utils.isVersionNewestThan(16)) {
                 List<Pair<?, ?>> asd = (List<Pair<?, ?>>) v16b;
                 asd.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()]  , stack));
@@ -395,7 +442,7 @@ public class NPC {
      */
     public void spawn(final Player player) {
         try {
-            toggleName(false);
+            toggleName( false);
 
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
             Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
@@ -422,11 +469,9 @@ public class NPC {
 
             viewers.add(player.getUniqueId());
 
-            if (packetPlayOutScoreboardTeam != null)
-                ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
-
-            if (hasToggleHolo)
-                hologram.spawn(player , true);
+            if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
+            if (hasToggleHolo) hologram.spawn(player , true);
+            if (hasGlow) toggleGlow(player , glowName , false);
 
             // Fix rotation
             lookAt(player , location.clone() , true);
@@ -439,7 +484,7 @@ public class NPC {
                     hideFromTablist(player);
                 }
             }.runTaskLater(serversNPC , 20L);
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -453,7 +498,7 @@ public class NPC {
             Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
             ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
-        } catch (IllegalAccessException | NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -475,7 +520,7 @@ public class NPC {
                 viewers.remove(player.getUniqueId());
 
             hologram.delete(player , removeViewer);
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -492,7 +537,7 @@ public class NPC {
         try {
             if (!fix) ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256/360) ,  (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256/360) , true));
             ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(entityPlayer , (byte) (((direction.getYaw()) * 256.0F) / 360.0F)));
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -563,6 +608,8 @@ public class NPC {
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
 
+                if (hasGlow && glowColor != null) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", glowColor);
+
                 Collection<String> collection = Lists.newArrayList();
                 collection.add(gameProfile.getName());
 
@@ -632,7 +679,7 @@ public class NPC {
             viewers.forEach(uuid -> {
                 ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,  packete);
             });
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -652,7 +699,7 @@ public class NPC {
             hologram.setLocation(location);
 
             updateLoc();
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

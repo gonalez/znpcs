@@ -25,6 +25,7 @@ import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -40,7 +41,7 @@ public class ToggleCommand extends ZNCommand {
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length == 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo") || (args[1]).equalsIgnoreCase("glow") || (args[1]).equalsIgnoreCase("mirror")) {
+        if (args.length >= 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo") || (args[1]).equalsIgnoreCase("glow") || (args[1]).equalsIgnoreCase("mirror")) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {
@@ -59,7 +60,11 @@ public class ToggleCommand extends ZNCommand {
                     npc.toggleLookAt();
                     break;
                 case "glow":
-                    npc.toggleGlow(true);
+                    if (args.length == 3) npc.toggleGlow(player, args[2],true);
+                    else {
+                        sender.sendMessage(ChatColor.RED + "Correct usage: /znpcs " + getUsage() + " <glow_color>");
+                        return false;
+                    }
                     break;
                 case "mirror":
                     npc.toggleMirror();
