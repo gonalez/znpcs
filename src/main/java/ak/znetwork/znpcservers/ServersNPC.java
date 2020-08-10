@@ -35,11 +35,13 @@ import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationUtils;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.Utils;
+import com.mysql.fabric.Server;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -55,8 +57,6 @@ public class ServersNPC extends JavaPlugin {
 
     protected CommandsManager commandsManager;
     protected NPCManager npcManager;
-
-    final ScheduledExecutorService schedule_executor = new ScheduledThreadPoolExecutor(0);
 
     protected LinkedHashSet<PlayerNetty> playerNetties;
 
@@ -89,35 +89,38 @@ public class ServersNPC extends JavaPlugin {
             int size = this.data.getConfig().getConfigurationSection("znpcs").getKeys(false).size();
 
             // Load all npc from config
-            schedule_executor.schedule(() -> { // Add a bit delay before loading npcs since plugins creates the world before
-                System.out.println("Loading " + size + " npcs...");
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    System.out.println("Loading " + size + " npcs...");
 
-                long startMs = System.currentTimeMillis();
-                for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
-                    final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
+                    long startMs = System.currentTimeMillis();
+                    for (final String keys : ServersNPC.this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
+                        final Location location = LocationUtils.getLocationString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".location"));
 
-                    final String[] strings = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":");
+                        final String[] strings = ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".lines").split(":");
 
-                    final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
+                        final NPC npc = new NPC(ServersNPC.this , Integer.parseInt(keys) , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(ServersNPC.this , location , strings));
 
-                    npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
-                    npc.setAction(this.data.getConfig().contains("znpcs." + keys + ".actions") ? this.data.getConfig().getString("znpcs." + keys + ".actions").split(":"): new String[0]);
-                    npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
-                    npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
-                    npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
-                    npc.setHasMirror(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
-                    npc.setHasGlow(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.glow.has" , false));
-                    if (npc.isHasGlow()) npc.toggleGlow(null , this.data.getConfig().getString("znpcs." + keys + ".toggle.glow.color", "WHITE") , false);
+                        npc.setNpcAction(NPCAction.fromString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".type")));
+                        npc.setAction(ServersNPC.this.data.getConfig().contains("znpcs." + keys + ".actions") ? ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".actions").split(":"): new String[0]);
+                        npc.setHasToggleHolo(ServersNPC.this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
+                        npc.setHasLookAt(ServersNPC.this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
+                        npc.setHasToggleName(ServersNPC.this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
+                        npc.setHasMirror(ServersNPC.this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.mirror" , false));
+                        npc.setHasGlow(ServersNPC.this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.glow.has" , false));
+                        if (npc.isHasGlow()) npc.toggleGlow(null , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".toggle.glow.color", "WHITE") , false);
 
-                    for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) npc.equip(null , npcItemSlot , Material.getMaterial(this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
-                    npcManager.getNpcs().add(npc);
+                        for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) npc.equip(null , npcItemSlot , Material.getMaterial(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
+                        npcManager.getNpcs().add(npc);
+                    }
+
+                    System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+
+                    // Setup netty again for online players
+                    Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
                 }
-
-                System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-
-                // Setup netty again for online players
-                Bukkit.getOnlinePlayers().forEach(this::setupNetty);
-            }, (5) , TimeUnit.SECONDS);
+            }.runTaskLater(this , 20L * 3);
         }
 
         // Init task for all npc
