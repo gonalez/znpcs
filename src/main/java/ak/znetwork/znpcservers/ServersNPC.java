@@ -96,10 +96,7 @@ public class ServersNPC extends JavaPlugin {
                 for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
                     final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
 
-                    final String[] strings = new String[this.data.getConfig().getString("znpcs." + keys + ".lines").split(":").length];
-
-                    for (int i=0; i <= strings.length - 1; i++)
-                        strings[i] = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":")[i];
+                    final String[] strings = this.data.getConfig().getString("znpcs." + keys + ".lines").split(":");
 
                     final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
 
