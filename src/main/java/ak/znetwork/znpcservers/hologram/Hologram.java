@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.hologram;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -46,6 +47,8 @@ import java.util.*;
  */
 public class Hologram {
 
+    protected final ServersNPC serversNPC;
+
     public Location location;
     public String[] lines;
 
@@ -54,23 +57,13 @@ public class Hologram {
     protected List<UUID> viewers;
 
     protected Object nmsWorld;
-    protected Constructor<?> getArmorStandConstructor;
 
-    protected final ServersNPC serversNPC;
-
-    protected Class<?> IChatBaseComponent;
     protected Method IChatBaseComponentMethod;
 
-    protected Class<?> packetPlayOutEntityTeleport;
+    protected Constructor<?> getArmorStandConstructor;
     protected Constructor<?> getPacketPlayOutEntityTeleportConstructor;
-
-    protected Class<?> packetPlayOutEntityMetadata;
     protected Constructor<?> getPacketPlayOutEntityMetadataConstructor;
-
-    protected Class<?> packetPlayOutEntityDestroy;
     protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
-
-    protected Class<?> packetPlayOutNamedEntitySpawn;
     protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
 
@@ -84,29 +77,19 @@ public class Hologram {
         this.lines = lines;
 
         try {
-            packetPlayOutNamedEntitySpawn = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving");
-            getPacketPlayOutNamedEntitySpawnConstructor = packetPlayOutNamedEntitySpawn.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving"));
+            getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.aClass.getDeclaredConstructor(ClazzCache.ENTITY_LIVING_CLASS.aClass);
+            getPacketPlayOutEntityTeleportConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass);
+            getPacketPlayOutEntityMetadataConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.aClass.getConstructor(int.class , ClazzCache.DATA_WATCHER_CLASS.aClass , boolean.class);
+            getPacketPlayOutEntityDestroyConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.aClass.getConstructor(int[].class);
 
-            packetPlayOutEntityTeleport = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport");
-            getPacketPlayOutEntityTeleportConstructor = packetPlayOutEntityTeleport.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity"));
+            IChatBaseComponentMethod = ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass.getDeclaredClasses()[0].getMethod("a", String.class);
 
-            packetPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata");
-            getPacketPlayOutEntityMetadataConstructor = packetPlayOutEntityMetadata.getConstructor(int.class , Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher") , boolean.class);
+            nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
 
-            packetPlayOutEntityDestroy = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy");
-            getPacketPlayOutEntityDestroyConstructor = packetPlayOutEntityDestroy.getConstructor(int[].class);
-
-
-            IChatBaseComponent =  Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".IChatBaseComponent");
-            IChatBaseComponentMethod = IChatBaseComponent.getDeclaredClasses()[0].getMethod("a", String.class);
-
-            nmsWorld = location.getWorld().getClass().getMethod("getHandle").invoke(location.getWorld());
-
-            Class<?> entityArmorStandClass = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand");
-            getArmorStandConstructor = entityArmorStandClass.getDeclaredConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World") , double.class , double.class , double.class);
+            getArmorStandConstructor = ClazzCache.ENTITY_ARMOR_STAND_CLASS.aClass.getDeclaredConstructor(ClazzCache.WORLD_CLASS.aClass , double.class , double.class , double.class);
 
             createHolos();
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
@@ -165,10 +148,8 @@ public class Hologram {
                 Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, location.getY() + (y) , location.getZ() + 0.5);
 
                 armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                if (Utils.isVersionNewestThan(13))
-                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(lines[i]));
-                else
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
+                if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
+                else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
 
                 armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
 
@@ -194,12 +175,9 @@ public class Hologram {
             Object armorStand =  entityArmorStands.get(i);
 
             final String line = lines[i].replace("_" , " ");
-
             try {
-                if (Utils.isVersionNewestThan(13))
-                    armorStand.getClass().getMethod("setCustomName" , IChatBaseComponent).invoke(armorStand , getStringNewestVersion(line));
-                else
-                    armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
+                if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(player, lines[i]));
+                else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
                 int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
@@ -215,9 +193,10 @@ public class Hologram {
     /**
      * @return
      */
-    public Object getStringNewestVersion(String text) {
+    public Object getStringNewestVersion(final Player player, String text) {
+        text = Utils.tocolor(text);
         try {
-            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + ChatColor.translateAlternateColorCodes('&' , text) + "\"}");
+            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (serversNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }

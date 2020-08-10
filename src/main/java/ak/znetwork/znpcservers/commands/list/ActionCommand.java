@@ -29,19 +29,24 @@ import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ActionCommand extends ZNCommand {
 
     public ActionCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "action" , "action <server:cmd> <run>" , "znpcs.cmd.action" ,CommandType.PLAYER);
+        super(serversNPC , "action" , "action <server:cmd:console> <run...>" , "znpcs.cmd.action" ,CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length == 3 && ((args[1]).equalsIgnoreCase("server") || (args[1]).equalsIgnoreCase("cmd"))) {
+        if (args.length >= 3 && ((args[1]).equalsIgnoreCase("server") || (args[1]).equalsIgnoreCase("cmd")) || (args[1]).equalsIgnoreCase("console")) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {
@@ -50,7 +55,7 @@ public class ActionCommand extends ZNCommand {
             }
 
             npc.setNpcAction(NPCAction.fromString(args[1]));
-            npc.setAction(args[2]);
+            npc.setAction(Arrays.stream(args, 2, args.length).toArray(String[]::new));
 
             player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
             return true;

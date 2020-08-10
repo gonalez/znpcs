@@ -46,9 +46,7 @@ public class NPCTask extends BukkitRunnable {
                     npc.delete(player , true);
 
                 if (npc.getViewers().contains(player.getUniqueId()) && player.getLocation().distance(npc.getLocation()) <= 30D) {
-                    if (npc.isHasLookAt()) {
-                        npc.lookAt(player , player.getLocation());
-                    }
+                    if (npc.isHasLookAt()) npc.lookAt(player , player.getLocation() , false);
 
                     npc.getHologram().updateNames(player);
                 }

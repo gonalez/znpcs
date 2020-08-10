@@ -45,6 +45,7 @@ public class Utils {
     public static String generateRandom()  {
         return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
     }
+
     public static String tocolor(String tocolor) {
         return ChatColor.translateAlternateColorCodes('&' , tocolor);
     }

@@ -21,11 +21,14 @@
 package ak.znetwork.znpcservers.netty;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -35,8 +38,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerNetty {
-
-    protected Class<?> packetPlayInUseEntity;
 
     protected Object networkManager;
     protected Object channel;
@@ -55,17 +56,15 @@ public class PlayerNetty {
         this.uuid = player.getUniqueId();
 
         try {
-            packetPlayInUseEntity = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayInUseEntity");
-
             Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
             Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
 
             networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
             channel = networkManager.getClass().getField("channel").get(networkManager);
 
-            idField = packetPlayInUseEntity.getDeclaredField("a");
+            idField = ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass.getDeclaredField("a");
             idField.setAccessible(true);
-        } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
@@ -87,9 +86,9 @@ public class PlayerNetty {
                 protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
                     out.add(packet);
 
-                    if (packet.getClass() == packetPlayInUseEntity) {
+                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
                         try {
-                            Object className = ReflectionUtils.getValue(packet , "action");
+                            Object className = ReflectionUtils.getValue(packet, "action");
 
                             if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT"))
                                 return;
@@ -106,21 +105,25 @@ public class PlayerNetty {
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    if (npc.getAction() != null) {
-                                        final String action = npc.getAction().replace("_" , " ");
+                                    if (npc.getActions() != null && npc.getActions().length > 0) {
+                                        for (String string : npc.getActions()) {
+                                            final String action = string.replace("_", " ");
 
-                                        switch (npc.getNpcAction()) {
-                                            case CMD:
-                                                player.performCommand(action);
-                                                break;
-                                            case SERVER:
-                                                serversNPC.sendPlayerToServer(player , action);
-                                                break;
-                                            default:break;
+                                            switch (npc.getNpcAction()) {
+                                                case CMD:
+                                                    player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                    break;
+                                                case CONSOLE:
+                                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                    break;
+                                                case SERVER:
+                                                    serversNPC.sendPlayerToServer(player, action);
+                                                    break;
+                                            }
                                         }
                                     }
                                 }
-                            }.runTaskLater(serversNPC , 2L);
+                            }.runTaskLater(serversNPC, 2L);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

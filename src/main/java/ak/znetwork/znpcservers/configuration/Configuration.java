@@ -27,13 +27,14 @@ public class Configuration {
 
     this.file = new File(core.getDataFolder(), this.name + ".yml");
 
-    if (!file.exists()) {
-      file.getParentFile().mkdirs();
-    }
-
     configuration = new YamlConfiguration();
 
-    core.saveResource(this.name + ".yml", false);
+    if (!file.exists()) {
+      file.getParentFile().mkdirs();
+
+      core.saveResource(this.name + ".yml", false);
+    }
+
     try {
       configuration.load(file);
     } catch (IOException | InvalidConfigurationException e) {

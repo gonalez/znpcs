@@ -51,17 +51,7 @@ public class LinesCommand extends ZNCommand {
                 return true;
             }
 
-            final StringBuilder stringBuilder = new StringBuilder();
-
-            for (int i=1; i<=args.length - 1; i++)
-                stringBuilder.append(args[i]).append(":");
-
-            final String toString = stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
-
-            final String[] strings = new String[toString.split(":").length];
-
-            for (int i=0; i <= strings.length - 1; i++)
-                strings[i] = toString.split(":")[i];
+            final String[] strings = Arrays.stream(args, 1, args.length).toArray(String[]::new);
 
             Collections.reverse(Arrays.asList(strings));
 

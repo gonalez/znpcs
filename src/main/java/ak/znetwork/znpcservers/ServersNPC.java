@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers;
 
+import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.commands.list.*;
 import ak.znetwork.znpcservers.configuration.Configuration;
 import ak.znetwork.znpcservers.hologram.Hologram;
@@ -44,10 +45,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class ServersNPC extends JavaPlugin {
@@ -83,16 +81,18 @@ public class ServersNPC extends JavaPlugin {
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
 
+        // Load reflection cache
+        try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
+
         // Check if data contains any npc
         if (this.data.getConfig().contains("znpcs")) {
             int size = this.data.getConfig().getConfigurationSection("znpcs").getKeys(false).size();
 
-            long startMs = System.currentTimeMillis();
-
-            System.out.println("Loading " + size + " npcs...");
-
             // Load all npc from config
             schedule_executor.schedule(() -> { // Add a bit delay before loading npcs since plugins creates the world before
+                System.out.println("Loading " + size + " npcs...");
+
+                long startMs = System.currentTimeMillis();
                 for (final String keys : this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
                     final Location location = LocationUtils.getLocationString(this.data.getConfig().getString("znpcs." + keys + ".location"));
 
@@ -104,7 +104,7 @@ public class ServersNPC extends JavaPlugin {
                     final NPC npc = new NPC(this , Integer.parseInt(keys) ,this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(this , location , strings));
 
                     npc.setNpcAction(NPCAction.fromString(this.data.getConfig().getString("znpcs." + keys + ".type")));
-                    npc.setAction(this.data.getConfig().getString("znpcs." + keys + ".action" , ""));
+                    npc.setAction(this.data.getConfig().contains("znpcs." + keys + ".actions") ? this.data.getConfig().getString("znpcs." + keys + ".actions").split(":"): new String[0]);
                     npc.setHasToggleHolo(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.holo" , true));
                     npc.setHasLookAt(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.look" , false));
                     npc.setHasToggleName(this.data.getConfig().getBoolean("znpcs." + keys + ".toggle.name" , true));
@@ -121,7 +121,7 @@ public class ServersNPC extends JavaPlugin {
                     npcManager.getNpcs().add(npc);
                 }
 
-                System.out.println("(Loaded " + size + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
 
                 // Setup netty again for online players
                 Bukkit.getOnlinePlayers().forEach(this::setupNetty);
@@ -146,15 +146,11 @@ public class ServersNPC extends JavaPlugin {
         long startMs = System.currentTimeMillis();
 
         System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
-
         for (final NPC npc : getNpcManager().getNpcs()) {
             this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation()));
             this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
             this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
-
-            if (npc.getAction() != null)
-                this.data.getConfig().set("znpcs." + npc.getId() + ".action" , npc.getAction());
-
+            if (npc.getActions() != null && npc.getActions().length > 0) this.data.getConfig().set("znpcs." + npc.getId() + ".actions" , String.join(":" , npc.getActions()));
             this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
             this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
             this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.name" , npc.isHasToggleName());
@@ -166,8 +162,8 @@ public class ServersNPC extends JavaPlugin {
                 this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());
             }
         }
-
         this.data.save();
+
         System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
     }
 

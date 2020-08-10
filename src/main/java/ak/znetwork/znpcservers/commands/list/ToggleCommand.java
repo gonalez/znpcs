@@ -65,7 +65,6 @@ public class ToggleCommand extends ZNCommand {
                     npc.toggleMirror();
                     break;
             }
-
             player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
             return true;
         }
