@@ -28,6 +28,11 @@ import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
@@ -42,12 +47,10 @@ public class CreateCommand extends ZNCommand {
                 return true;
             }
 
-            final StringBuilder stringBuilder = new StringBuilder();
+            final List<String> strings = Arrays.stream(args, 3, args.length).collect(Collectors.toList());
+            Collections.reverse(strings);
 
-            for (int i=3; i<=args.length - 1; i++)
-                stringBuilder.append(args[i]).append(":");
-
-            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) ,args[2], stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
+            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) ,args[2], String.join(":" , strings));
             return true;
         }
         runUsage(sender);
