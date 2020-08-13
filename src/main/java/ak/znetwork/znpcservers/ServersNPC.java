@@ -35,6 +35,7 @@ import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationUtils;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.Utils;
+import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.mysql.fabric.Server;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -142,7 +143,7 @@ public class ServersNPC extends JavaPlugin {
 
         System.out.println("Saving " + getNpcManager().getNpcs().size() + " npcs...");
         for (final NPC npc : getNpcManager().getNpcs()) {
-            this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation()));
+            this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation().add(0.5 , 0 , 0.5)));
             this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
             this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
             if (npc.getActions() != null && npc.getActions().length > 0) this.data.getConfig().set("znpcs." + npc.getId() + ".actions" , String.join(":" , npc.getActions()));
@@ -203,18 +204,13 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean createNPC(int id , final Player player , final String skin, final String holo_lines) {
-        final String[] skinFetcher = JSONUtils.getFromUrl("https://sessionserver.mojang.com/session/minecraft/profile/" + JSONUtils.fetchUUID(skin) + "?unsigned=false");
-
-        final String[] strings = new String[holo_lines.split(":").length];
-
-        for (int i=0; i <= strings.length - 1; i++)
-            strings[i] = holo_lines.split(":")[i];
+        final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
 
         final Location fixed = player.getLocation().clone().subtract(0.5 , 0 , 0.5);
 
-        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher[0] , skinFetcher[1] , fixed,NPCAction.CMD, new Hologram(this ,fixed, strings)));
+        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed,NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":"))));
 
-        this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher[0] + ":" + skinFetcher[1]);
+        this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher.value + ":" + skinFetcher.signature);
         this.data.getConfig().set("znpcs." + id + ".location" , LocationUtils.getStringLocation(player.getLocation()));
         this.data.getConfig().set("znpcs." + id + ".lines" , holo_lines);
         this.data.save();

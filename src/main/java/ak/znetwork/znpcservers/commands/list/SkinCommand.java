@@ -26,7 +26,10 @@ import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.Utils;
+import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import org.bukkit.command.CommandSender;
+
+import java.util.concurrent.ExecutionException;
 
 public class SkinCommand extends ZNCommand {
 
@@ -45,11 +48,14 @@ public class SkinCommand extends ZNCommand {
                     return true;
                 }
 
-                final String[] skinFetcher = JSONUtils.getFromUrl("https://sessionserver.mojang.com/session/minecraft/profile/" + JSONUtils.fetchUUID(args[2]) + "?unsigned=false");
+                final SkinFetch skinFetcher = JSONUtils.getSkin(args[2]);
 
-                npc.setSkin(skinFetcher[0]);
-                npc.setSignature(skinFetcher[1]);
+                if (skinFetcher == null) {
+                    sender.sendMessage(Utils.tocolor("&cError!"));
+                    return true;
+                }
 
+                npc.updateSkin(skinFetcher);
                 sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
                 return true;
             default:

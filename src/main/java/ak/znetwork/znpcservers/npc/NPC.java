@@ -26,6 +26,7 @@ import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
+import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -434,6 +435,37 @@ public class NPC {
         }
     }
 
+    /**
+     * Update new skin for new players
+     *
+     * @param skinFetch value
+     */
+    public void updateSkin(final SkinFetch skinFetch) {
+        setSkin(skinFetch.value);
+        setSignature(skinFetch.signature);
+
+        final GameProfile gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
+        gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
+
+        try {
+            Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
+
+            ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
+            ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
+
+            final Iterator<UUID> it = this.getViewers().iterator();
+
+            while (it.hasNext())  {
+                final UUID uuid = it.next();
+
+                this.delete(Bukkit.getPlayer(uuid) , false);
+
+                it.remove();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * Spawn the npc for player
      * @param player to show npc
