@@ -51,14 +51,18 @@ public class LinesCommand extends ZNCommand {
                 return true;
             }
 
-            final String[] strings = Arrays.stream(args, 1, args.length).toArray(String[]::new);
+            try {
+                final String[] strings = Arrays.stream(args, 1, args.length).toArray(String[]::new);
 
-            Collections.reverse(Arrays.asList(strings));
+                Collections.reverse(Arrays.asList(strings));
 
-            npc.getHologram().lines = strings;
-            npc.getHologram().createHolos();
+                npc.getHologram().lines = strings;
+                npc.getHologram().createHolos();
 
-            player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            } catch (Exception e) {
+                throw new RuntimeException("An exception occurred while trying to change lines for hologram", e);
+            }
             return true;
         }
         runUsage(sender);

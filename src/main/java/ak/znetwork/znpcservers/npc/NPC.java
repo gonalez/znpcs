@@ -36,7 +36,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -70,7 +69,7 @@ public class NPC {
 
     protected Location location;
 
-    protected List<UUID> viewers;
+    protected HashSet<Player> viewers;
 
     protected Hologram hologram;
 
@@ -110,11 +109,11 @@ public class NPC {
      * @param npcAction npc action type
      * @param hologram
      */
-    public NPC(final ServersNPC serversNPC , final int id, final String skin , final String signature , final Location location , NPCAction npcAction, Hologram hologram) {
+    public NPC(final ServersNPC serversNPC , final int id, final String skin , final String signature , final Location location , NPCAction npcAction, Hologram hologram) throws Exception {
         this.serversNPC = serversNPC;
 
         this.npcItemSlotMaterialHashMap = new HashMap<>();
-        this.viewers = new ArrayList<>();
+        this.viewers = new HashSet<>();
 
         this.skin = skin;
         this.signature = signature;
@@ -126,58 +125,54 @@ public class NPC {
 
         this.npcAction = npcAction;
 
-        try {
-            Object nmsServer = ClazzCache.GET_SERVER_METHOD.method.invoke(Bukkit.getServer());
-            Object nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
+        Object nmsServer = ClazzCache.GET_SERVER_METHOD.method.invoke(Bukkit.getServer());
+        Object nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
 
-            Constructor<?> getPlayerInteractManagerConstructor = ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.aClass.getDeclaredConstructors()[0];
+        Constructor<?> getPlayerInteractManagerConstructor = ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.aClass.getDeclaredConstructors()[0];
 
-            Constructor<?> getPlayerConstructor = ClazzCache.ENTITY_PLAYER_CLASS.aClass.getDeclaredConstructors()[0];
+        Constructor<?> getPlayerConstructor = ClazzCache.ENTITY_PLAYER_CLASS.aClass.getDeclaredConstructors()[0];
 
-            getPacketPlayOutEntityDestroyConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.aClass.getConstructor(int[].class);;
+        getPacketPlayOutEntityDestroyConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.aClass.getConstructor(int[].class);;
 
-            getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS.aClass.getDeclaredConstructor(ClazzCache.ENTITY_HUMAN_CLASS.aClass);
+        getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS.aClass.getDeclaredConstructor(ClazzCache.ENTITY_HUMAN_CLASS.aClass);
 
-            getPacketPlayOutEntityMetadataConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.aClass.getConstructor(int.class , ClazzCache.DATA_WATCHER_CLASS.aClass , boolean.class);
+        getPacketPlayOutEntityMetadataConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.aClass.getConstructor(int.class , ClazzCache.DATA_WATCHER_CLASS.aClass , boolean.class);
 
-            getPacketPlayOutEntityTeleportConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass);
+        getPacketPlayOutEntityTeleportConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass);
 
-            getPacketPlayOutEntityHeadRotationConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass , byte.class);
+        getPacketPlayOutEntityHeadRotationConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass , byte.class);
 
-            getPacketPlayOutEntityLookConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CLASS.aClass.getConstructor(int.class , byte.class , byte.class , boolean.class);
+        getPacketPlayOutEntityLookConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CLASS.aClass.getConstructor(int.class , byte.class , byte.class , boolean.class);
 
-            gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
-            gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
+        gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
+        gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
-            entityPlayer = getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld));
+        entityPlayer = getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld));
 
-            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() + 0.5, (location.getBlock().getType().name().toUpperCase().contains("STEP") ? location.getY() + 0.5: location.getY()),
-                    location.getZ() + 0.5, location.getYaw() , location.getPitch());
+        entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() + 0.5, (location.getBlock().getType().name().toUpperCase().contains("STEP") ? location.getY() + 0.5: location.getY()),
+                location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
-            getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
+        getDataWatcher = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
-            if (Utils.isVersionNewestThan(9)) {
-                dataWatcherObjectConstructor = ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
-                dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
+        if (Utils.isVersionNewestThan(9)) {
+            dataWatcherObjectConstructor = ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
+            dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
 
-                int version = Utils.getVersion();
+            int version = Utils.getVersion();
 
-                getDataWatcher.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
-            } else getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
+            getDataWatcher.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(getDataWatcher ,  dataWatcherObjectConstructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
+        } else getDataWatcher.getClass().getMethod("watch", int.class, Object.class).invoke(getDataWatcher , 10 , (byte) 127);
 
-            enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("ADD_PLAYER").get(null);
+        enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("ADD_PLAYER").get(null);
 
-            getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
+        getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
 
-            entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.aClass, 1);
-            Array.set(entityPlayerArray, 0, entityPlayer);
+        entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.aClass, 1);
+        Array.set(entityPlayerArray, 0, entityPlayer);
 
-            entity_id = (Integer) ClazzCache.ENTITY_PLAYER_CLASS.aClass.getMethod("getId").invoke(entityPlayer);
+        entity_id = (Integer) ClazzCache.ENTITY_PLAYER_CLASS.aClass.getMethod("getId").invoke(entityPlayer);
 
-            toggleName(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        toggleName(true);
     }
 
     /**
@@ -351,39 +346,30 @@ public class NPC {
     /**
      * Toggle the npc glow
      */
-    public void toggleGlow(final Player player, final String color, boolean fix) {
+    public void toggleGlow(final Player player, final String color, boolean fix) throws Exception {
         if (!Utils.isVersionNewestThan(9)) return;
         if (fix) hasGlow = !hasGlow;
 
-        try {
-            getDataWatcher.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(getDataWatcher , dataWatcherObjectConstructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
+        getDataWatcher.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(getDataWatcher , dataWatcherObjectConstructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
-            Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
-            Object packet = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
+        Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
+        Object packet = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
 
-            this.glowColor = getGlowColor(color);
-            this.glowName = color;
+        this.glowColor = getGlowColor(color);
+        this.glowName = color;
 
-            if (player != null) ReflectionUtils.sendPacket(player , packet);
+        if (player != null) ReflectionUtils.sendPacket(player , packet);
 
-            // Update glow color
-            toggleName(false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Update glow color
+        toggleName(false);
     }
 
-    public Object getGlowColor(final String string) {
+    public Object getGlowColor(final String string) throws Exception {
         try {
-            try {
-                return ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass.getField(string.toUpperCase()).get(null);
-            } catch (NoSuchFieldException e) {
-                throw new NoSuchFieldException("Couldn't locate color " + string);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass.getField(string.toUpperCase()).get(null);
+        } catch (NoSuchFieldException e) {
+            throw new NoSuchFieldException("Couldn't locate color " + string);
         }
-        return null;
     }
 
     /**
@@ -393,46 +379,38 @@ public class NPC {
      * @param slot item slot
      * @param material material
      */
-    public void equip(final Player player , NPCItemSlot slot , Material material) {
-        try {
-            Object stack = ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass.getMethod("asNMSCopy" , ItemStack.class).invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass , new ItemStack(material));
+    public void equip(final Player player , NPCItemSlot slot , Material material) throws Exception {
+        Object stack = ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass.getMethod("asNMSCopy" , ItemStack.class).invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass , new ItemStack(material));
 
-            Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
+        Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
-            Object v16b = null;
+        Object v16b = null;
 
-            if (!Utils.isVersionNewestThan(9))
-                getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
-            else{
-                if (Utils.isVersionNewestThan(16)) {
-                    getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , List.class);
-
-                    v16b = ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.newInstance() , "b");
-                }
-                else
-                    getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
-            }
-            npcItemSlotMaterialHashMap.put(slot , material);
-
-            Object packete;
+        if (!Utils.isVersionNewestThan(9))
+            getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
+        else{
             if (Utils.isVersionNewestThan(16)) {
-                List<Pair<?, ?>> asd = (List<Pair<?, ?>>) v16b;
-                asd.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()]  , stack));
+                getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , List.class);
 
-                packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , asd);
-            } else  {
-                packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+                v16b = ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.newInstance() , "b");
             }
-
-            if (player == null) {
-                getViewers().forEach(uuid -> {
-                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid), packete);
-                });
-            } else
-                ReflectionUtils.sendPacket(player, packete);
-        } catch (Exception e) {
-            e.printStackTrace();
+            else
+                getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
         }
+        npcItemSlotMaterialHashMap.put(slot , material);
+
+        Object packete;
+        if (Utils.isVersionNewestThan(16)) {
+            List<Pair<?, ?>> asd = (List<Pair<?, ?>>) v16b;
+            asd.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()]  , stack));
+
+            packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , asd);
+        } else  {
+            packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+        }
+
+        if (player == null) getViewers().forEach(player1 -> ReflectionUtils.sendPacket(player1, packete));
+        else ReflectionUtils.sendPacket(player, packete);
     }
 
     /**
@@ -440,119 +418,100 @@ public class NPC {
      *
      * @param skinFetch value
      */
-    public void updateSkin(final SkinFetch skinFetch) {
+    public void updateSkin(final SkinFetch skinFetch) throws Exception {
         setSkin(skinFetch.value);
         setSignature(skinFetch.signature);
 
         final GameProfile gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
         gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
-        try {
-            Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
+        Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
 
-            ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
-            ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
+        ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
+        ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
 
-            final Iterator<UUID> it = this.getViewers().iterator();
+        final Iterator<Player> it = this.getViewers().iterator();
 
-            while (it.hasNext())  {
-                final UUID uuid = it.next();
+        while (it.hasNext())  {
+            final Player player = it.next();
 
-                this.delete(Bukkit.getPlayer(uuid) , false);
+            this.delete(player , false);
 
-                it.remove();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            it.remove();
         }
     }
+
     /**
      * Spawn the npc for player
      * @param player to show npc
      */
-    public void spawn(final Player player) {
-        try {
-            toggleName( false);
+    public void spawn(final Player player) throws Exception {
+        toggleName( false);
 
-            Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
-            Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
+        Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
+        Object dataWatcherObject = entityPlayer.getClass().getMethod("getDataWatcher").invoke(entityPlayer);
 
-            if (hasMirror) {
-                final GameProfile gameProfile = getGameProfileForPlayer(player);
-                try {
-                    Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
+        if (isHasMirror()) {
+            final GameProfile gameProfile = getGameProfileForPlayer(player);
 
-                    ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
-                    ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            Object gameProfileObj = entityPlayer.getClass().getMethod("getProfile").invoke(entityPlayer);
+
+            ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
+            ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
+        }
+
+        ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
+
+        Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
+
+        ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
+
+        ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
+
+        viewers.add(player);
+
+        if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
+        if (hasToggleHolo) hologram.spawn(player , true);
+        if (hasGlow) toggleGlow(player , glowName , false);
+
+        // Fix rotation
+        lookAt(player , location.clone() , true);
+
+        for (final Map.Entry<NPCItemSlot, Material> test : npcItemSlotMaterialHashMap.entrySet()) equip(player , test.getKey() , test.getValue());
+
+        this.serversNPC.getExecutor().execute(() -> {
+            try {
+                hideFromTablist(player);
+            } catch (Exception e) {
+                throw new RuntimeException("An exception occurred while trying to hide npc" + getId(), e);
             }
-
-            ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
-
-            Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityPlayer);
-
-            ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
-
-            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
-
-            viewers.add(player.getUniqueId());
-
-            if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
-            if (hasToggleHolo) hologram.spawn(player , true);
-            if (hasGlow) toggleGlow(player , glowName , false);
-
-            // Fix rotation
-            lookAt(player , location.clone() , true);
-
-            for (final Map.Entry<NPCItemSlot, Material> test : npcItemSlotMaterialHashMap.entrySet()) equip(player , test.getKey() , test.getValue());
-            new BukkitRunnable() {
-
-                @Override
-                public void run() {
-                    hideFromTablist(player);
-                }
-            }.runTaskLater(serversNPC , 20L);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
-    public void hideFromTablist(final Player player) {
-        try {
-            Object enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("REMOVE_PLAYER").get(null);
+    public void hideFromTablist(final Player player) throws Exception {
+        Object enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("REMOVE_PLAYER").get(null);
 
-            Constructor<?> getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
+        Constructor<?> getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
 
-            Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
+        Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
-            ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        ReflectionUtils.sendPacket(player , packetPlayOutPlayerInfoConstructor);
     }
-
 
     /**
      * Delete npc for player
      *
      * @param player to delete npc
      */
-    public void delete(final Player player , boolean removeViewer) {
-        try {
-            Object entityPlayerArray = Array.newInstance(int.class, 1);
-            Array.set(entityPlayerArray, 0, entity_id);
+    public void delete(final Player player , boolean removeViewer) throws Exception {
+        Object entityPlayerArray = Array.newInstance(int.class, 1);
+        Array.set(entityPlayerArray, 0, entity_id);
 
-            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityPlayerArray));
+        ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityPlayerArray));
 
-            if (removeViewer)
-                viewers.remove(player.getUniqueId());
+        if (removeViewer) viewers.remove(player);
 
-            hologram.delete(player , removeViewer);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        hologram.delete(player , removeViewer);
     }
 
     /**
@@ -561,16 +520,11 @@ public class NPC {
      * @param player receiver
      * @param location look at
      */
-    public void lookAt(final Player player , final Location location , final boolean fix) {
-        Location direction = this.location.clone().setDirection(location.subtract(this.location.clone()).toVector());
-        if (fix) direction = this.location;
-        try {
-            if (!fix) ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256/360) ,  (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256/360) , true));
-            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(entityPlayer , (byte) (((direction.getYaw()) * 256.0F) / 360.0F)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void lookAt(final Player player , final Location location , final boolean fix) throws Exception {
+        Location direction = (fix ? this.location : this.location.clone().setDirection(location.subtract(this.location.clone()).toVector()));
 
+        if (!fix) ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256/360) ,  (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256/360) , true));
+        ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(entityPlayer , (byte) (((direction.getYaw()) * 256.0F) / 360.0F)));
     }
 
     /**
@@ -586,10 +540,8 @@ public class NPC {
     public void toggleHolo() {
         hasToggleHolo = !hasToggleHolo;
 
-        if (!hasToggleHolo)
-            viewers.forEach(uuid -> hologram.delete(Bukkit.getPlayer(uuid) , true));
-        else
-            viewers.forEach(uuid -> hologram.spawn(Bukkit.getPlayer(uuid) , true));
+        if (!hasToggleHolo) viewers.forEach(player -> hologram.delete(player, true));
+        else viewers.forEach(player -> hologram.spawn(player, true));
     }
 
     public void toggleMirror() {
@@ -602,20 +554,15 @@ public class NPC {
      * @param player object
      * @return game profile for player
      */
-    public GameProfile getGameProfileForPlayer(final Player player) {
-        try {
-            Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object gameProfileObj = craftPlayer.getClass().getMethod("getProfile").invoke(craftPlayer);
+    public GameProfile getGameProfileForPlayer(final Player player) throws Exception {
+        Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+        Object gameProfileObj = craftPlayer.getClass().getMethod("getProfile").invoke(craftPlayer);
 
-            GameProfile gameProfileClone = (GameProfile) gameProfileObj;
-            GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
-            newProfile.getProperties().putAll(gameProfileClone.getProperties());
+        GameProfile gameProfileClone = (GameProfile) gameProfileObj;
+        GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
+        newProfile.getProperties().putAll(gameProfileClone.getProperties());
 
-            return newProfile;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return newProfile;
     }
 
     /**
@@ -624,45 +571,42 @@ public class NPC {
      * Hide/Show
      */
     @SuppressWarnings("unchecked")
-    public void toggleName(boolean fix) {
+    public void toggleName(boolean fix) throws Exception {
         if (fix)
             hasToggleName = !hasToggleName;
 
-        try {
-            Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.aClass.getConstructor().newInstance();
+        Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.aClass.getConstructor().newInstance();
 
-            if (Utils.isVersionNewestThan(9)) {
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
+        if (Utils.isVersionNewestThan(9)) {
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
 
-                if (hasGlow && glowColor != null) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", glowColor);
+            if (hasGlow && glowColor != null) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", glowColor);
 
-                Collection<String> collection = Lists.newArrayList();
-                collection.add(gameProfile.getName());
+            Collection<String> collection = Lists.newArrayList();
+            collection.add(gameProfile.getName());
 
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
-            } else {
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
+        } else {
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
 
-                Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
-                f.setAccessible(true);
+            Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
+            f.setAccessible(true);
 
-                Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
-                collection.add(gameProfile.getName());
-            }
-
-            this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
-            viewers.forEach(uuid -> ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) , packetPlayOutScoreboardTeam));
-        } catch (Exception e) {
-            e.printStackTrace();
+            Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
+            collection.add(gameProfile.getName());
         }
+
+        this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
+
+        viewers.forEach(player -> ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam));
     }
 
     /**
@@ -702,16 +646,10 @@ public class NPC {
     /**
      * Update new loc
      */
-    public void updateLoc() {
-        try {
-            Object packete = getPacketPlayOutEntityTeleportConstructor.newInstance(entityPlayer);
+    public void updateLoc() throws Exception {
+        Object packet = getPacketPlayOutEntityTeleportConstructor.newInstance(entityPlayer);
 
-            viewers.forEach(uuid -> {
-                ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,  packete);
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        viewers.forEach(player -> ReflectionUtils.sendPacket(player , packet));
     }
 
     /**
@@ -719,19 +657,15 @@ public class NPC {
      *
      * @param location new
      */
-    public void setLocation(Location location) {
+    public void setLocation(Location location) throws Exception {
         this.location = location;
 
-        try {
-            entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() , location.getY(),
-                    location.getZ() , location.getYaw() , location.getPitch());
+        entityPlayer.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(entityPlayer , location.getX() , location.getY(),
+                location.getZ() , location.getYaw() , location.getPitch());
 
-            hologram.setLocation(location);
+        hologram.setLocation(location);
 
-            updateLoc();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        updateLoc();
     }
 
     /**
@@ -739,7 +673,7 @@ public class NPC {
      *
      * @return viewers list
      */
-    public List<UUID> getViewers() {
+    public HashSet<Player> getViewers() {
         return viewers;
     }
 

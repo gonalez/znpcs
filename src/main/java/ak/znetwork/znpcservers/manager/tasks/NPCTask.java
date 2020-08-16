@@ -40,15 +40,20 @@ public class NPCTask extends BukkitRunnable {
     public void run() {
         for (final NPC npc : this.serversNPC.getNpcManager().getNpcs()) {
             for (final Player player : Bukkit.getOnlinePlayers()) {
-                if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= 30D && !npc.getViewers().contains(player.getUniqueId()))
-                    npc.spawn(player);
-                else  if (player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player.getUniqueId()) || player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player.getUniqueId()) ||  player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) > 30D && npc.getViewers().contains(player.getUniqueId()))
-                    npc.delete(player , true);
+                try {
+                    if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= 30D && !npc.getViewers().contains(player))
+                        npc.spawn(player);
 
-                if (npc.getViewers().contains(player.getUniqueId()) && player.getLocation().distance(npc.getLocation()) <= 30D) {
-                    if (npc.isHasLookAt()) npc.lookAt(player , player.getLocation() , false);
+                    else  if (player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) || player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) ||  player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) > 30D && npc.getViewers().contains(player))
+                        npc.delete(player , true);
 
-                    npc.getHologram().updateNames(player);
+                    if (npc.getViewers().contains(player) && player.getLocation().distance(npc.getLocation()) <= 30D) {
+                        if (npc.isHasLookAt()) npc.lookAt(player , player.getLocation() , false);
+
+                        npc.getHologram().updateNames(player);
+                    }
+                } catch (Exception exception) {
+                    // Nothing
                 }
             }
         }

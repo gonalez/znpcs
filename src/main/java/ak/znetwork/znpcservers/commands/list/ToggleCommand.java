@@ -38,7 +38,7 @@ public class ToggleCommand extends ZNCommand {
     }
 
     @Override
-    public boolean dispatchCommand(CommandSender sender, String... args) {
+    public boolean dispatchCommand(CommandSender sender, String... args) throws Exception {
         final Player player = (Player) sender;
 
         if (args.length >= 2 && ((args[1]).equalsIgnoreCase("name") || (args[1]).equalsIgnoreCase("look")) || (args[1]).equalsIgnoreCase("holo") || (args[1]).equalsIgnoreCase("glow") || (args[1]).equalsIgnoreCase("mirror")) {

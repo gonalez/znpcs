@@ -49,6 +49,12 @@ public class PlayerListeners implements Listener {
             this.serversNPC.getPlayerNetties().remove(playerNetty);
         });
 
-        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer().getUniqueId())).forEach(npc -> npc.delete(event.getPlayer() , true));
+        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
+            try {
+                npc.delete(event.getPlayer() , true);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        });
     }
 }

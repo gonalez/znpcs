@@ -45,7 +45,7 @@ public abstract class ZNCommand {
         this.commandType = commandType;
     }
 
-    public abstract boolean dispatchCommand(CommandSender sender, String... args);
+    public abstract boolean dispatchCommand(CommandSender sender, String... args) throws Exception;
 
     public String getPermission() {
         return permission;

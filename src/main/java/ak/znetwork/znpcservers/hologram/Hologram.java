@@ -54,7 +54,7 @@ public class Hologram {
 
     protected List<Object> entityArmorStands;
 
-    protected List<UUID> viewers;
+    protected HashSet<Player> viewers;
 
     protected Object nmsWorld;
 
@@ -69,7 +69,7 @@ public class Hologram {
 
     public Hologram(final ServersNPC serversNPC , final Location location , final String... lines) {
         this.serversNPC = serversNPC;
-        this.viewers = new ArrayList<>();
+        this.viewers = new HashSet<>();
 
         this.entityArmorStands = new ArrayList<>();
 
@@ -105,12 +105,11 @@ public class Hologram {
                 Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("An exception occurred while trying to create hologram", e);
             }
         });
 
-        if (add)
-            viewers.add(player.getUniqueId());
+        if (add) viewers.add(player);
     }
 
     /**
@@ -126,48 +125,42 @@ public class Hologram {
 
                 ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityArmorArray));
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("An exception occurred while trying to delete hologram", e);
             }
         });
 
-        if (remove)
-            viewers.remove(player.getUniqueId());
+        if (remove) viewers.remove(player);
     }
 
     /**
      *
      */
-    public void createHolos() {
-        viewers.forEach(uuid -> delete(Bukkit.getPlayer(uuid) , false));
+    public void createHolos()  throws Exception {
+        viewers.forEach(player -> delete(player, false));
 
         double y = 0;
-        try {
-            this.entityArmorStands.clear();
 
-            for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-                Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, location.getY() + (y) , location.getZ() + 0.5);
+        this.entityArmorStands.clear();
+        for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
+            Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, location.getY() + (y) , location.getZ() + 0.5);
 
-                armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-                if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
-                else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
+            armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
+            if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
+            else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
 
-                armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
+            armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
 
-                entityArmorStands.add(armorStand);
+            entityArmorStands.add(armorStand);
 
-                y+=0.3;
-            }
-
-            viewers.forEach(uuid -> spawn(Bukkit.getPlayer(uuid) , false));
-        } catch (Exception e) {
-            e.printStackTrace();
+            y+=0.3;
         }
+        viewers.forEach(player -> spawn(player, false));
     }
 
     /**
      *
      */
-    public void updateNames(final Player player) {
+    public void updateNames(final Player player) throws Exception {
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
             if (i >= entityArmorStands.size())
                 continue;
@@ -175,32 +168,30 @@ public class Hologram {
             Object armorStand =  entityArmorStands.get(i);
 
             final String line = lines[i].replace("_" , " ");
-            try {
-                if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(player, lines[i]));
-                else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
-                int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
+            if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(player, lines[i]));
+            else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
-                Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
+            int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
-                ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
+
+            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
         }
     }
 
     /**
-     * @return
+     * Get real string for newer versions
+     *
+     * @return formated string
      */
     public Object getStringNewestVersion(final Player player, String text) {
         text = Utils.tocolor(text);
         try {
             return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (serversNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("An exception occurred while trying to get new line for hologram", e);
         }
-        return null;
     }
 
     /**
@@ -209,13 +200,11 @@ public class Hologram {
     public void updateLoc() {
         entityArmorStands.forEach(o ->  {
             try {
-                Object packete = getPacketPlayOutEntityTeleportConstructor.newInstance(o);
+                Object packet = getPacketPlayOutEntityTeleportConstructor.newInstance(o);
 
-                viewers.forEach(uuid -> {
-                    ReflectionUtils.sendPacket(Bukkit.getPlayer(uuid) ,packete);
-                });
+                viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("An exception occurred while trying to update location for hologram", e);
             }
         });
 
@@ -224,31 +213,22 @@ public class Hologram {
     /**
      * @param location
      */
-    public void setLocation(Location location) {
+    public void setLocation(Location location) throws Exception{
         this.location = location;
 
         double y = 0;
 
         for (Object o : entityArmorStands) {
-            try {
-                o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX(), location.getY() + y,
-                        location.getZ(), location.getYaw() , location.getPitch());
+            o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX(), location.getY() + y,
+                    location.getZ(), location.getYaw() , location.getPitch());
 
-                y+=0.3;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            y+=0.3;
         }
 
         updateLoc();
     }
 
-    public String getLinesFormated() {
-        StringJoiner joiner = new StringJoiner(":");
-        for(int i = 0; i < lines.length; i++) {
-            joiner.add(lines[i]);
-        }
-
-        return joiner.toString();
+    public String getLinesFormatted() {
+        return String.join(":" , lines);
     }
 }

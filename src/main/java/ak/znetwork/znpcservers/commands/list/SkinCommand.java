@@ -48,15 +48,19 @@ public class SkinCommand extends ZNCommand {
                     return true;
                 }
 
-                final SkinFetch skinFetcher = JSONUtils.getSkin(args[2]);
+                try {
+                    final SkinFetch skinFetcher = JSONUtils.getSkin(args[2]);
 
-                if (skinFetcher == null) {
-                    sender.sendMessage(Utils.tocolor("&cError!"));
-                    return true;
+                    if (skinFetcher == null) {
+                        sender.sendMessage(Utils.tocolor("&cError!"));
+                        return true;
+                    }
+
+                    npc.updateSkin(skinFetcher);
+                    sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                } catch (Exception e) {
+                    throw new RuntimeException("An exception occurred while setting skin for npc" + npc.getId() , e);
                 }
-
-                npc.updateSkin(skinFetcher);
-                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
                 return true;
             default:
                 runUsage(sender);

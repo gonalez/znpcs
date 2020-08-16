@@ -36,13 +36,11 @@ import ak.znetwork.znpcservers.utils.LocationUtils;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
-import com.mysql.fabric.Server;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -62,6 +60,8 @@ public class ServersNPC extends JavaPlugin {
     protected LinkedHashSet<PlayerNetty> playerNetties;
 
     protected boolean placeHolderSupport;
+
+    protected Executor executor;
 
     @Override
     public void onEnable() {
@@ -85,22 +85,22 @@ public class ServersNPC extends JavaPlugin {
         // Load reflection cache
         try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
 
+        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 30);
+
         // Check if data contains any npc
         if (this.data.getConfig().contains("znpcs")) {
             int size = this.data.getConfig().getConfigurationSection("znpcs").getKeys(false).size();
 
             // Load all npc from config
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    System.out.println("Loading " + size + " npcs...");
+            this.executor.execute(() -> {
+                System.out.println("Loading " + size + " npcs...");
 
-                    long startMs = System.currentTimeMillis();
-                    for (final String keys : ServersNPC.this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
-                        final Location location = LocationUtils.getLocationString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".location"));
+                long startMs = System.currentTimeMillis();
+                for (final String keys : ServersNPC.this.data.getConfig().getConfigurationSection("znpcs").getKeys(false)) {
+                    final Location location = LocationUtils.getLocationString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".location"));
+                    final String[] strings = ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".lines").split(":");
 
-                        final String[] strings = ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".lines").split(":");
-
+                    try {
                         final NPC npc = new NPC(ServersNPC.this , Integer.parseInt(keys) , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[0] , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".skin").split(":")[1] , location , NPCAction.fromString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".type")) , new Hologram(ServersNPC.this , location , strings));
 
                         npc.setNpcAction(NPCAction.fromString(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".type")));
@@ -113,15 +113,18 @@ public class ServersNPC extends JavaPlugin {
                         if (npc.isHasGlow()) npc.toggleGlow(null , ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".toggle.glow.color", "WHITE") , false);
 
                         for (NPC.NPCItemSlot npcItemSlot : NPC.NPCItemSlot.values()) npc.equip(null , npcItemSlot , Material.getMaterial(ServersNPC.this.data.getConfig().getString("znpcs." + keys + ".equip." + npcItemSlot.name().toLowerCase() , "AIR")));
+
                         npcManager.getNpcs().add(npc);
+                    } catch (Exception e) {
+                        throw new RuntimeException("An exception occurred while trying to create npc " + keys, e);
                     }
-
-                    System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-
-                    // Setup netty again for online players
-                    Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
                 }
-            }.runTaskLater(this , 20L * 3);
+
+                System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+
+                // Setup netty again for online players
+                Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
+            });
         }
 
         // Init task for all npc
@@ -132,8 +135,12 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(uuid -> {
-            npc.delete(Bukkit.getPlayer(uuid) , false);
+        npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
+            try {
+                npc.delete(player , false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }));
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(playerNetty -> playerNetty.ejectNetty(o)));
@@ -145,7 +152,7 @@ public class ServersNPC extends JavaPlugin {
         for (final NPC npc : getNpcManager().getNpcs()) {
             this.data.getConfig().set("znpcs." + npc.getId() + ".location" , LocationUtils.getStringLocation(npc.getLocation().add(0.5 , 0 , 0.5)));
             this.data.getConfig().set("znpcs." + npc.getId() + ".type" , npc.getNpcAction().name());
-            this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormated());
+            this.data.getConfig().set("znpcs." + npc.getId() + ".lines" , npc.getHologram().getLinesFormatted());
             if (npc.getActions() != null && npc.getActions().length > 0) this.data.getConfig().set("znpcs." + npc.getId() + ".actions" , String.join(":" , npc.getActions()));
             this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.holo" , npc.isHasToggleHolo());
             this.data.getConfig().set("znpcs." + npc.getId() + ".toggle.look" , npc.isHasLookAt());
@@ -159,8 +166,8 @@ public class ServersNPC extends JavaPlugin {
                 this.data.getConfig().set("znpcs." + npc.getId() + ".equip." + npcItemSlot.getKey().name().toLowerCase() , npcItemSlot.getValue().name().toUpperCase());
             }
         }
-        this.data.save();
 
+        this.data.save();
         System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
     }
 
@@ -184,6 +191,10 @@ public class ServersNPC extends JavaPlugin {
         return placeHolderSupport;
     }
 
+    public Executor getExecutor() {
+        return executor;
+    }
+
     /**
      * Setup netty for player
      *
@@ -204,19 +215,22 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean createNPC(int id , final Player player , final String skin, final String holo_lines) {
-        final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
+        try {
+            final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
 
-        final Location fixed = player.getLocation().clone().subtract(0.5 , 0 , 0.5);
+            final Location fixed = player.getLocation().clone().subtract(0.5 , 0 , 0.5);
 
-        this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed,NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":"))));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed,NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":"))));
 
-        this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher.value + ":" + skinFetcher.signature);
-        this.data.getConfig().set("znpcs." + id + ".location" , LocationUtils.getStringLocation(player.getLocation()));
-        this.data.getConfig().set("znpcs." + id + ".lines" , holo_lines);
-        this.data.save();
+            this.data.getConfig().set("znpcs." + id + ".skin" , skinFetcher.value + ":" + skinFetcher.signature);
+            this.data.getConfig().set("znpcs." + id + ".location" , LocationUtils.getStringLocation(player.getLocation()));
+            this.data.getConfig().set("znpcs." + id + ".lines" , holo_lines);
 
-        player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
-        return true;
+            player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("An exception occurred while creating npc " + id, e);
+        }
     }
 
     /**
@@ -225,7 +239,7 @@ public class ServersNPC extends JavaPlugin {
      * @param id the npc id
      * @return val
      */
-    public final boolean deleteNPC(int id) {
+    public final boolean deleteNPC(int id) throws Exception {
         final NPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
 
         // Try find
@@ -235,18 +249,17 @@ public class ServersNPC extends JavaPlugin {
 
         getNpcManager().getNpcs().remove(npc);
 
-        final Iterator<UUID> it = npc.getViewers().iterator();
+        final Iterator<Player> it = npc.getViewers().iterator();
 
         while (it.hasNext())  {
-            final UUID uuid = it.next();
+            final Player player = it.next();
 
-            npc.delete(Bukkit.getPlayer(uuid) , false);
+            npc.delete(player, false);
 
             it.remove();
         }
 
         this.data.getConfig().set("znpcs." + id , null);
-        this.data.save();
         return true;
     }
 

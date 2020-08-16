@@ -70,7 +70,11 @@ public class CommandsManager implements CommandExecutor {
                 return false;
             }
 
-            znCommand.dispatchCommand(sender , args);
+            try {
+                znCommand.dispatchCommand(sender , args);
+            } catch (Exception e) {
+                throw new RuntimeException("An exception occurred while trying to dispatch command " + znCommand.getCmd(), e);
+            }
         }
         return true;
     }

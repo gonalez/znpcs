@@ -29,7 +29,10 @@ public final class SkinFetch {
     public String value;
     public String signature;
 
-    public SkinFetch(final UUID uuid) {
+    public SkinFetch(final UUID uuid , final String value , final String signature) {
         this.uuid = uuid;
+
+        this.value = value;
+        this.signature = signature;
     }
 }

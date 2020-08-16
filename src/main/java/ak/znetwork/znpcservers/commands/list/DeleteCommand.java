@@ -42,9 +42,13 @@ public class DeleteCommand extends ZNCommand {
                     return true;
                 }
 
-                serversNPC.deleteNPC(Integer.parseInt(args[1]));
+                try {
+                    serversNPC.deleteNPC(Integer.parseInt(args[1]));
 
-                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                    sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                } catch (Exception e) {
+                    throw new RuntimeException("An exception occurred while trying to delete npc", e);
+                }
                 return true;
             default:
                 runUsage(sender);

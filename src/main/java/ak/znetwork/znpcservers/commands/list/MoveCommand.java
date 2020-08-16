@@ -49,11 +49,15 @@ public class MoveCommand extends ZNCommand {
                 return true;
             }
 
-            if (npc.isHasLookAt())
-                npc.toggleLookAt();
+            try {
+                if (npc.isHasLookAt()) npc.toggleLookAt();
 
-            npc.setLocation(player.getLocation());
-            player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                npc.setLocation(player.getLocation());
+
+                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            } catch (Exception e) {
+                throw new RuntimeException("An exception occurred while trying to move npc " + npc.getId(), e);
+            }
             return true;
         }
         runUsage(sender);

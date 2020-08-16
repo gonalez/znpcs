@@ -55,8 +55,13 @@ public class EquipCommand extends ZNCommand {
                 return true;
             }
 
-            npc.equip(null , NPC.NPCItemSlot.fromString(args[1]) , (player.getItemInHand() == null ? Material.AIR : player.getItemInHand().getType()));
-            player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            try {
+                npc.equip(null , NPC.NPCItemSlot.fromString(args[1]) , (player.getItemInHand() == null ? Material.AIR : player.getItemInHand().getType()));
+
+                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+            } catch (Exception e) {
+                throw new RuntimeException("An exception occurred while trying to equip npc " + npc.getId(), e);
+            }
             return true;
         }
         runUsage(sender);
