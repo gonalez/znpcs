@@ -100,26 +100,28 @@ public class PlayerNetty {
                             if (npc == null)
                                 return;
 
+                            if (npc.getActions() == null || npc.getActions().length <= 1)
+                                return;
+
                             last_interact = System.currentTimeMillis();
+
 
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    if (npc.getActions() != null && npc.getActions().length > 0) {
-                                        for (String string : npc.getActions()) {
-                                            final String action = string.replace("_", " ");
+                                    for (String string : npc.getActions()) {
+                                        final String action = string.replace("_", " ");
 
-                                            switch (npc.getNpcAction()) {
-                                                case CMD:
-                                                    player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
-                                                    break;
-                                                case CONSOLE:
-                                                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
-                                                    break;
-                                                case SERVER:
-                                                    serversNPC.sendPlayerToServer(player, action);
-                                                    break;
-                                            }
+                                        switch (npc.getNpcAction()) {
+                                            case CMD:
+                                                player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                break;
+                                            case CONSOLE:
+                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                break;
+                                            case SERVER:
+                                                serversNPC.sendPlayerToServer(player, action);
+                                                break;
                                         }
                                     }
                                 }
@@ -135,7 +137,7 @@ public class PlayerNetty {
         }
     }
 
-    public void ejectNetty(Player player) {
+    public void ejectNetty() {
         try {
             Channel channel = (Channel) this.channel;
             if (channel != null) {

@@ -44,7 +44,7 @@ public class PlayerListeners implements Listener {
     @EventHandler
     public void onQuit(final PlayerQuitEvent event) {
         this.serversNPC.getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
-            playerNetty.ejectNetty(event.getPlayer());
+            playerNetty.ejectNetty();
 
             this.serversNPC.getPlayerNetties().remove(playerNetty);
         });
