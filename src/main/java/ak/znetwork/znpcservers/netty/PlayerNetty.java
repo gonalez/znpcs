@@ -34,13 +34,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 public class PlayerNetty {
 
-    protected Object networkManager;
-    protected Object channel;
+    protected final Object networkManager;
+    protected Channel channel;
 
     protected UUID uuid;
 
@@ -50,23 +51,19 @@ public class PlayerNetty {
 
     protected long last_interact = 0;
 
-    public PlayerNetty(final ServersNPC serversNPC , final Player player) {
+    public PlayerNetty(final ServersNPC serversNPC , final Player player) throws Exception {
         this.serversNPC = serversNPC;
 
         this.uuid = player.getUniqueId();
 
-        try {
-            Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
+        Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+        Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
 
-            networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
-            channel = networkManager.getClass().getField("channel").get(networkManager);
+        networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
+        channel = (Channel) networkManager.getClass().getField("channel").get(networkManager);
 
-            idField = ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass.getDeclaredField("a");
-            idField.setAccessible(true);
-        } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        idField = ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass.getDeclaredField("a");
+        idField.setAccessible(true);
     }
 
     public UUID getUuid() {
@@ -74,82 +71,63 @@ public class PlayerNetty {
     }
 
     public void injectNetty(final Player player) {
-        try {
-            Channel channel = (Channel) this.channel;
+           synchronized (networkManager) {
+               if (channel == null)
+                   throw new IllegalStateException("Channel is NULL!");
 
-            if (channel.pipeline().get("npc_interact") != null) {
-                channel.pipeline().remove("npc_interact");
-            }
+               if (channel.pipeline().get("npc_interact") != null) channel.pipeline().remove("npc_interact");
 
-            channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
-                @Override
-                protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
-                    out.add(packet);
+               channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
+                   @Override
+                   protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
+                       out.add(packet);
 
-                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
-                        try {
-                            Object className = ReflectionUtils.getValue(packet, "action");
+                       if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
+                           try {
+                               Object className = ReflectionUtils.getValue(packet, "action");
 
-                            if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT"))
-                                return;
+                               if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT"))
+                                   return;
 
-                            int entityId2 = (int) idField.get(packet);
+                               int entityId2 = (int) idField.get(packet);
 
-                            final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId2).findFirst().orElse(null);
+                               final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId2).findFirst().orElse(null);
 
-                            if (npc == null)
-                                return;
+                               if (npc == null || npc.getActions() == null || npc.getActions().length < 1) return;
 
-                            if (npc.getActions() == null || npc.getActions().length <= 1)
-                                return;
+                               last_interact = System.currentTimeMillis();
 
-                            last_interact = System.currentTimeMillis();
+                               new BukkitRunnable() {
+                                   @Override
+                                   public void run() {
+                                       for (String string : npc.getActions()) {
+                                           final String action = string.replace("_", " ");
 
-
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    for (String string : npc.getActions()) {
-                                        final String action = string.replace("_", " ");
-
-                                        switch (npc.getNpcAction()) {
-                                            case CMD:
-                                                player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
-                                                break;
-                                            case CONSOLE:
-                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
-                                                break;
-                                            case SERVER:
-                                                serversNPC.sendPlayerToServer(player, action);
-                                                break;
-                                        }
-                                    }
-                                }
-                            }.runTaskLater(serversNPC, 2L);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                                           switch (npc.getNpcAction()) {
+                                               case CMD:
+                                                   player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                   break;
+                                               case CONSOLE:
+                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                   break;
+                                               case SERVER:
+                                                   serversNPC.sendPlayerToServer(player, action);
+                                                   break;
+                                           }
+                                       }
+                                   }
+                               }.runTaskLater(serversNPC, 2L);
+                           } catch (Exception e) {
+                               // Ignore...
+                           }
+                       }
+                   }
+               });
+           }
     }
 
     public void ejectNetty() {
-        try {
-            Channel channel = (Channel) this.channel;
-            if (channel != null) {
-                if (channel.pipeline().get("npc_interact") != null) {
-                    channel.pipeline().remove("npc_interact");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        channel.eventLoop().execute(() -> channel.pipeline().remove("npc_interact"));
     }
 }
 

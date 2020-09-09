@@ -31,6 +31,7 @@ import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.serializer.NPCSerializer;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.MetricsLite;
@@ -48,6 +49,7 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class ServersNPC extends JavaPlugin {
 
@@ -66,9 +68,11 @@ public class ServersNPC extends JavaPlugin {
 
     private File data;
 
+    private int viewDistance;
+
     @Override
     public void onEnable() {
-        gson = new GsonBuilder().registerTypeAdapter(NPC.class , new NPCSerializer(this)).setPrettyPrinting().create();
+        if (!getDataFolder().exists()) getDataFolder().mkdirs();
 
         data = new File(getDataFolder() , "data.json");
         try {
@@ -76,6 +80,10 @@ public class ServersNPC extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException("An exception occurred while trying to create data.json file" , e);
         }
+
+        viewDistance = (Bukkit.getViewDistance() << 2);
+
+        gson = new GsonBuilder().registerTypeAdapter(NPC.class , new NPCSerializer(this)).setPrettyPrinting().create();
 
         placeHolderSupport = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
 
@@ -88,7 +96,7 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ListCommand(this), new ActionCommand(this) , new ToggleCommand(this) , new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
+        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ListCommand(this), new ActionCommand(this) , new ToggleCommand(this), new TypeCommand(this), new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
@@ -106,13 +114,16 @@ public class ServersNPC extends JavaPlugin {
 
             int size = 0;
             try {
-                final JsonParser parser = new JsonParser();
+                final FileReader fileReader = new FileReader(data);
 
                 final JsonReader reader = new JsonReader(new FileReader(data));
-                reader.beginArray();
 
+                // Empty check
+                if (fileReader.read() == -1 ||!reader.hasNext()) return;
+
+                reader.beginArray();
                 while (reader.hasNext()) {
-                    final NPC npc = gson.fromJson(parser.parse(reader), NPC.class);
+                    final NPC npc = gson.fromJson(reader, NPC.class);
 
                     this.npcManager.getNpcs().add(npc);
 
@@ -148,7 +159,7 @@ public class ServersNPC extends JavaPlugin {
         // Save values on config (???)
         long startMs = System.currentTimeMillis();
         try {
-            final String json = gson.toJson(getNpcManager().getNpcs() ,new TypeToken<LinkedHashSet<NPC>>(){}.getType());
+            final String json = gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()), new TypeToken<LinkedHashSet<NPC>>(){}.getType());
             try(FileWriter writer = new FileWriter(data)) {
                 writer.append(json);
             }
@@ -183,16 +194,24 @@ public class ServersNPC extends JavaPlugin {
         return executor;
     }
 
+    public int getViewDistance() {
+        return viewDistance;
+    }
+
     /**
      * Setup netty for player
      *
      * @param player receiver
      */
     public void setupNetty(final Player player) {
-        final PlayerNetty playerNetty = new PlayerNetty(this , player);
+        try {
+            final PlayerNetty playerNetty = new PlayerNetty(this , player);
+            playerNetty.injectNetty(player);
 
-        playerNetty.injectNetty(player);
-        this.getPlayerNetties().add(playerNetty);
+            this.getPlayerNetties().add(playerNetty);
+        } catch (Exception exception) {
+            throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
+        }
     }
 
     /**
@@ -206,9 +225,9 @@ public class ServersNPC extends JavaPlugin {
         try {
             final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
 
-            final Location fixed = player.getLocation().clone().subtract(0.5 , 0 , 0.5);
+            final Location fixed = player.getLocation();
 
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed,NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":"))));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed, NPCType.PLAYER, NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":")) , true));
 
             player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
             return true;

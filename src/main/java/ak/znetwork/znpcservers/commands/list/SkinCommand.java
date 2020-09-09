@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
@@ -45,6 +46,11 @@ public class SkinCommand extends ZNCommand {
 
                 if (npc == null) {
                     sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-not-found")));
+                    return true;
+                }
+
+                if (npc.getNpcType() != NPCType.PLAYER) {
+                    sender.sendMessage(Utils.tocolor("&cYou can only put skins to players, change the type of your npc to player!"));
                     return true;
                 }
 

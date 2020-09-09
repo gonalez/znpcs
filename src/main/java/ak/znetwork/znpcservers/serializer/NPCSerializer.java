@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.LocationUtils;
 import com.google.gson.*;
 
@@ -42,11 +43,12 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
         final JsonObject obj = new JsonObject();
 
         obj.addProperty("id" , npc.getId());
-        obj.addProperty("type" , npc.getNpcAction().name());
+        obj.addProperty("type" , npc.getNpcType().name());
+        obj.addProperty("action" , npc.getNpcAction().name());
 
         obj.addProperty("skin" , npc.getSkin() + ":" + npc.getSignature());
 
-        obj.addProperty("location" ,  LocationUtils.getStringLocation(npc.getLocation().add(0.5 , 0 , 0.5)));
+        obj.addProperty("location" ,  LocationUtils.getStringLocation(npc.getLocation()));
 
         obj.addProperty("lines" , npc.getHologram().getLinesFormatted());
         obj.addProperty("actions" , (npc.getActions() != null ? String.join(":", npc.getActions()) : ""));
@@ -66,7 +68,7 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
 
         final int id = jsonObject.get("id").getAsInt();
         try {
-            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], LocationUtils.getLocationString(jsonObject.get("location").getAsString()), NPCAction.fromString(jsonObject.get("type").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()),  jsonObject.get("lines").getAsString().split(":")));
+            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], LocationUtils.getLocationString(jsonObject.get("location").getAsString()), NPCType.valueOf(jsonObject.get("type").getAsString()), NPCAction.fromString(jsonObject.get("action").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()), jsonObject.get("lines").getAsString().split(":")) , true);
 
             npc.setAction(jsonObject.get("actions").getAsString().split(":"));
             npc.setHasToggleHolo(jsonObject.get("toggle.holo").getAsBoolean());

@@ -53,7 +53,7 @@ public class PlayerListeners implements Listener {
             try {
                 npc.delete(event.getPlayer() , true);
             } catch (Exception exception) {
-                exception.printStackTrace();
+                // Ignore
             }
         });
     }

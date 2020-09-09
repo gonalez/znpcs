@@ -41,13 +41,13 @@ public class NPCTask extends BukkitRunnable {
         for (final NPC npc : this.serversNPC.getNpcManager().getNpcs()) {
             for (final Player player : Bukkit.getOnlinePlayers()) {
                 try {
-                    if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= 30D && !npc.getViewers().contains(player))
+                    if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= this.serversNPC.getViewDistance() && !npc.getViewers().contains(player))
                         npc.spawn(player);
 
-                    else  if (player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) || player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) ||  player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) > 30D && npc.getViewers().contains(player))
+                    else if (player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) || player.getWorld() != npc.getLocation().getWorld() && npc.getViewers().contains(player) ||  player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) > this.serversNPC.getViewDistance() && npc.getViewers().contains(player))
                         npc.delete(player , true);
 
-                    if (npc.getViewers().contains(player) && player.getLocation().distance(npc.getLocation()) <= 30D) {
+                    if (npc.getViewers().contains(player) && player.getLocation().distance(npc.getLocation()) <= this.serversNPC.getViewDistance()) {
                         if (npc.isHasLookAt()) npc.lookAt(player , player.getLocation() , false);
 
                         npc.getHologram().updateNames(player);

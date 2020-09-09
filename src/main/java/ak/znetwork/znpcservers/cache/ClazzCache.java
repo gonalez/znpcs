@@ -22,9 +22,44 @@ public enum ClazzCache {
     ENTITY_LIVING_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving", null),
 
     ENTITY_PLAYER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer" , null),
+    ENTITY_ARMOR_STAND_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand" , null),
+    ENTITY_BAT_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBat" , null),
+    ENTITY_BLAZE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBlaze" , null),
+    ENTITY_CAVE_SPIDER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCaveSpider" , null),
+    ENTITY_CHICKEN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityChicken" , null),
+    ENTITY_COW_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCow" , null),
+    ENTITY_CREEPER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCreeper" , null),
+    ENTITY_ENDER_DRAGON_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderDragon" , null),
+    ENTITY_ENDERMAN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderman" , null),
+    ENTITY_ENDERMITE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEndermite" , null),
+    ENTITY_GHAST_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGhast" , null),
+    ENTITY_IRON_GOLEM_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityIronGolem" , null),
+    ENTITY_GIANT_ZOMBIE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGiantZombie" , null),
+    ENTITY_GUARDIAN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGuardian" , null),
+    ENTITY_HORSE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHorse" , null),
+    ENTITY_LLAMA_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(11) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLlama" : null), null),
+    ENTITY_MAGMA_CUBE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMagmaCube" , null),
+    ENTITY_MUSHROOM_COW_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMushroomCow" , null),
+    ENTITY_OCELOT_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityOcelot" , null),
+    ENTITY_PARROT_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(12) ?"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityParrot": null) , null),
+    ENTITY_PIG_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPig" , null),
+    ENTITY_PIG_ZOMBIE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPigZombie" , null),
+    ENTITY_POLAR_BEAR_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(10) ?"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPolarBear" : null), null),
+    ENTITY_SHEEP_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySheep" , null),
+    ENTITY_SILVERFISH_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySilverfish" , null),
+    ENTITY_SKELETON_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySkeleton" , null),
+    ENTITY_SLIME_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySlime" , null),
+    ENTITY_SPIDER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySpider" , null),
+    ENTITY_SQUID_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySquid" , null),
+    ENTITY_VILLAGER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityVillager" , null),
+    ENTITY_WITCH_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWitch" , null),
+    ENTITY_WITHER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWither" , null),
+    ENTITY_ZOMBIE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityZombie" , null),
+    ENTITY_WOLF_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWolf" , null),
+    ENTITY_ENDER_CRYSTAL_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
+
     ENTITY_PLAYER_ARRAY_CLASS(ClazzType.CLASS, "[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;" , null),
 
-    ENTITY_ARMOR_STAND_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand" , null),
     ENTITY_HUMAN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman" , null),
 
     ITEM_STACK_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack" , null),
@@ -33,6 +68,8 @@ public enum ClazzCache {
     PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy", null),
     PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn", null),
     PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving", null),
+
+    PACKET_PLAY_OUT_ENTITY_SPAWN_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntity", null),
 
     PACKET_PLAY_IN_USE_ENTITY_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayInUseEntity", null),
 
@@ -87,7 +124,7 @@ public enum ClazzCache {
                     else clazzCache.method  = Class.forName((String) clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
                     break;
                 case CLASS:
-                    if (clazzCache.name.length() > 0) clazzCache.aClass = Class.forName(clazzCache.name);
+                    if (clazzCache.name != null && clazzCache.name.length() > 0) clazzCache.aClass = Class.forName(clazzCache.name);
                     break;
             }
         }

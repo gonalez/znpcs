@@ -142,7 +142,7 @@ public class Hologram {
 
         this.entityArmorStands.clear();
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-            Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, location.getY() + (y) , location.getZ() + 0.5);
+            Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, (location.getY() - 0.15) + (y) , location.getZ() + 0.5);
 
             armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
             if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
@@ -213,14 +213,13 @@ public class Hologram {
     /**
      * @param location
      */
-    public void setLocation(Location location) throws Exception{
-        this.location = location;
+    public void setLocation(Location location, double height) throws Exception{
+        this.location = location.add(0 , height, 0);
 
         double y = 0;
-
         for (Object o : entityArmorStands) {
-            o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX(), location.getY() + y,
-                    location.getZ(), location.getYaw() , location.getPitch());
+            o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() + 0.5, (location.getY() - 0.15) + y,
+                    location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
             y+=0.3;
         }
