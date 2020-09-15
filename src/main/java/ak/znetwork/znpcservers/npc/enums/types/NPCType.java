@@ -33,14 +33,14 @@ public enum  NPCType {
 
     BLAZE(ClazzCache.ENTITY_BLAZE_CLASS, -1, 0),
     CAVE_SPIDER(ClazzCache.ENTITY_CAVE_SPIDER_CLASS, -1,-1),
-    COW(ClazzCache.ENTITY_COW_CLASS,  -1, 0.25),
+    COW(ClazzCache.ENTITY_COW_CLASS,  -1, -0.25),
     ENDER_DRAGON(ClazzCache.ENTITY_ENDER_DRAGON_CLASS,  -1, 1.5),
     ENDERMAN(ClazzCache.ENTITY_ENDERMAN_CLASS, -1, 0.7),
     ENDERMITE(ClazzCache.ENTITY_ENDERMITE_CLASS, -1, -1.5),
     GHAST(ClazzCache.ENTITY_GHAST_CLASS,  -1, 3),
     IRON_GOLEM(ClazzCache.ENTITY_IRON_GOLEM_CLASS,  -1, 0.75),
     GIANT(ClazzCache.ENTITY_GIANT_ZOMBIE_CLASS,  -1, 11),
-    GUARDIAN(ClazzCache.ENTITY_GUARDIAN_CLASS,  -1, 0),
+    GUARDIAN(ClazzCache.ENTITY_GUARDIAN_CLASS,  -1, -0.7),
     HORSE(ClazzCache.ENTITY_HORSE_CLASS,  -1, 0),
     LLAMA(ClazzCache.ENTITY_LLAMA_CLASS, -1, 0),
     MAGMA_CUBE(ClazzCache.ENTITY_MAGMA_CUBE_CLASS, -1, -1.25),
@@ -61,7 +61,7 @@ public enum  NPCType {
     WITHER(ClazzCache.ENTITY_WITHER_CLASS,  -1, 1.75),
     ZOMBIE(ClazzCache.ENTITY_ZOMBIE_CLASS,  -1, 0),
     WOLF(ClazzCache.ENTITY_WOLF_CLASS,  -1, -1),
-    ENDER_CRYSTAL(ClazzCache.ENTITY_ENDER_CRYSTAL_CLASS,  51, 0);
+    END_CRYSTAL(ClazzCache.ENTITY_END_CRYSTAL_CLASS,  51, 0);
 
     public final ClazzCache aClass;
     public final String name;

@@ -23,6 +23,9 @@ package ak.znetwork.znpcservers.utils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.ChatColor;
 
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+
 public class Utils {
 
     public static boolean isInteger(String s) {
@@ -44,6 +47,13 @@ public class Utils {
 
     public static String generateRandom()  {
         return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
+    }
+
+    public static Constructor<?> getDefinedConstructor(final Class<?> aClass , int max, final Class<?>... classes) {
+        for (Constructor<?> constructor : aClass.getConstructors()) {
+            if (constructor.getParameterTypes().length <= max && Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass1 -> aClass1 == classes[0])) return constructor;
+        }
+        return null;
     }
 
     public static String tocolor(String tocolor) {

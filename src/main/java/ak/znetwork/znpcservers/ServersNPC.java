@@ -83,7 +83,7 @@ public class ServersNPC extends JavaPlugin {
 
         viewDistance = (Bukkit.getViewDistance() << 2);
 
-        gson = new GsonBuilder().registerTypeAdapter(NPC.class , new NPCSerializer(this)).setPrettyPrinting().create();
+        gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(NPC.class , new NPCSerializer(this)).setPrettyPrinting().create();
 
         placeHolderSupport = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
 
@@ -225,9 +225,7 @@ public class ServersNPC extends JavaPlugin {
         try {
             final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
 
-            final Location fixed = player.getLocation();
-
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, fixed, NPCType.PLAYER, NPCAction.CMD, new Hologram(this ,fixed, holo_lines.split(":")) , true));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, player.getLocation(), NPCType.PLAYER, NPCAction.CMD, new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
 
             player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
             return true;

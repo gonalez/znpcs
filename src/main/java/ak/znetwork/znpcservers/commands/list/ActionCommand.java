@@ -42,7 +42,7 @@ public class ActionCommand extends ZNCommand {
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length >= 3 && ((args[1]).equalsIgnoreCase("server") || (args[1]).equalsIgnoreCase("cmd")) || (args[1]).equalsIgnoreCase("console")) {
+        if (args.length >= 3 && NPCAction.fromString(args[1]) != null) {
             final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
 
             if (npc == null) {

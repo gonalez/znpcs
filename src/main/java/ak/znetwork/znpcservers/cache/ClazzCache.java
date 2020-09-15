@@ -56,7 +56,10 @@ public enum ClazzCache {
     ENTITY_WITHER_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWither" , null),
     ENTITY_ZOMBIE_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityZombie" , null),
     ENTITY_WOLF_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWolf" , null),
-    ENTITY_ENDER_CRYSTAL_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
+    ENTITY_END_CRYSTAL_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
+
+    ENTITY_TYPES_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(12) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes" : null), null),
+    ENTITY_TYPES_A_METHOD(ClazzType.METHOD, "a", (Utils.isVersionNewestThan(12) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes" : null) , String.class),
 
     ENTITY_PLAYER_ARRAY_CLASS(ClazzType.CLASS, "[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;" , null),
 
@@ -121,7 +124,9 @@ public enum ClazzCache {
             switch (clazzCache.clazzType) {
                 case METHOD:
                     if (clazzCache.object instanceof Class) clazzCache.method  = ((Class<?>)clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
-                    else clazzCache.method  = Class.forName((String) clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
+                    else {
+                        if (clazzCache.object != null && clazzCache.name != null) clazzCache.method = Class.forName((String) clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
+                    }
                     break;
                 case CLASS:
                     if (clazzCache.name != null && clazzCache.name.length() > 0) clazzCache.aClass = Class.forName(clazzCache.name);

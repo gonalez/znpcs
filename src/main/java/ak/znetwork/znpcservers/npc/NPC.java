@@ -450,9 +450,9 @@ public class NPC {
     }
 
     public void changeType(final NPCType npcType) throws Exception {
-        Constructor<?> constructor = (npcType != NPCType.PLAYER ? npcType.aClass.aClass.getConstructor(ClazzCache.WORLD_CLASS.aClass) : null);
+        Constructor<?> constructor = (npcType != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? (Utils.getDefinedConstructor(npcType.aClass.aClass, 2, ClazzCache.ENTITY_TYPES_CLASS.aClass)) : npcType.aClass.aClass.getConstructor(ClazzCache.WORLD_CLASS.aClass)) : null);
 
-        znEntity = (npcType == NPCType.PLAYER ? getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld)) : constructor.newInstance(nmsWorld));
+        znEntity = (npcType == NPCType.PLAYER ? getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? (Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass -> aClass == ClazzCache.ENTITY_TYPES_CLASS.aClass) ? constructor.newInstance(((Optional<?>) ClazzCache.ENTITY_TYPES_A_METHOD.method.invoke(ClazzCache.ENTITY_TYPES_CLASS.aClass, npcType.name.toLowerCase())).get(), nmsWorld) : constructor.newInstance(nmsWorld)) : constructor.newInstance(nmsWorld)));
 
         if (npcType == NPCType.PLAYER) {
             entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.aClass, 1);

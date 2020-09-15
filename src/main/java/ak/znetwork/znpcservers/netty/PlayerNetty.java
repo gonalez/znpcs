@@ -86,8 +86,7 @@ public class PlayerNetty {
                            try {
                                Object className = ReflectionUtils.getValue(packet, "action");
 
-                               if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT"))
-                                   return;
+                               if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT")) return;
 
                                int entityId2 = (int) idField.get(packet);
 
@@ -127,6 +126,8 @@ public class PlayerNetty {
     }
 
     public void ejectNetty() {
+        if (!channel.pipeline().names().contains("npc_interact")) return;
+
         channel.eventLoop().execute(() -> channel.pipeline().remove("npc_interact"));
     }
 }
