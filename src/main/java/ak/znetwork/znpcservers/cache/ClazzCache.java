@@ -59,7 +59,7 @@ public enum ClazzCache {
     ENTITY_END_CRYSTAL_CLASS(ClazzType.CLASS, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
 
     ENTITY_TYPES_CLASS(ClazzType.CLASS, (Utils.isVersionNewestThan(12) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes" : null), null),
-    ENTITY_TYPES_A_METHOD(ClazzType.METHOD, "a", (Utils.isVersionNewestThan(12) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes" : null) , String.class),
+    ENTITY_TYPES_A_METHOD(ClazzType.METHOD, "a", (Utils.isVersionNewestThan(13) ? "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes" : null) , String.class),
 
     ENTITY_PLAYER_ARRAY_CLASS(ClazzType.CLASS, "[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;" , null),
 

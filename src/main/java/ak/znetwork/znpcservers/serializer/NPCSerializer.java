@@ -29,6 +29,8 @@ import ak.znetwork.znpcservers.utils.LocationUtils;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC> {
 
@@ -44,14 +46,14 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
 
         obj.addProperty("id" , npc.getId());
         obj.addProperty("type" , npc.getNpcType().name());
-        obj.addProperty("action" , npc.getNpcAction().name());
 
-        obj.addProperty("skin" , npc.getSkin() + ":" + npc.getSignature());
+        obj.addProperty("skin" ,npc.getSkin() + ":" + npc.getSignature());
 
-        obj.addProperty("location" ,  LocationUtils.getStringLocation(npc.getLocation()));
+        obj.addProperty("location" , LocationUtils.getStringLocation(npc.getLocation()));
 
         obj.addProperty("lines" , npc.getHologram().getLinesFormatted());
-        obj.addProperty("actions" , (npc.getActions() != null ? String.join(":", npc.getActions()) : ""));
+
+        if (npc.getActions() != null) obj.add("actions" , new Gson().toJsonTree(npc.getActions()).getAsJsonArray());
 
         obj.addProperty("toggle.holo" , npc.isHasToggleHolo());
         obj.addProperty("toggle.look" ,npc.isHasLookAt());
@@ -68,9 +70,10 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
 
         final int id = jsonObject.get("id").getAsInt();
         try {
-            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], LocationUtils.getLocationString(jsonObject.get("location").getAsString()), NPCType.valueOf(jsonObject.get("type").getAsString()), NPCAction.fromString(jsonObject.get("action").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()), jsonObject.get("lines").getAsString().split(":")) , true);
+            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], LocationUtils.getLocationString(jsonObject.get("location").getAsString()), NPCType.valueOf(jsonObject.get("type").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()), jsonObject.get("lines").getAsString().split(":")) , true);
 
-            npc.setAction(jsonObject.get("actions").getAsString().split(":"));
+            if (jsonObject.get("actions").isJsonArray()) npc.setActions(StreamSupport.stream(jsonObject.get("actions").getAsJsonArray().spliterator(), false).map(JsonElement::getAsString).collect(Collectors.toList()));
+
             npc.setHasToggleHolo(jsonObject.get("toggle.holo").getAsBoolean());
             npc.setHasLookAt(jsonObject.get("toggle.look").getAsBoolean());
             npc.setHasToggleName(jsonObject.get("toggle.name").getAsBoolean());

@@ -46,7 +46,7 @@ public class ListCommand extends ZNCommand {
                 player.sendMessage(Utils.tocolor("&cNo npcs found."));
             } else  {
                 serversNPC.getNpcManager().getNpcs().forEach(npc -> {
-                    player.sendMessage(Utils.tocolor("&f&l * &a" + npc.getId() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)"));
+                    player.sendMessage(Utils.tocolor("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)"));
                 });
             }
             return true;

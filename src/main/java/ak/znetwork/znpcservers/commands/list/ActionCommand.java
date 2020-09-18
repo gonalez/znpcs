@@ -26,34 +26,81 @@ import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.stream.Collectors;
 
+/*
+TODO: Optimize more
+ */
 public class ActionCommand extends ZNCommand {
 
     public ActionCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "action" , "action <server:cmd:console> <run...>" , "znpcs.cmd.action" ,CommandType.PLAYER);
+        super(serversNPC , "action" , "action <id> <add:remove:cooldown:list>" , "znpcs.cmd.action" , CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Player player = (Player) sender;
 
-        if (args.length >= 3 && NPCAction.fromString(args[1]) != null) {
-            final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getLocation().getWorld() == player.getWorld() && npc1.getLocation().distanceSquared(player.getLocation()) <= 20D).min(Comparator.comparing(npc1 -> npc1.getLocation().distanceSquared(player.getLocation()))).orElse(null);
+        if (args.length >= 3) {
+            if (!Utils.isInteger(args[1])) return false;
+
+            final NPC npc = this.serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getId() == Integer.parseInt(args[1])).findFirst().orElse(null);
 
             if (npc == null) {
-                player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-not-found")));
-                return true;
+                player.sendMessage(ChatColor.RED + "NPC not found.");
+                return false;
             }
 
-            npc.setNpcAction(NPCAction.fromString(args[1]));
-            npc.setAction(Arrays.stream(args, 2, args.length).toArray(String[]::new));
+            switch (args[2]) {
+                case "add":
+                    if (args.length <= 4) sender.sendMessage(ChatColor.RED + "Correct usage: <add> <cmd:console:server> <action>");
+                    else if (NPCAction.fromString(args[3]) == null) sender.sendMessage(ChatColor.RED + "Insert a valid action type.");
+                    else {
+                        npc.getActions().add(NPCAction.fromString(args[3]).name() + ":" + Arrays.stream(args, 4, args.length).collect(Collectors.joining(" ")));                            sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                    }
+                    break;
+                case "cooldown":
+                    if (args.length <= 4) sender.sendMessage(ChatColor.RED + "Correct usage: <cooldown> <action_id> <seconds>");
+                    else if (npc.getActions().isEmpty() || Integer.parseInt(args[3]) > npc.getActions().size() - 1) sender.sendMessage(ChatColor.RED +  "Action not found.");
+                    else {
+                        if (!Utils.isInteger(args[4])) player.sendMessage(ChatColor.RED + "You need to put a valid number");
+                        else {
+                            int action = Integer.parseInt(args[3]);
 
-            player.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                            String value = npc.getActions().get(action);
+                            String[] keys = value.split(":");
+
+                            if (keys.length > 2) keys = Arrays.copyOf(keys, keys.length - 1);
+
+                            npc.getActions().set(action, String.join(":", keys) + ":" + Integer.parseInt(args[4]));
+                            sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                        }
+                    }
+                    break;
+                case "remove":
+                    if (!Utils.isInteger(args[3])) player.sendMessage(ChatColor.RED + "You need to put a valid number");
+                    else {
+                        if (npc.getActions().isEmpty() || Integer.parseInt(args[3]) > npc.getActions().size() - 1) player.sendMessage(ChatColor.RED + "Action not found.");
+                        else {
+                            npc.getActions().remove(Integer.parseInt(args[3]));
+
+                            sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("success")));
+                        }
+                    }
+                    break;
+                case "list":
+                    if (npc.getActions().isEmpty()) player.sendMessage(ChatColor.GREEN + "No actions found.");
+                    else npc.getActions().forEach(s -> player.sendMessage(Utils.tocolor("&8(&a" + npc.getActions().indexOf(s) + "&8) &6" + s)));
+                    break;
+                default:
+                    runUsage(sender);
+                    break;
+            }
             return true;
         }
         runUsage(sender);

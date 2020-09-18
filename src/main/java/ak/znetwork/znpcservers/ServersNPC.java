@@ -104,7 +104,7 @@ public class ServersNPC extends JavaPlugin {
         // Load reflection cache
         try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
 
-        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 30);
+        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 40);
 
         // Load all npc from data
         this.executor.execute(() -> {
@@ -225,7 +225,7 @@ public class ServersNPC extends JavaPlugin {
         try {
             final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
 
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, player.getLocation(), NPCType.PLAYER, NPCAction.CMD, new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, player.getLocation(), NPCType.PLAYER,  new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
 
             player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
             return true;

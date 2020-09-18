@@ -77,8 +77,7 @@ public class NPC {
 
     protected Object packetPlayOutScoreboardTeam;
 
-    protected NPCAction npcAction;
-    protected String[] actions;
+    protected List<String> actions;
 
     protected HashMap<NPCItemSlot , Material> npcItemSlotMaterialHashMap;
 
@@ -118,10 +117,9 @@ public class NPC {
      * @param skin the skin value
      * @param signature the skin signature
      * @param location the location for the npc
-     * @param npcAction npc action type
      * @param hologram
      */
-    public NPC(final ServersNPC serversNPC , final int id, final String skin , final String signature , final Location location , NPCType npcType, NPCAction npcAction, Hologram hologram , boolean save) throws Exception {
+    public NPC(final ServersNPC serversNPC , final int id, final String skin , final String signature , final Location location , NPCType npcType, Hologram hologram , boolean save) throws Exception {
         this.serversNPC = serversNPC;
 
         this.npcItemSlotMaterialHashMap = new HashMap<>();
@@ -137,7 +135,7 @@ public class NPC {
         this.id = id;
         this.location = location;
 
-        this.npcAction = npcAction;
+        this.actions = new ArrayList<>();
 
         nmsServer = ClazzCache.GET_SERVER_METHOD.method.invoke(Bukkit.getServer());
         nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
@@ -194,26 +192,17 @@ public class NPC {
     /**
      * @return get actions
      */
-    public String[] getActions() {
+    public List<String> getActions() {
         return actions;
     }
 
     /**
      * Set actions
      *
-     * @param action set
+     * @param actions set
      */
-    public void setAction(String[] action) {
-        this.actions = action;
-    }
-
-    /**
-     * Set action type
-     *
-     * @param npcAction set
-     */
-    public void setNpcAction(NPCAction npcAction) {
-        this.npcAction = npcAction;
+    public void setActions(List<String> actions) {
+        this.actions = actions;
     }
 
     /**
@@ -313,15 +302,6 @@ public class NPC {
      */
     public String getGlowName() {
         return glowName;
-    }
-
-    /**
-     * Get action type
-     *
-     * @return get npc action
-     */
-    public NPCAction getNpcAction() {
-        return npcAction;
     }
 
     /**

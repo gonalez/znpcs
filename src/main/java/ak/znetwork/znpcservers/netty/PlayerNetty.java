@@ -23,6 +23,7 @@ package ak.znetwork.znpcservers.netty;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import io.netty.channel.Channel;
@@ -34,9 +35,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerNetty {
 
@@ -51,10 +50,13 @@ public class PlayerNetty {
 
     protected long last_interact = 0;
 
+    protected HashMap<Integer, HashMap<Long, Integer>> actionCooldown;
+
     public PlayerNetty(final ServersNPC serversNPC , final Player player) throws Exception {
         this.serversNPC = serversNPC;
 
         this.uuid = player.getUniqueId();
+        this.actionCooldown = new HashMap<>();
 
         Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
         Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
@@ -92,7 +94,7 @@ public class PlayerNetty {
 
                                final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId2).findFirst().orElse(null);
 
-                               if (npc == null || npc.getActions() == null || npc.getActions().length < 1) return;
+                               if (npc == null || npc.getActions() == null || npc.getActions().isEmpty()) return;
 
                                last_interact = System.currentTimeMillis();
 
@@ -100,14 +102,31 @@ public class PlayerNetty {
                                    @Override
                                    public void run() {
                                        for (String string : npc.getActions()) {
-                                           final String action = string.replace("_", " ");
+                                           final String[] actions = string.split(":");
 
-                                           switch (npc.getNpcAction()) {
+                                           final NPCAction npcAction = NPCAction.fromString(actions[0]);
+
+                                           if (npcAction == null) return;
+
+                                           final String action = actions[1];
+
+                                           if (actions.length > 2) {
+                                               final int id = npc.getActions().indexOf(string);
+
+                                               // Check for action cooldown
+                                               if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0])) return;
+
+                                               actionCooldown.put(id, new HashMap<Long, Integer>() {{
+                                                   put(System.currentTimeMillis(), Integer.parseInt(actions[2]));
+                                               }});
+                                           }
+
+                                           switch (npcAction) {
                                                case CMD:
-                                                   player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                   player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
                                                    break;
                                                case CONSOLE:
-                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, string) : action));
+                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
                                                    break;
                                                case SERVER:
                                                    serversNPC.sendPlayerToServer(player, action);

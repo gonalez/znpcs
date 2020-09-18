@@ -30,6 +30,6 @@ public enum NPCAction {
                 return b;
             }
         }
-        return NPCAction.CMD;
+        return null;
     }
 }
