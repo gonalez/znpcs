@@ -49,6 +49,7 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class ServersNPC extends JavaPlugin {
@@ -78,7 +79,10 @@ public class ServersNPC extends JavaPlugin {
         try {
             data.createNewFile();
         } catch (IOException e) {
-            throw new RuntimeException("An exception occurred while trying to create data.json file" , e);
+            //throw new RuntimeException("An exception occurred while trying to create data.json file" , e);
+            getLogger().log(Level.WARNING, "An exception occurred while trying to create data.json file", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         viewDistance = (Bukkit.getViewDistance() << 2);
@@ -131,7 +135,7 @@ public class ServersNPC extends JavaPlugin {
                 }
                 System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
             } catch (IOException e) {
-                throw new RuntimeException("An exception occurred while trying to load npcs" , e);
+                //throw new RuntimeException("An exception occurred while trying to load npcs" , e);
             }
 
             // Setup netty again for online players
