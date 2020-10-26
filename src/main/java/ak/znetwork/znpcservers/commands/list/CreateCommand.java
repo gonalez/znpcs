@@ -24,16 +24,13 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
-import ak.znetwork.znpcservers.commands.other.ZNArgument;
-import ak.znetwork.znpcservers.utils.Utils;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
-@CMDInfo(getArguments = "-id")
+@CMDInfo(getArguments = {"-id" , "-skin", "-type" , "-lines"})
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
@@ -42,7 +39,28 @@ public class CreateCommand extends ZNCommand {
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        final Map<ZNArgument, String> znArgumentStringMap = getAnnotations(args);
+        final Map<String, String> znArgumentStringMap = getAnnotations(args);
+
+        if (znArgumentStringMap.size() <= 3) {
+            sender.sendMessage(ChatColor.RED + "");
+            return true;
+        }
+
+        final String id = znArgumentStringMap.get("-id");
+
+        if (!StringUtils.isNumeric(id)) {
+            sender.sendMessage(ChatColor.RED + "The id of the npc must be a number.");
+            return false;
+        }
+
+        int npcId = Integer.parseInt(id);
+
+        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == npcId);
+
+        if (foundNPC) {
+            sender.sendMessage(ChatColor.RED + "I have found an npc with this id, try putting a unique id..");
+            return false;
+        }
         return false;
     }
 }

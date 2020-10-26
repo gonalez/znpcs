@@ -74,20 +74,20 @@ public abstract class ZNCommand {
         return commandType;
     }
 
-    public Map<ZNArgument, String> getAnnotations(final String[] cmd) {
-        final Map<ZNArgument, String> valueMap = Maps.newHashMap();
+    public Map<String, String> getAnnotations(final String[] cmd) {
+        final Map<String, String> valueMap = Maps.newHashMap();
 
         for (int i = 0; i < cmd.length; i++) {
             final String input = cmd[i];
 
-            final Optional<ZNArgument> znArgument = this.argumentSet.stream().filter(znArgument1 -> Stream.of(((String[])znArgument1.value)).anyMatch(input::contains)).findFirst();
+            final Optional<ZNArgument> znArgument = this.argumentSet.stream().filter(znArgument1 -> znArgument1.name.equalsIgnoreCase("getArguments") && Stream.of(((String[])znArgument1.value)).anyMatch(input::contains)).findFirst();
 
             if (znArgument.isPresent()) {
                 if (i++ > cmd.length) break; // The command does not contain a value
 
                 final String value = cmd[i];
 
-                valueMap.put(znArgument.get(), value);
+                valueMap.put(input, value);
             }
         }
         return valueMap;
