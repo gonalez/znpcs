@@ -101,21 +101,27 @@ public abstract class ZNCommand {
             final Optional<ZNArgument> znArgument = findArgument(input);
 
             if (znArgument.isPresent()) {
-                if (i++ > cmd.length - 1) break; // The command does not contain a value
+                boolean can = argumentSet.stream().filter(znArgument1 -> znArgument1.name.equalsIgnoreCase("autoFill")).map(znArgument1 -> ((Boolean) znArgument1.value).booleanValue()).findFirst().orElse(false);
 
-                StringBuilder value = new StringBuilder(cmd[i] + " ");
+                StringBuilder value;
 
-                for (int text = (i + 1); text < cmd.length; text++) {
-                    Optional<ZNArgument> znArgument1 = Optional.empty();
+                if (!input.contains("list") && ((i+1) < cmd.length || input.contains("id") || !can)) {
+                    if (i++ > cmd.length - 1) break; // The command does not contain a value
 
-                    if (findArgument(cmd[text]).isPresent()) znArgument1 = findArgument(cmd[text]);
+                    value = new StringBuilder(cmd[i] + " ");
 
-                    if (!znArgument1.isPresent()) {
-                        i++;
+                    for (int text = (i + 1); text < cmd.length; text++) {
+                        Optional<ZNArgument> znArgument1 = Optional.empty();
 
-                        value.append(cmd[i]).append(" ");
-                    } else break;
-                }
+                        if (findArgument(cmd[text]).isPresent()) znArgument1 = findArgument(cmd[text]);
+
+                        if (!znArgument1.isPresent()) {
+                            i++;
+
+                            value.append(cmd[i]).append(" ");
+                        } else break;
+                    }
+                } else value = new StringBuilder(cmd[i] + " true");
                 valueMap.put(input.replace("-" , ""), value.toString());
             }
         }

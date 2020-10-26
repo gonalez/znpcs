@@ -25,18 +25,20 @@ import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Optional;
 
-@CMDInfo(getArguments = {"-id" , "-type"})
+@CMDInfo(autoFill = true, getArguments = {"-id" , "-holo" , "-name" , "-glow", "-mirror", "-look"})
 public class ToggleCommand extends ZNCommand {
 
     public ToggleCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "type" , "znpcs.cmd.type", CommandType.PLAYER);
+        super(serversNPC , "toggle" , "znpcs.cmd.toggle", CommandType.PLAYER);
     }
 
     @Override
@@ -64,6 +66,38 @@ public class ToggleCommand extends ZNCommand {
             return false;
         }
 
+        znArgumentStringMap.forEach((key, value) -> {
+            try {
+                switch (key.toLowerCase().trim()) {
+                    case "holo":
+                        npcOptional.get().toggleHolo();
+                        break;
+                    case "name":
+                        npcOptional.get().toggleName(true);
+                        break;
+                    case "glow":
+                        final String[] split = value.split(" ");
+
+                        if (split.length <= 1) {
+                            return;
+                        }
+
+                        npcOptional.get().toggleGlow(((Player)sender), split[1],true);
+                        break;
+                    case "mirror":
+                        npcOptional.get().toggleMirror();
+                        break;
+                    case "look":
+                        npcOptional.get().toggleLookAt();
+                        break;
+                    default:break;
+                }
+            } catch (Exception exception) {
+                //Bukkit.getLogger().log(Level.WARNING , "name", exception);
+                sender.sendMessage(ChatColor.RED + "An error occurred.");
+            }
+        });
+        sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
         return false;
     }
 }

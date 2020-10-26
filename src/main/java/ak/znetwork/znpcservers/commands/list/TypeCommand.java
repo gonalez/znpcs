@@ -85,6 +85,8 @@ public class TypeCommand extends ZNCommand {
 
         try {
             npcOptional.get().changeType(npcType);
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
         } catch (Exception e) {
             sender.sendMessage(ChatColor.RED + "An error occurred when trying to change npc type.");
         }

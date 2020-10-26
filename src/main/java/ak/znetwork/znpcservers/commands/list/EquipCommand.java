@@ -79,7 +79,7 @@ public class EquipCommand extends ZNCommand {
                 } catch (Exception exception) {}
             }
         });
-        sender.sendMessage(ChatColor.GREEN + "Changed " + ChatColor.GOLD + i.get() + ChatColor.GREEN + " slots.");
+        if (i.get() > 0) sender.sendMessage(ChatColor.GREEN + "Changed " + ChatColor.GOLD + i.get() + ChatColor.GREEN + " slots.");
         return false;
     }
 }

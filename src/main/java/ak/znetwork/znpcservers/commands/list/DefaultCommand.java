@@ -24,48 +24,29 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Map;
 
-@CMDInfo(getArguments = {"-id" , "-skin", "-name"})
-public class CreateCommand extends ZNCommand {
+@CMDInfo(getArguments = {})
+public class DefaultCommand extends ZNCommand {
 
-    public CreateCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "create" , "znpcs.cmd.create", CommandType.PLAYER);
+    public DefaultCommand(final ServersNPC serversNPC) {
+        super(serversNPC , "" , "", CommandType.ALL);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        final Map<String, String> znArgumentStringMap = getAnnotations(args);
+        sender.sendMessage(Utils.color("&6&m------------------------------------------"));
+        sender.sendMessage(Utils.color("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)"));
+        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> sender.sendMessage(znCommand.getUsage()));
+        sender.sendMessage(Utils.color("&6&m------------------------------------------"));
 
-        if (znArgumentStringMap.size() <= 2) {
-            sender.sendMessage(ChatColor.RED + "Correct usage: " + getUsage());
-            return true;
-        }
-
-        final String id = znArgumentStringMap.get("id").trim();
-
-        if (!StringUtils.isNumeric(id)) {
-            sender.sendMessage(ChatColor.RED + "The id of the npc must be a number.");
-            return false;
-        }
-
-        int npcId = Integer.parseInt(id);
-
-        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == npcId);
-
-        if (foundNPC) {
-            sender.sendMessage(ChatColor.RED + "Have found an npc with this id, try putting a unique id..");
-            return false;
-        }
-
-        final String skin = znArgumentStringMap.get("skin");
-
-        serversNPC.createNPC(npcId, ((Player)sender), skin, znArgumentStringMap.get("name").trim());
         return false;
     }
 }
