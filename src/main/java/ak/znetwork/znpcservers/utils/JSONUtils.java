@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.utils;
 
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
+import org.bukkit.Bukkit;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -29,6 +30,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 import com.google.common.io.Resources;
 
@@ -39,6 +41,8 @@ public class JSONUtils {
     }
 
     public static UUID fetchUUID(final String name) {
+        UUID randomUUID = UUID.randomUUID();
+
         try {
             final JSONObject jsonObject = (JSONObject) new JSONParser().parse(readUrl("https://api.mojang.com/users/profiles/minecraft/" + name));
 
@@ -50,8 +54,9 @@ public class JSONUtils {
 
             return UUID.fromString(uuid);
         } catch (Exception e) {
-            throw new RuntimeException("An exception occurred while trying to fetch uuid for " + name, e);
+            Bukkit.getLogger().log(Level.WARNING, "Could not get the uuid for the name -> " + name, e);
         }
+        return randomUUID;
     }
 
     public static String[] fetchSkin(final UUID uuid) {
@@ -68,21 +73,17 @@ public class JSONUtils {
 
             return skin;
         } catch (Exception e) {
-            throw new RuntimeException("An exception occurred while trying to fetch skin for " + uuid.toString(), e);
+            Bukkit.getLogger().log(Level.WARNING, "Could not get the skin for the uuid -> " + uuid.toString(), e);
         }
+        return skin;
     }
 
     public static SkinFetch getSkin(String name) throws Exception {
+        final UUID uuid = fetchUUID(name);
+        final String[] skin = fetchSkin(uuid);
+
         CompletableFuture<SkinFetch> skinFetchCompletableFuture = CompletableFuture.supplyAsync(() -> {
-            try {
-                final UUID uuid = fetchUUID(name);
-
-                final String[] skin = fetchSkin(uuid);
-
-                return new SkinFetch(uuid , skin[0], skin[1]);
-            } catch (Exception e) {
-                throw new RuntimeException("An exception occurred while trying to get skin for " + name, e);
-            }
+            return new SkinFetch(uuid, skin[0], skin[1]);
         });
         return skinFetchCompletableFuture.get();
     }

@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.cache.ClazzCache;
+import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.*;
 import ak.znetwork.znpcservers.configuration.Configuration;
 import ak.znetwork.znpcservers.hologram.Hologram;
@@ -30,7 +31,6 @@ import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
-import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.serializer.NPCSerializer;
 import ak.znetwork.znpcservers.utils.JSONUtils;
@@ -41,11 +41,12 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -79,7 +80,6 @@ public class ServersNPC extends JavaPlugin {
         try {
             data.createNewFile();
         } catch (IOException e) {
-            //throw new RuntimeException("An exception occurred while trying to create data.json file" , e);
             getLogger().log(Level.WARNING, "An exception occurred while trying to create data.json file", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -100,7 +100,14 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        commandsManager.addCommands(new DefaultCommand(this) , new CreateCommand(this) , new DeleteCommand(this) , new ListCommand(this), new ActionCommand(this) , new ToggleCommand(this), new TypeCommand(this), new MoveCommand(this) , new EquipCommand(this) , new LinesCommand(this) , new SkinCommand(this));
+        Utils.getClasses("ServersNPC", ZNCommand.class).forEach(aClass -> {
+            try {
+                this.commandsManager.addCommands(((ZNCommand) aClass.getDeclaredConstructors()[0].newInstance(this)));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                getLogger().log(Level.WARNING, "An exception occurred while trying to load commands", e);
+                getServer().getPluginManager().disablePlugin(this);
+            }
+        });
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
@@ -108,7 +115,7 @@ public class ServersNPC extends JavaPlugin {
         // Load reflection cache
         try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
 
-        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 40);
+        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 45);
 
         // Load all npc from data
         this.executor.execute(() -> {
@@ -153,9 +160,7 @@ public class ServersNPC extends JavaPlugin {
         npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
             try {
                 npc.delete(player , false);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) {}
         }));
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
@@ -227,15 +232,16 @@ public class ServersNPC extends JavaPlugin {
      */
     public final boolean createNPC(int id , final Player player , final String skin, final String holo_lines) {
         try {
-            final SkinFetch skinFetcher = JSONUtils.getSkin(skin);
+            final SkinFetch skinFetch = JSONUtils.getSkin(skin);
 
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetcher.value, skinFetcher.signature, player.getLocation(), NPCType.PLAYER,  new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetch.value, skinFetch.signature, player.getLocation(), NPCType.PLAYER,  new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
 
-            player.sendMessage(Utils.tocolor(getMessages().getConfig().getString("success")));
+            player.sendMessage(Utils.color(getMessages().getConfig().getString("success")));
             return true;
         } catch (Exception e) {
-            throw new RuntimeException("An exception occurred while creating npc " + id, e);
+            player.sendMessage(ChatColor.RED + "Could not create npc.");
         }
+        return false;
     }
 
     /**

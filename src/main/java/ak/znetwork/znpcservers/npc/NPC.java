@@ -23,7 +23,6 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.hologram.Hologram;
-import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -40,6 +39,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * NPC API
@@ -133,7 +133,7 @@ public class NPC {
         this.save = save;
 
         this.id = id;
-        this.location = location;
+        this.location = (location);
 
         this.actions = new ArrayList<>();
 
@@ -341,10 +341,12 @@ public class NPC {
     }
 
     public Object getGlowColor(final String string) throws Exception {
+        final Class<?> clazzCache = ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass;
+
         try {
-            return ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass.getField(string.toUpperCase()).get(null);
+            return clazzCache.getField(string.toUpperCase()).get(null);
         } catch (NoSuchFieldException e) {
-            throw new NoSuchFieldException("Couldn't locate color " + string);
+            return clazzCache.getField("WHITE").get(null);
         }
     }
 
@@ -446,6 +448,8 @@ public class NPC {
 
         this.npcType = npcType;
 
+        setLocation(this.location);
+
         // Update new type for viewers
         final Iterator<Player> it = this.getViewers().iterator();
 
@@ -509,7 +513,12 @@ public class NPC {
                 try {
                     hideFromTablist(player);
                 } catch (Exception e) {
-                    throw new RuntimeException("An exception occurred while trying to hide npc" + getId(), e);
+                    try {
+                        delete(player, true);
+                    } catch (Exception exception) {
+                        // Should not happen
+                        this.serversNPC.getLogger().log(Level.WARNING , "Could not remove npc for player -> " + player.getName(), e);
+                    }
                 }
             });
         }
@@ -694,11 +703,11 @@ public class NPC {
      * @param location new
      */
     public void setLocation(Location location) throws Exception {
-        this.location = new Location(location.getWorld(), location.getBlockX() + 0.5, (location.getBlock().getType().name().toUpperCase().contains("STEP") ? location.getY() + 0.5: location.getY()), location.getBlockZ() + 0.5, location.getYaw() , location.getPitch());
+        this.location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw() , location.getPitch());
 
         znEntity.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(znEntity , this.location.getX(),  this.location.getY(), this.location.getZ(), location.getYaw() , location.getPitch());
 
-        hologram.setLocation(this.location.clone().subtract(0.5, 0 , 0.5), this.npcType.holoHeight);
+        if (hologram != null) hologram.setLocation(this.location.clone().subtract(0.5, 0 , 0.5), this.npcType.holoHeight);
 
         updateLoc();
     }

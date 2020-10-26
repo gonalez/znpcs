@@ -66,14 +66,14 @@ public class CommandsManager implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Command not found.");
         else {
             if (znCommand.getPermission().length() >= 1 && !sender.hasPermission(znCommand.getPermission())) {
-                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("no-permission")));
+                sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("no-permission")));
                 return false;
             }
 
             try {
                 znCommand.dispatchCommand(sender , args);
             } catch (Exception e) {
-                throw new RuntimeException("An exception occurred while trying to dispatch command " + znCommand.getCmd(), e);
+                sender.sendMessage(ChatColor.RED + "Unable to run command.");
             }
         }
         return true;

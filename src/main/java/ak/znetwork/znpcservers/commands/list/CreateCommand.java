@@ -22,8 +22,8 @@ package ak.znetwork.znpcservers.commands.list;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
+import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
-import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -31,29 +31,25 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+@CMDInfo(getArguments = "test")
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "create" , "create <id> <skin> <text... text>" , "znpcs.cmd.create", CommandType.PLAYER);
+        super(serversNPC , "create" , "znpcs.cmd.create", CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        if (args.length >= 4 && Utils.isInteger(args[1])) {
-            if (serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == Integer.parseInt(args[1])))  {
-                sender.sendMessage(Utils.tocolor(serversNPC.getMessages().getConfig().getString("npc-found")));
-                return true;
-            }
+        try {
+            final Object test = argumentCache.get(args[1]);
 
-            final List<String> strings = Arrays.stream(args, 3, args.length).collect(Collectors.toList());
-            Collections.reverse(strings);
-
-            serversNPC.createNPC(Integer.parseInt(args[1]) , ((Player)sender) ,args[2], String.join(":" , strings));
-            return true;
+            sender.sendMessage("TEST: " + test);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
-        runUsage(sender);
         return false;
     }
 }

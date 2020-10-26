@@ -26,7 +26,9 @@ import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.LocationUtils;
+import ak.znetwork.znpcservers.utils.Utils;
 import com.google.gson.*;
+import org.bukkit.Location;
 
 import java.lang.reflect.Type;
 import java.util.stream.Collectors;
@@ -70,7 +72,11 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
 
         final int id = jsonObject.get("id").getAsInt();
         try {
-            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], LocationUtils.getLocationString(jsonObject.get("location").getAsString()), NPCType.valueOf(jsonObject.get("type").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()), jsonObject.get("lines").getAsString().split(":")) , true);
+            final Location location = LocationUtils.getLocationString(jsonObject.get("location").getAsString());
+
+            if (Utils.containsStep(location)) location.add(0, 0.5, 0);
+
+            final NPC npc = new NPC(this.serversNPC , id, jsonObject.get("skin").getAsString().split(":")[0], jsonObject.get("skin").getAsString().split(":")[1], location, NPCType.valueOf(jsonObject.get("type").getAsString()), new Hologram(this.serversNPC,  LocationUtils.getLocationString(jsonObject.get("location").getAsString()), jsonObject.get("lines").getAsString().split(":")) , true);
 
             if (jsonObject.get("actions").isJsonArray()) npc.setActions(StreamSupport.stream(jsonObject.get("actions").getAsJsonArray().spliterator(), false).map(JsonElement::getAsString).collect(Collectors.toList()));
 

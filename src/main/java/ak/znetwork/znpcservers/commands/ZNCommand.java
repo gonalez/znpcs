@@ -21,28 +21,50 @@
 package ak.znetwork.znpcservers.commands;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
-import org.bukkit.ChatColor;
+import ak.znetwork.znpcservers.commands.other.ZNArgument;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.logging.Level;
 public abstract class ZNCommand {
 
     public ServersNPC serversNPC;
 
     protected String cmd;
-    protected String usage;
 
     protected CommandType commandType;
 
     protected String permission;
 
-    public ZNCommand(final ServersNPC serversNPC , final String cmd , final String usage , final String permission, CommandType commandType) {
+    protected Set<ZNArgument> argumentSet;
+
+    public LoadingCache<String, Object> argumentCache = CacheBuilder.newBuilder()
+            .build(new CacheLoader<String, Object>() {
+                @Override
+                public Optional<Object> load(final String string) {
+                    return argumentSet.stream().filter(znArgument -> znArgument.name.equalsIgnoreCase(string)).map(znArgument -> znArgument.value).findFirst();
+                }
+            });
+
+    public ZNCommand(final ServersNPC serversNPC , final String cmd , final String permission, CommandType commandType , String... usages) {
         this.serversNPC = serversNPC;
 
         this.cmd = cmd;
-        this.usage = usage;
         this.permission = permission;
         this.commandType = commandType;
+
+        this.argumentSet = new HashSet<>();
+
+        loadAnnotations();
     }
 
     public abstract boolean dispatchCommand(CommandSender sender, String... args) throws Exception;
@@ -55,16 +77,22 @@ public abstract class ZNCommand {
         return cmd;
     }
 
-    public String getUsage() {
-        return usage;
-    }
-
     public CommandType getCommandType() {
         return commandType;
     }
 
-    public void runUsage(final CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "Correct usage: /znpcs " + usage);
+    public void loadAnnotations() {
+        for (final Annotation annotation : getClass().getAnnotationsByType(CMDInfo.class)) {
+            for (final Method method : annotation.annotationType().getDeclaredMethods()) {
+                try {
+                    Object value = method.invoke(annotation);
+
+                    this.argumentSet.add(new ZNArgument(annotation, method.getName(), value));
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    Bukkit.getLogger().log(Level.WARNING, "Could not load annotation -> " + method.getName(), e);
+                }
+            }
+        }
     }
 }
 
