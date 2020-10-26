@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -32,6 +33,8 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CommandsManager implements CommandExecutor {
 
@@ -73,6 +76,8 @@ public class CommandsManager implements CommandExecutor {
             try {
                 znCommand.dispatchCommand(sender , args);
             } catch (Exception e) {
+                Bukkit.getLogger().log(Level.WARNING , "Err" , e);
+
                 sender.sendMessage(ChatColor.RED + "Unable to run command.");
             }
         }

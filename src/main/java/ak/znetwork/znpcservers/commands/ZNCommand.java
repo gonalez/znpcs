@@ -26,6 +26,7 @@ import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.commands.other.ZNArgument;
 import com.google.common.collect.Maps;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class ZNCommand {
@@ -74,6 +74,19 @@ public abstract class ZNCommand {
         return commandType;
     }
 
+    public String getUsage() {
+        return ChatColor.RED + "/znpcs " + this.cmd + " " + String.join(" ", getAll("getArguments"));
+    }
+
+    public final String[] getAll(final String name) {
+        for (final ZNArgument znArgument : argumentSet) {
+            if (!znArgument.name.equalsIgnoreCase(name)) continue;
+
+            return (String[]) znArgument.value;
+        }
+        return new String[0];
+    }
+
     public Map<String, String> getAnnotations(final String[] cmd) {
         final Map<String, String> valueMap = Maps.newHashMap();
 
@@ -87,7 +100,7 @@ public abstract class ZNCommand {
 
                 final String value = cmd[i];
 
-                valueMap.put(input, value);
+                valueMap.put(input.replace("-" , ""), value);
             }
         }
         return valueMap;
