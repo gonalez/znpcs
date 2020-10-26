@@ -24,17 +24,16 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
+import ak.znetwork.znpcservers.commands.other.ZNArgument;
 import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@CMDInfo(getArguments = "test")
+@CMDInfo(getArguments = "-id")
 public class CreateCommand extends ZNCommand {
 
     public CreateCommand(final ServersNPC serversNPC) {
@@ -43,13 +42,7 @@ public class CreateCommand extends ZNCommand {
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
-        try {
-            final Object test = argumentCache.get(args[1]);
-
-            sender.sendMessage("TEST: " + test);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        final Map<ZNArgument, String> znArgumentStringMap = getAnnotations(args);
         return false;
     }
 }

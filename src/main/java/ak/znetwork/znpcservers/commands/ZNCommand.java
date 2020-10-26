@@ -24,9 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
 import ak.znetwork.znpcservers.commands.other.ZNArgument;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -35,6 +33,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public abstract class ZNCommand {
 
     public ServersNPC serversNPC;
@@ -46,14 +47,6 @@ public abstract class ZNCommand {
     protected String permission;
 
     protected Set<ZNArgument> argumentSet;
-
-    public LoadingCache<String, Object> argumentCache = CacheBuilder.newBuilder()
-            .build(new CacheLoader<String, Object>() {
-                @Override
-                public Optional<Object> load(final String string) {
-                    return argumentSet.stream().filter(znArgument -> znArgument.name.equalsIgnoreCase(string)).map(znArgument -> znArgument.value).findFirst();
-                }
-            });
 
     public ZNCommand(final ServersNPC serversNPC , final String cmd , final String permission, CommandType commandType , String... usages) {
         this.serversNPC = serversNPC;
@@ -79,6 +72,25 @@ public abstract class ZNCommand {
 
     public CommandType getCommandType() {
         return commandType;
+    }
+
+    public Map<ZNArgument, String> getAnnotations(final String[] cmd) {
+        final Map<ZNArgument, String> valueMap = Maps.newHashMap();
+
+        for (int i = 0; i < cmd.length; i++) {
+            final String input = cmd[i];
+
+            final Optional<ZNArgument> znArgument = this.argumentSet.stream().filter(znArgument1 -> Stream.of(((String[])znArgument1.value)).anyMatch(input::contains)).findFirst();
+
+            if (znArgument.isPresent()) {
+                if (i++ > cmd.length) break; // The command does not contain a value
+
+                final String value = cmd[i];
+
+                valueMap.put(znArgument.get(), value);
+            }
+        }
+        return valueMap;
     }
 
     public void loadAnnotations() {
