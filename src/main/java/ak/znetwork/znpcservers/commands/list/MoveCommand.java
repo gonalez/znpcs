@@ -24,26 +24,31 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
 import ak.znetwork.znpcservers.commands.enums.CommandType;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.utils.Utils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@CMDInfo(getArguments = {"-id" , "-skin", "-type" , "-name"})
-public class CreateCommand extends ZNCommand {
+@CMDInfo(getArguments = {"-id"})
+public class MoveCommand extends ZNCommand {
 
-    public CreateCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "create" , "znpcs.cmd.create", CommandType.PLAYER);
+    public MoveCommand(final ServersNPC serversNPC) {
+        super(serversNPC , "move" , "znpcs.cmd.move", CommandType.PLAYER);
     }
 
     @Override
     public boolean dispatchCommand(CommandSender sender, String... args) {
         final Map<String, String> znArgumentStringMap = getAnnotations(args);
 
-        if (znArgumentStringMap.size() <= 3) {
+        if (znArgumentStringMap.size() <= 0) {
             sender.sendMessage(ChatColor.RED + "Correct usage: " + getUsage());
             return true;
         }
@@ -57,24 +62,24 @@ public class CreateCommand extends ZNCommand {
 
         int npcId = Integer.parseInt(id);
 
-        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == npcId);
+        final Optional<NPC> npcOptional = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == npcId).findFirst();
 
-        if (foundNPC) {
-            sender.sendMessage(ChatColor.RED + "Have found an npc with this id, try putting a unique id..");
+        if (!npcOptional.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
             return false;
         }
 
-        final String skin = znArgumentStringMap.get("skin");
+        try {
+            if (npcOptional.get().isHasLookAt()) npcOptional.get().toggleLookAt();
 
-        final String type = znArgumentStringMap.get("type").trim();
-        final NPCType npcType = NPCType.fromString(type.toUpperCase());
+            final Location location = ((Player)sender).getLocation();
 
-        if (npcType == null)  {
-            sender.sendMessage(ChatColor.RED + "Can't find this type of npc..");
-            return false;
+            npcOptional.get().setLocation((location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location));
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception exception) {
+            sender.sendMessage(ChatColor.RED + "An error occurred when trying to move the npc.");
         }
-
-        serversNPC.createNPC(npcId, ((Player)sender), skin, znArgumentStringMap.get("name").trim());
         return false;
     }
 }

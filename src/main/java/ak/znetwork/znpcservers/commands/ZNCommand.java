@@ -87,20 +87,36 @@ public abstract class ZNCommand {
         return new String[0];
     }
 
+    public Optional<ZNArgument> findArgument(final String first) {
+        return this.argumentSet.stream().filter(znArgument1 -> znArgument1.name.equalsIgnoreCase("getArguments") && Stream.of(((String[])znArgument1.value)).anyMatch(first::contains)).findFirst();
+    }
+
+
     public Map<String, String> getAnnotations(final String[] cmd) {
         final Map<String, String> valueMap = Maps.newHashMap();
 
         for (int i = 0; i < cmd.length; i++) {
             final String input = cmd[i];
 
-            final Optional<ZNArgument> znArgument = this.argumentSet.stream().filter(znArgument1 -> znArgument1.name.equalsIgnoreCase("getArguments") && Stream.of(((String[])znArgument1.value)).anyMatch(input::contains)).findFirst();
+            final Optional<ZNArgument> znArgument = findArgument(input);
 
             if (znArgument.isPresent()) {
-                if (i++ > cmd.length) break; // The command does not contain a value
+                if (i++ > cmd.length - 1) break; // The command does not contain a value
 
-                final String value = cmd[i];
+                StringBuilder value = new StringBuilder(cmd[i] + " ");
 
-                valueMap.put(input.replace("-" , ""), value);
+                for (int text = (i + 1); text < cmd.length; text++) {
+                    Optional<ZNArgument> znArgument1 = Optional.empty();
+
+                    if (findArgument(cmd[text]).isPresent()) znArgument1 = findArgument(cmd[text]);
+
+                    if (!znArgument1.isPresent()) {
+                        i++;
+
+                        value.append(cmd[i]).append(" ");
+                    } else break;
+                }
+                valueMap.put(input.replace("-" , ""), value.toString());
             }
         }
         return valueMap;
