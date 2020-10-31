@@ -65,6 +65,11 @@ public class CreateCommand extends ZNCommand {
 
         final String skin = znArgumentStringMap.get("skin");
 
+        if (skin.length() > 12) {
+            sender.sendMessage(ChatColor.RED + "The skin name is too long. (>12)");
+            return false;
+        }
+
         serversNPC.createNPC(npcId, ((Player)sender), skin, znArgumentStringMap.get("name").trim());
         return false;
     }

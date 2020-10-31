@@ -105,7 +105,7 @@ public abstract class ZNCommand {
 
                 StringBuilder value;
 
-                if (!input.contains("list") && ((i+1) < cmd.length || input.contains("id") || !can)) {
+                if (!input.contains("list") && ((i + 1) < cmd.length || input.contains("id") || !can)) {
                     if (i++ > cmd.length - 1) break; // The command does not contain a value
 
                     value = new StringBuilder(cmd[i] + " ");

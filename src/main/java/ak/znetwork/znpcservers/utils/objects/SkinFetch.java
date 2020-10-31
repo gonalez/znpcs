@@ -29,10 +29,17 @@ public final class SkinFetch {
     public String value;
     public String signature;
 
+    public long finishMS = -1;
+
     public SkinFetch(final UUID uuid , final String value , final String signature) {
         this.uuid = uuid;
 
         this.value = value;
         this.signature = signature;
+    }
+
+    public SkinFetch setFinishMS(long finishMS) {
+        this.finishMS = finishMS;
+        return this;
     }
 }

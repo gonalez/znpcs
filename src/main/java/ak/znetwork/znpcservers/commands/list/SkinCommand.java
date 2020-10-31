@@ -30,12 +30,12 @@ import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 
+import java.net.MalformedURLException;
+import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @CMDInfo(getArguments = {"-id" , "-skin"})
 public class SkinCommand extends ZNCommand {
@@ -69,8 +69,20 @@ public class SkinCommand extends ZNCommand {
             return false;
         }
 
+        final String skin = znArgumentStringMap.get("skin").trim();
+
         try {
-            SkinFetch skinFetcher = JSONUtils.getSkin(znArgumentStringMap.get("skin").trim());
+            SkinFetch skinFetcher;
+            if (skin.startsWith("http")) {
+                try {
+                    skinFetcher = JSONUtils.getByURL(skin);
+
+                    sender.sendMessage(Utils.color("&eTook &b" + NumberFormat.getInstance().format(skinFetcher.finishMS) + " &7ms"));
+                } catch (MalformedURLException e) {
+                    sender.sendMessage(ChatColor.RED + "Try to put a valid url.");
+                    return false;
+                }
+            } else skinFetcher = JSONUtils.getSkin(skin);
 
             npcOptional.get().updateSkin(skinFetcher);
             sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));

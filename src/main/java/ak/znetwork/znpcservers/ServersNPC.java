@@ -72,9 +72,15 @@ public class ServersNPC extends JavaPlugin {
 
     private int viewDistance;
 
+    private String plName;
+
+    public static final int MILLI_SECOND = 20;
+
     @Override
     public void onEnable() {
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
+
+        plName = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath()).getName().split("\\.")[0];
 
         data = new File(getDataFolder() , "data.json");
         try {
@@ -100,11 +106,11 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        Utils.getClasses("ServersNPC", ZNCommand.class).forEach(aClass -> {
+        Utils.getClasses(getPlName(), ZNCommand.class).forEach(aClass -> {
             try {
                 this.commandsManager.addCommands(((ZNCommand) aClass.getDeclaredConstructors()[0].newInstance(this)));
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                getLogger().log(Level.WARNING, "An exception occurred while trying to load commands", e);
+                getLogger().log(Level.WARNING, "An exception occurred while trying to load command", e);
                 getServer().getPluginManager().disablePlugin(this);
             }
         });
@@ -115,7 +121,7 @@ public class ServersNPC extends JavaPlugin {
         // Load reflection cache
         try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
 
-        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , 45);
+        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
 
         // Load all npc from data
         this.executor.execute(() -> {
@@ -205,6 +211,10 @@ public class ServersNPC extends JavaPlugin {
 
     public int getViewDistance() {
         return viewDistance;
+    }
+
+    public String getPlName() {
+        return plName;
     }
 
     /**
