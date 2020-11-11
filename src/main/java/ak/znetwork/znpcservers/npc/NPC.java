@@ -41,15 +41,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.logging.Level;
 
-/**
- * NPC API
- *
- * @author ZNetwork
- *
- *
- * TODO
- * - CACHE MORE
- */
 public class NPC {
 
     protected final ServersNPC serversNPC;
@@ -321,7 +312,7 @@ public class NPC {
     /**
      * Toggle the npc glow
      */
-    public void toggleGlow(final Player player, final String color, boolean fix) throws Exception {
+    public void toggleGlow(final Optional<Player> playerOptional, final String color, boolean fix) throws Exception {
         if (!Utils.isVersionNewestThan(9)) return;
         if (fix) hasGlow = !hasGlow;
 
@@ -334,8 +325,7 @@ public class NPC {
         this.glowColor = getGlowColor(color);
         this.glowName = color;
 
-        if (player != null) ReflectionUtils.sendPacket(player , packet);
-
+        playerOptional.ifPresent(player -> ReflectionUtils.sendPacket(player, packet));
         // Update glow color
         toggleName(false);
     }
@@ -498,7 +488,7 @@ public class NPC {
 
         if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player , packetPlayOutScoreboardTeam);
         if (hasToggleHolo) hologram.spawn(player , true);
-        if (hasGlow) toggleGlow(player , glowName , false);
+        if (hasGlow) toggleGlow(Optional.of(player), glowName ,false);
 
         // Update entity id
         entity_id = (Integer) ClazzCache.ENTITY_CLASS.aClass.getMethod("getId").invoke(znEntity);

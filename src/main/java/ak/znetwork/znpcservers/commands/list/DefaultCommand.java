@@ -23,20 +23,28 @@ package ak.znetwork.znpcservers.commands.list;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.annotation.CMDInfo;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.common.primitives.Ints;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/*
+TODO
+ - Optimize more (method for each command)
+ */
 public class DefaultCommand {
 
     protected final ServersNPC serversNPC;
@@ -54,7 +62,7 @@ public class DefaultCommand {
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
     }
 
-    @CMDInfo(aliases = {"-id" , "-skin" , "-name"}, required = "create", permission = "")
+    @CMDInfo(aliases = {"-id" , "-skin" , "-name"}, required = "create", permission = "znpcs.cmd.create")
     public void createNPC(final CommandSender sender, Map<String, String> args) {
         if (args.size() < 3) {
             sender.sendMessage(ChatColor.RED + "Incorrect usage.");
@@ -88,7 +96,7 @@ public class DefaultCommand {
         serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), false);
     }
 
-    @CMDInfo(aliases = {"-id"}, required = "delete", permission = "")
+    @CMDInfo(aliases = {"-id"}, required = "delete", permission = "znpcs.cmd.delete")
     public void deleteNPC(final CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             sender.sendMessage(ChatColor.RED + "Incorrect usage.");
@@ -118,7 +126,14 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id" , "-skin"}, required = "delete", permission = "")
+    @CMDInfo(aliases = {}, required = "list", permission = "znpcs.cmd.list")
+    public void list(final CommandSender sender, Map<String, String> args) {
+        if (serversNPC.getNpcManager().getNpcs().isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "No NPC found.");
+        } else serversNPC.getNpcManager().getNpcs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
+    }
+
+    @CMDInfo(aliases = {"-id" , "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
     public void setSkin(final CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             sender.sendMessage(ChatColor.RED + "Incorrect usage.");
@@ -164,8 +179,278 @@ public class DefaultCommand {
             }
         } finally {
             if (skinFetch.isPresent()) { // All success
-                skinFetch.get()
+                try {
+                    foundNPC.get().updateSkin(skinFetch.get());
+
+                    sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+                } catch (Exception exception) {
+                    sender.sendMessage(ChatColor.RED + "Could not change npc skin.");
+                }
             }
+        }
+    }
+
+    @CMDInfo(aliases = {"-id" , "-hand" , "-helmet" , "-chestplate" , "-leggings" , "-boots"}, required = "equip", permission = "znpcs.cmd.equip")
+    public void equip(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 1) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        AtomicInteger i = new AtomicInteger();
+        args.forEach((key, value) -> {
+            final NPC.NPCItemSlot npcItemSlot = NPC.NPCItemSlot.fromString(key.toUpperCase());
+            final Material material = Material.getMaterial(value.toUpperCase().trim());
+
+            if (npcItemSlot != null && material != null) {
+                try {
+                    i.getAndIncrement();
+
+                    foundNPC.get().equip(null , npcItemSlot, material);
+                } catch (Exception exception) {}
+            }
+        });
+        if (i.get() > 0) sender.sendMessage(ChatColor.GREEN + "Updated " + ChatColor.GOLD + i.get() + ChatColor.GREEN + " slots.");
+    }
+
+    @CMDInfo(aliases = {"-id" , "-lines"}, required = "lines", permission = "znpcs.cmd.lines")
+    public void changeLines(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 2) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        final String lines = args.get("lines");
+        try {
+            final List<String> stringList = Arrays.asList(lines.split(" "));
+            Collections.reverse(stringList);
+
+            foundNPC.get().getHologram().lines = stringList.toArray(new String[0]);
+            foundNPC.get().getHologram().createHolos();
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception exception) {
+            sender.sendMessage(ChatColor.RED + "Could not change npc lines.");
+        }
+    }
+
+    @CMDInfo(aliases = {"-id"}, required = "move", permission = "znpcs.cmd.move")
+    public void move(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 1) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        try {
+            if (foundNPC.get().isHasLookAt()) foundNPC.get().toggleLookAt();
+
+            final Location location = ((Player)sender).getLocation();
+
+            foundNPC.get().setLocation((location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location));
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception exception) {
+            sender.sendMessage(ChatColor.RED + "An error occurred when trying to move the npc.");
+        }
+    }
+
+
+    @CMDInfo(aliases = {"-id", "-type"}, required = "type", permission = "znpcs.cmd.type")
+    public void changeType(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 2) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        final NPCType npcType = NPCType.fromString(args.get("type").trim().toUpperCase());
+
+        if (npcType == null) {
+            sender.sendMessage(ChatColor.RED + "NPC type not found");
+            sender.sendMessage(ChatColor.GOLD + "Valid Types:");
+
+            for (NPCType npcTypes : NPCType.values()) sender.sendMessage(ChatColor.RED + npcTypes.name);
+            return;
+        }
+
+        if (npcType.constructor == null) {
+            sender.sendMessage(ChatColor.RED + "NPC type not available for your current version.");
+            return;
+        }
+
+        try {
+            foundNPC.get().changeType(npcType);
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception e) {
+            sender.sendMessage(ChatColor.RED + "An error occurred when trying to change npc type.");
+        }
+    }
+
+    @CMDInfo(aliases = {"-id", "-add" , "-remove" , "-cooldown" , "-list"}, required = "action", permission = "znpcs.cmd.action")
+    public void action(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 2) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        AtomicInteger i = new AtomicInteger();
+        args.forEach((key, value) -> {
+            final String[] split = value.split(" ");
+
+            final NPCAction npcAction = NPCAction.fromString(split[0].trim().toUpperCase());
+
+            switch (key.trim().toLowerCase()) {
+                case "add":
+                    if (split.length <= 1) sender.sendMessage(ChatColor.RED + "Correct usage -> <CMD:CONSOLE:SERVER> <action>");
+                    else {
+                        if (npcAction == null) sender.sendMessage(ChatColor.RED + "Action type not found.");
+                        else {
+                            String[] keys = Arrays.copyOfRange(split, 1, split.length);
+
+                            foundNPC.get().getActions().add(npcAction.name() + ":" + String.join(" ", keys));
+                            i.getAndIncrement();
+                        }
+                    }
+                    break;
+                case "remove":
+                    if (!Utils.isInteger(value.trim())) sender.sendMessage(ChatColor.RED + "You need to put a valid number.");
+                    else {
+                        if (foundNPC.get().getActions().isEmpty() || Integer.parseInt(value.trim()) > foundNPC.get().getActions().size() - 1) sender.sendMessage(ChatColor.RED + "Action not found.");
+                        else {
+                            foundNPC.get().getActions().remove(Integer.parseInt(value.trim()));
+                            i.getAndIncrement();
+                        }
+                    }
+                    break;
+                case "cooldown":
+                    if (split.length <= 1) sender.sendMessage(ChatColor.RED + "Correct usage -> <action_id> <seconds>");
+                    else {
+                        if (!Utils.isInteger(split[0]) || !Utils.isInteger(split[1])) sender.sendMessage(ChatColor.RED + "You need to put a valid number");
+                        else {
+                            if (foundNPC.get().getActions().isEmpty() || Integer.parseInt(split[0]) > foundNPC.get().getActions().size() - 1) sender.sendMessage(ChatColor.RED +  "Action not found.");
+                            else {
+                                int action = Integer.parseInt(split[0]);
+                                int seconds = Integer.parseInt(split[1]);
+
+                                final String[] strings = foundNPC.get().getActions().get(action).split(":");
+
+                                foundNPC.get().getActions().set(action, String.join(":", Arrays.copyOfRange(strings, 0, 2))  + ":" + seconds);
+                                i.getAndIncrement();
+                            }
+                        }
+                    }
+                    break;
+                case "list":
+                    if (foundNPC.get().getActions().isEmpty()) sender.sendMessage(ChatColor.GREEN + "No actions found.");
+                    else foundNPC.get().getActions().forEach(s -> sender.sendMessage(Utils.color("&8(&a" + foundNPC.get().getActions().indexOf(s) + "&8) &6" + s)));
+                    break;
+                default:break;
+            }
+        });
+        if (i.get() > 0) sender.sendMessage(ChatColor.GREEN + "Added/Modified " + ChatColor.GOLD + i.get() + ChatColor.GREEN + " actions.");
+    }
+
+    @CMDInfo(aliases = {"-id", "-holo" , "-name" , "-glow", "-mirror", "-look"}, required = "toggle", permission = "znpcs.cmd.toggle")
+    public void toggle(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 2) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        try {
+            if (args.containsKey("holo")) foundNPC.get().toggleHolo();
+            else if (args.containsKey("name")) foundNPC.get().toggleName(true);
+            else if (args.containsKey("glow")) foundNPC.get().toggleGlow(Optional.ofNullable((Player)sender), args.get("glow"),true);
+            else if (args.containsKey("mirror")) foundNPC.get().toggleMirror();
+            else if (args.containsKey("look")) foundNPC.get().toggleLookAt();
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception exception) {
+            sender.sendMessage(ChatColor.RED + "An error occurred.");
         }
     }
 }

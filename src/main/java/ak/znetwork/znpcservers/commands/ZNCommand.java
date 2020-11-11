@@ -67,17 +67,17 @@ public class ZNCommand {
     public Map<String, String> loadArgs(final CMDInfo cmdInfo, final String[] args) {
         final Map<String, String> argsMap = Maps.newHashMap();
 
-        for (int i = 0; i < args.length; i++) {
-            final String input = args[Math.max(0, (i - 1))];
+        for (int i = 1; i <= args.length; i++) {
+            final String input = args[i - 1];
 
-            if (contains(cmdInfo, input)) {
+            if (!argsMap.containsKey(input.replace("-", "")) && contains(cmdInfo, input)) {
                 final StringBuilder value = new StringBuilder();
 
-                for (int text = (i); text < args.length;) {
+                for (int text = (Math.min(args.length, i)); text < args.length;) {
                     if (!contains(cmdInfo, args[text++])) value.append(args[i++]).append(" ");
                     else break;
-                }
 
+                }
                 argsMap.put(input.replace("-", ""), (value.toString().length() <= 0 ? "" : value.toString()));
             }
         }
