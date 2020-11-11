@@ -22,6 +22,7 @@ package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
+import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import org.bukkit.ChatColor;
@@ -64,6 +65,8 @@ public class CommandsManager implements CommandExecutor {
             final Optional<ZNCommand> znCommand = this.getZnCommands().stream().findFirst();
 
             if (znCommand.isPresent()) znCommand.get().execute(sender, args);
+        } catch (CommandExecuteException e) {
+            sender.sendMessage(ChatColor.RED + "There was an error executing the command, see the console for more information.");
         } catch (CommandPermissionException e) {
             sender.sendMessage(ChatColor.RED + "You do not have permission to run this command.");
         } catch (CommandNotFoundException e) {

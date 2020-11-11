@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.commands;
 
 import ak.znetwork.znpcservers.commands.annotation.CMDInfo;
+import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.invoker.CommandInvoker;
@@ -55,7 +56,7 @@ public class ZNCommand {
         this.load();
     }
 
-    public <T extends CommandSender> void execute(final T sender, final String[] args) throws CommandPermissionException, CommandNotFoundException {
+    public <T extends CommandSender> void execute(final T sender, final String[] args) throws CommandPermissionException, CommandNotFoundException, CommandExecuteException {
         Optional<Map.Entry<CMDInfo, CommandInvoker<? extends CommandSender>>> entryOptional = this.consumerSet.entrySet().stream().filter(cmdInfo -> cmdInfo.getKey().required().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
 
         if (!entryOptional.isPresent()) throw new CommandNotFoundException("Command not found...");
@@ -70,7 +71,7 @@ public class ZNCommand {
         for (int i = 1; i <= args.length; i++) {
             final String input = args[i - 1];
 
-            if (!argsMap.containsKey(input.replace("-", "")) && contains(cmdInfo, input)) {
+            if (contains(cmdInfo, input)) {
                 final StringBuilder value = new StringBuilder();
 
                 for (int text = (Math.min(args.length, i)); text < args.length;) {

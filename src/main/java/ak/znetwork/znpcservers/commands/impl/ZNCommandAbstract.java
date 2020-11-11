@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers.commands.impl;
 
+import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import org.bukkit.command.CommandSender;
 
@@ -51,5 +52,5 @@ public abstract class ZNCommandAbstract<T extends CommandSender> {
         return method;
     }
 
-    public abstract void execute(T sender, Object args) throws CommandPermissionException;
+    public abstract void execute(T sender, Object args) throws CommandPermissionException, CommandExecuteException;
 }

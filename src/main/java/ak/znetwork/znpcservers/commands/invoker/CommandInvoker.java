@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers.commands.invoker;
 
+import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.impl.ZNCommandAbstract;
 import org.bukkit.command.CommandException;
@@ -35,13 +36,17 @@ public class CommandInvoker<T extends CommandSender> extends ZNCommandAbstract<T
     }
 
     @Override
-    public void execute(T sender, Object object) throws CommandPermissionException {
+    public void execute(T sender, Object object) throws CommandPermissionException, CommandExecuteException {
         if (!sender.hasPermission(getPermission())) throw new CommandPermissionException("Insufficient permission");
 
         try {
             getMethod().invoke(getObject(), sender, object);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new CommandException("Command could not be executed", e);
+            e.printStackTrace();
+
+            if (e.getCause() instanceof CommandExecuteException)  {
+                throw new CommandExecuteException(e.getMessage());
+            }
         }
     }
 }
