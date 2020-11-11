@@ -42,6 +42,8 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -106,14 +108,7 @@ public class ServersNPC extends JavaPlugin {
         this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
-        Utils.getClasses(getPlName(), ZNCommand.class).forEach(aClass -> {
-            try {
-                this.commandsManager.addCommands(((ZNCommand) aClass.getDeclaredConstructors()[0].newInstance(this)));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                getLogger().log(Level.WARNING, "An exception occurred while trying to load command", e);
-                getServer().getPluginManager().disablePlugin(this);
-            }
-        });
+        commandsManager.getZnCommands().add(new ZNCommand(new DefaultCommand(this)));
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
@@ -237,19 +232,20 @@ public class ServersNPC extends JavaPlugin {
      * Creation of a new npc
      *
      * @param id the npc id
-     * @param player the creator of the npc
+     * @param commandSender the creator of the npc
      * @return val
      */
-    public final boolean createNPC(int id , final Player player , final String skin, final String holo_lines) {
+    public final boolean createNPC(int id , final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) {
         try {
             final SkinFetch skinFetch = JSONUtils.getSkin(skin);
 
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetch.value, skinFetch.signature, player.getLocation(), NPCType.PLAYER,  new Hologram(this , player.getLocation(), holo_lines.split(":")) , true));
+            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetch.value, skinFetch.signature, location, NPCType.PLAYER,  new Hologram(this , location, holo_lines.split(":")) , save));
 
-            player.sendMessage(Utils.color(getMessages().getConfig().getString("success")));
+            commandSender.ifPresent(sender -> sender.sendMessage(Utils.color(getMessages().getConfig().getString("success"))));
             return true;
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "Could not create npc.");
+            // Throw
+            commandSender.ifPresent(sender -> sender.sendMessage(ChatColor.RED + "Couldn't create npc."));
         }
         return false;
     }

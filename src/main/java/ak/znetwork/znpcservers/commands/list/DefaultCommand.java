@@ -21,32 +21,151 @@
 package ak.znetwork.znpcservers.commands.list;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.commands.ZNCommand;
-import ak.znetwork.znpcservers.commands.annotations.CMDInfo;
-import ak.znetwork.znpcservers.commands.enums.CommandType;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.commands.annotation.CMDInfo;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.Utils;
-import org.apache.commons.lang.StringUtils;
+import ak.znetwork.znpcservers.utils.objects.SkinFetch;
+import com.google.common.primitives.Ints;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
-@CMDInfo(getArguments = {})
-public class DefaultCommand extends ZNCommand {
+public class DefaultCommand {
+
+    protected final ServersNPC serversNPC;
 
     public DefaultCommand(final ServersNPC serversNPC) {
-        super(serversNPC , "" , "", CommandType.ALL);
+        this.serversNPC = serversNPC;
+
     }
 
-    @Override
-    public boolean dispatchCommand(CommandSender sender, String... args) {
+    @CMDInfo(aliases = {}, required = "", permission = "")
+    public void defaultCommand(final CommandSender sender, Map<String, String> args) {
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
         sender.sendMessage(Utils.color("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)"));
-        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> sender.sendMessage(znCommand.getUsage()));
+        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> znCommand.getConsumerSet().forEach((cmdInfo, commandInvoker) -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + cmdInfo.required() + " " + String.join(" " , cmdInfo.aliases())))));
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
+    }
 
-        return false;
+    @CMDInfo(aliases = {"-id" , "-skin" , "-name"}, required = "create", permission = "")
+    public void createNPC(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 3) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+
+        if (foundNPC) {
+            sender.sendMessage(ChatColor.RED + "I have found an npc with this id, try putting a unique id..");
+            return;
+        }
+
+        final String skin = args.get("skin").trim();
+
+        if (skin.length() < 3 || skin.length() > 16) {
+            sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
+            return;
+        }
+
+        final String name = args.get("name").trim();
+
+        // All success!
+        serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), false);
+    }
+
+    @CMDInfo(aliases = {"-id"}, required = "delete", permission = "")
+    public void deleteNPC(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 1) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+
+        if (!foundNPC) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        try {
+            serversNPC.deleteNPC(id);
+
+            sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
+        } catch (Exception exception) {
+            sender.sendMessage(ChatColor.RED + "Unable to delete this npc.");
+        }
+    }
+
+    @CMDInfo(aliases = {"-id" , "-skin"}, required = "delete", permission = "")
+    public void setSkin(final CommandSender sender, Map<String, String> args) {
+        if (args.size() < 1) {
+            sender.sendMessage(ChatColor.RED + "Incorrect usage.");
+            return;
+        }
+
+        final Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            sender.sendMessage(ChatColor.RED + "NPC id must be a valid number...");
+            return;
+        }
+
+        Optional<NPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+
+        if (!foundNPC.isPresent()) {
+            sender.sendMessage(ChatColor.RED + "Can't find this npc with this id, try putting a valid id..");
+            return;
+        }
+
+        final String skin = args.get("skin").trim();
+
+        if (skin.length() < 3 || skin.length() > 16) {
+            sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
+            return;
+        }
+
+        Optional<SkinFetch> skinFetch = Optional.empty();
+        try {
+            URL url = new URL(skin);
+
+            try {
+                skinFetch = Optional.of(JSONUtils.getByURL(url.getPath()));
+            } catch (Exception exception) {
+                sender.sendMessage(ChatColor.RED + "Could not connect to url.");
+            }
+        } catch (MalformedURLException e) {
+            // It is not a url, set default skin method
+            try {
+                skinFetch = Optional.of(JSONUtils.getSkin(skin));
+            } catch (ExecutionException | InterruptedException executionException) {
+                sender.sendMessage(ChatColor.RED + "Could not create npc.");
+            }
+        } finally {
+            if (skinFetch.isPresent()) { // All success
+                skinFetch.get()
+            }
+        }
     }
 }

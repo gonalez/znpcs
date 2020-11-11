@@ -18,14 +18,11 @@
  *
  *
  */
-package ak.znetwork.znpcservers.commands.annotations;
+package ak.znetwork.znpcservers.commands.exception;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+public class CommandNotFoundException extends Exception {
 
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CMDInfo {
-
-    String[] getArguments();
-    boolean autoFill() default false;
+    public CommandNotFoundException(String message) {
+        super(message);
+    }
 }

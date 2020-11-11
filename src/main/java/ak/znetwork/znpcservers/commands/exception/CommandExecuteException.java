@@ -18,8 +18,11 @@
  *
  *
  */
-package ak.znetwork.znpcservers.commands.enums;
+package ak.znetwork.znpcservers.commands.exception;
 
-public enum CommandType {
-    PLAYER,CONSOLE,ALL;
+public class CommandExecuteException extends Exception {
+
+    public CommandExecuteException(String message) {
+        super(message);
+    }
 }

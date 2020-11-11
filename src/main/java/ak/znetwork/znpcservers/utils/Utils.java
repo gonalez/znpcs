@@ -21,23 +21,11 @@
 package ak.znetwork.znpcservers.utils;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.block.BlockFace;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.logging.Level;
 
 public class Utils {
 
@@ -71,35 +59,6 @@ public class Utils {
             if (constructor.getParameterTypes().length <= max && Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass1 -> aClass1 == classes[0])) return constructor;
         }
         return null;
-    }
-
-    public static List<Class<?>> getClasses(final String jarName, final Class<?> subType)  {
-        List<Class<?>> classSet = new ArrayList<>();
-
-        final File pluginFile = new File("plugins/" + jarName + ".jar");
-        try {
-            final URLClassLoader loader = URLClassLoader.newInstance(new URL[]{pluginFile.toURI().toURL()}, subType.getClassLoader());;
-
-            final JarFile jarFile = new JarFile(pluginFile);
-
-            Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
-                String name = entries.nextElement().getName();
-
-                if (name.endsWith(".class")) {
-                    final String last = name.replace("/" , ".").replace(".class" , "");
-
-                    final Class<?> aClass = loader.loadClass(last);
-
-                    if (aClass != null && aClass.getSuperclass() != null && aClass.getSuperclass().getName().equalsIgnoreCase(subType.getName())) {
-                        classSet.add(aClass);
-                    }
-                }
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            Bukkit.getLogger().log(Level.WARNING , "er" , e);
-        }
-        return classSet;
     }
 
     public static String color(String tocolor) {

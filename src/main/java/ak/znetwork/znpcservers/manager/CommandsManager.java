@@ -22,19 +22,16 @@ package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.ZNCommand;
-import ak.znetwork.znpcservers.commands.enums.CommandType;
-import ak.znetwork.znpcservers.utils.Utils;
-import org.bukkit.Bukkit;
+import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
+import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Optional;
 
 public class CommandsManager implements CommandExecutor {
 
@@ -63,23 +60,14 @@ public class CommandsManager implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String arg ,String[] args) {
-        final ZNCommand znCommand = (args.length >= 1 ? znCommands.stream().filter(znCommand1 -> znCommand1.getCommandType() == CommandType.PLAYER && sender instanceof Player && znCommand1.getCmd().equalsIgnoreCase(args[0])).findFirst().orElse(null) : znCommands.stream().filter(znCommand1 -> znCommand1.getCmd().length() <= 0).findFirst().orElse(null));
+        try {
+            final Optional<ZNCommand> znCommand = this.getZnCommands().stream().findFirst();
 
-        if (znCommand == null)
-            sender.sendMessage(ChatColor.RED + "Command not found.");
-        else {
-            if (znCommand.getPermission().length() >= 1 && !sender.hasPermission(znCommand.getPermission())) {
-                sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("no-permission")));
-                return false;
-            }
-
-            try {
-                znCommand.dispatchCommand(sender , args);
-            } catch (Exception e) {
-                Bukkit.getLogger().log(Level.WARNING , "Err" , e);
-
-                sender.sendMessage(ChatColor.RED + "Unable to run command.");
-            }
+            if (znCommand.isPresent()) znCommand.get().execute(sender, args);
+        } catch (CommandPermissionException e) {
+            sender.sendMessage(ChatColor.RED + "You do not have permission to run this command.");
+        } catch (CommandNotFoundException e) {
+            sender.sendMessage(ChatColor.RED + "This command was not found.");
         }
         return true;
     }

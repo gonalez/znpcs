@@ -16,20 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
-*/
-package ak.znetwork.znpcservers.commands.other;
+ *
+ */
+package ak.znetwork.znpcservers.commands.annotation;
 
-import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-public class ZNArgument {
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CMDInfo {
 
-    public final Annotation annotation;
-    public final String name;
-    public final Object value;
-
-    public ZNArgument(final Annotation annotation, final String name, final Object value) {
-        this.annotation = annotation;
-        this.name = name;
-        this.value = value;
-    }
+    String[] aliases();
+    String required();
+    String permission();
 }
