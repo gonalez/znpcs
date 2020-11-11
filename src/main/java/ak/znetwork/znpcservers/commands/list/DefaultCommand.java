@@ -88,7 +88,7 @@ public class DefaultCommand {
         final String name = args.get("name").trim();
 
         // All success!
-        serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), false);
+        serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
     }
 
     @CMDInfo(aliases = {"-id"}, required = "delete", permission = "znpcs.cmd.delete")
@@ -151,26 +151,28 @@ public class DefaultCommand {
 
         final String skin = args.get("skin").trim();
 
-        if (skin.length() < 3 || skin.length() > 16) {
-            sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
-            return;
-        }
-
         Optional<SkinFetch> skinFetch = Optional.empty();
         try {
             URL url = new URL(skin);
 
             try {
-                skinFetch = Optional.of(JSONUtils.getByURL(url.getPath()));
+                skinFetch = Optional.of(JSONUtils.getByURL(skin));
             } catch (Exception exception) {
-                sender.sendMessage(ChatColor.RED + "Could not connect to url.");
+                exception.printStackTrace();
+
+                throw new CommandExecuteException("Could not connect to url");
             }
         } catch (MalformedURLException e) {
             // It is not a url, set default skin method
+            if (skin.length() < 3 || skin.length() > 16) {
+                sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
+                return;
+            }
+
             try {
                 skinFetch = Optional.of(JSONUtils.getSkin(skin));
             } catch (ExecutionException | InterruptedException executionException) {
-                sender.sendMessage(ChatColor.RED + "Could not create npc.");
+                throw new CommandExecuteException("An error occurred while changing skin for npc " + foundNPC.get().getId());
             }
         } finally {
             if (skinFetch.isPresent()) { // All success

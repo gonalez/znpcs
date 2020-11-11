@@ -29,9 +29,11 @@ import ak.znetwork.znpcservers.utils.LocationUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import com.google.gson.*;
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 import java.lang.reflect.Type;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC> {
@@ -56,6 +58,8 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
         obj.addProperty("lines" , npc.getHologram().getLinesFormatted());
 
         if (npc.getActions() != null) obj.add("actions" , new Gson().toJsonTree(npc.getActions()).getAsJsonArray());
+
+        npc.getNpcItemSlotMaterialHashMap().forEach((npcItemSlot, material) -> obj.addProperty("equipment." + npcItemSlot.name(), material.name()));
 
         obj.addProperty("toggle.holo" , npc.isHasToggleHolo());
         obj.addProperty("toggle.look" ,npc.isHasLookAt());
@@ -87,6 +91,12 @@ public class NPCSerializer implements JsonSerializer<NPC>, JsonDeserializer<NPC>
             npc.setHasGlow(jsonObject.get("toggle.glow.has").getAsBoolean());
 
             if (npc.isHasGlow()) npc.toggleGlow(null, jsonObject.get("toggle.glow.color").getAsString(), false);
+
+            Stream.of(NPC.NPCItemSlot.values()).map(Enum::name).filter(s -> jsonObject.get("equipment." + s) != null).forEach(s -> {
+                try {
+                    npc.equip(null, NPC.NPCItemSlot.fromString(s), Material.getMaterial(jsonObject.get("equipment." + s).getAsString()));
+                } catch (Exception e) {}
+            });
 
             return npc;
         } catch (Exception e) {
