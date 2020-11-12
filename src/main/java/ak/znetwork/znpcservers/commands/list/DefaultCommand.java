@@ -58,7 +58,7 @@ public class DefaultCommand {
     }
 
     @CMDInfo(aliases = {"-id" , "-skin" , "-name"}, required = "create", permission = "znpcs.cmd.create")
-    public void createNPC(final CommandSender sender, Map<String, String> args) {
+    public void createNPC(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 3) {
             sender.sendMessage(ChatColor.RED + "Incorrect usage.");
             return;
@@ -87,8 +87,12 @@ public class DefaultCommand {
 
         final String name = args.get("name").trim();
 
-        // All success!
-        serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+        try {
+            // All success!
+            serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+        } catch (Exception e) {
+            throw new CommandExecuteException("An error occurred while creating npc");
+        }
     }
 
     @CMDInfo(aliases = {"-id"}, required = "delete", permission = "znpcs.cmd.delete")
@@ -117,7 +121,7 @@ public class DefaultCommand {
 
             sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while deleting npc npc " + id);
+            throw new CommandExecuteException("An error occurred while deleting npc " + id);
         }
     }
 
@@ -251,6 +255,9 @@ public class DefaultCommand {
 
             foundNPC.get().getHologram().lines = stringList.toArray(new String[0]);
             foundNPC.get().getHologram().createHolos();
+
+            // Update lines
+            foundNPC.get().setLines(foundNPC.get().getHologram().getLinesFormatted());
 
             sender.sendMessage(Utils.color(serversNPC.getMessages().getConfig().getString("success")));
         } catch (Exception exception) {

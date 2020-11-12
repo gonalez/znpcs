@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.*;
 import ak.znetwork.znpcservers.configuration.Configuration;
+import ak.znetwork.znpcservers.deserializer.NPCDeserializer;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
 import ak.znetwork.znpcservers.manager.CommandsManager;
@@ -32,23 +33,20 @@ import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
-import ak.znetwork.znpcservers.serializer.NPCSerializer;
 import ak.znetwork.znpcservers.utils.JSONUtils;
+import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.*;
@@ -64,9 +62,9 @@ public class ServersNPC extends JavaPlugin {
 
     protected LinkedHashSet<PlayerNetty> playerNetties;
 
-    protected boolean placeHolderSupport;
+    private static boolean placeHolderSupport;
 
-    protected Executor executor;
+    private static Executor executor;
 
     private Gson gson;
 
@@ -74,15 +72,11 @@ public class ServersNPC extends JavaPlugin {
 
     private int viewDistance;
 
-    private String plName;
-
     public static final int MILLI_SECOND = 20;
 
     @Override
     public void onEnable() {
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
-
-        plName = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath()).getName().split("\\.")[0];
 
         data = new File(getDataFolder() , "data.json");
         try {
@@ -95,7 +89,10 @@ public class ServersNPC extends JavaPlugin {
 
         viewDistance = (Bukkit.getViewDistance() << 2);
 
-        gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(NPC.class , new NPCSerializer(this)).setPrettyPrinting().create();
+        gson = new GsonBuilder().
+                registerTypeAdapter(Location.class, new LocationSerialize()). // Add custom serializer since for Location class doesn't support
+                registerTypeAdapter(NPC.class, new NPCDeserializer())
+                .excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
 
         placeHolderSupport = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
 
@@ -114,12 +111,12 @@ public class ServersNPC extends JavaPlugin {
         new MetricsLite(this, pluginId);
 
         // Load reflection cache
-        try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException e) {e.printStackTrace();}
+        try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException | IllegalAccessException ignored) {ignored.printStackTrace();}
 
-        this.executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
+        executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
 
         // Load all npc from data
-        this.executor.execute(() -> {
+        executor.execute(() -> {
             System.out.println("Loading npcs...");
 
             long startMs = System.currentTimeMillis();
@@ -135,9 +132,7 @@ public class ServersNPC extends JavaPlugin {
 
                 reader.beginArray();
                 while (reader.hasNext()) {
-                    final NPC npc = gson.fromJson(reader, NPC.class);
-
-                    this.npcManager.getNpcs().add(npc);
+                    this.npcManager.getNpcs().add(gson.fromJson(reader, NPC.class));
 
                     size++;
                 }
@@ -161,7 +156,9 @@ public class ServersNPC extends JavaPlugin {
         npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
             try {
                 npc.delete(player , false);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }));
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
@@ -169,7 +166,7 @@ public class ServersNPC extends JavaPlugin {
         // Save values on config (???)
         long startMs = System.currentTimeMillis();
         try {
-            final String json = gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()), new TypeToken<LinkedHashSet<NPC>>(){}.getType());
+            final String json = gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()));
             try(FileWriter writer = new FileWriter(data)) {
                 writer.append(json);
             }
@@ -196,21 +193,20 @@ public class ServersNPC extends JavaPlugin {
         return playerNetties;
     }
 
-    public boolean isPlaceHolderSupport() {
-        return placeHolderSupport;
-    }
-
-    public Executor getExecutor() {
-        return executor;
-    }
 
     public int getViewDistance() {
         return viewDistance;
     }
 
-    public String getPlName() {
-        return plName;
+    // Default Utils
+    public static Executor getExecutor() {
+        return executor;
     }
+
+    public static boolean isPlaceHolderSupport() {
+        return placeHolderSupport;
+    }
+    // End
 
     /**
      * Setup netty for player
@@ -235,19 +231,16 @@ public class ServersNPC extends JavaPlugin {
      * @param commandSender the creator of the npc
      * @return val
      */
-    public final boolean createNPC(int id , final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) {
-        try {
-            final SkinFetch skinFetch = JSONUtils.getSkin(skin);
+    public final boolean createNPC(int id , final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
+        final SkinFetch skinFetch = JSONUtils.getSkin(skin);
 
-            this.getNpcManager().getNpcs().add(new NPC(this , id , skinFetch.value, skinFetch.signature, location, NPCType.PLAYER,  new Hologram(this , location, holo_lines.split(":")) , save));
+        boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+        if (found) return false;
 
-            commandSender.ifPresent(sender -> sender.sendMessage(Utils.color(getMessages().getConfig().getString("success"))));
-            return true;
-        } catch (Exception e) {
-            // Throw
-            commandSender.ifPresent(sender -> sender.sendMessage(ChatColor.RED + "Couldn't create npc."));
-        }
-        return false;
+        this.getNpcManager().getNpcs().add(new NPC(id , holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, save));
+
+        commandSender.ifPresent(sender -> sender.sendMessage(Utils.color(getMessages().getConfig().getString("success"))));
+        return true;
     }
 
     /**

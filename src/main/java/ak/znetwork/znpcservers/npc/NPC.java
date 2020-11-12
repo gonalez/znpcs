@@ -28,6 +28,7 @@ import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.common.collect.Lists;
+import com.google.gson.annotations.Expose;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
@@ -43,63 +44,66 @@ import java.util.logging.Level;
 
 public class NPC {
 
-    protected final ServersNPC serversNPC;
-
+    // Exclude
+    @Expose(serialize = false)
     protected Object entityPlayerArray;
-
     protected Object enumPlayerInfoAction;
-
-    protected boolean hasGlow = false;
-    protected boolean hasToggleName = false;
-    protected boolean hasToggleHolo = true;
-    protected boolean hasLookAt = false;
-    protected boolean hasMirror = false;
-
-    protected int id;
-    protected int entity_id;
-
-    protected Location location;
-
-    protected HashSet<Player> viewers;
-
-    protected Hologram hologram;
-
-    protected GameProfile gameProfile;
-
-    protected Object packetPlayOutScoreboardTeam;
-
-    protected List<String> actions;
-
-    protected HashMap<NPCItemSlot , Material> npcItemSlotMaterialHashMap;
-
-    protected String skin,signature;
-
-    protected String glowName;
     protected Object glowColor;
-
-    protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
-    protected Constructor<?> getPacketPlayOutEntityHeadRotationConstructor;
-    protected Constructor<?> getPacketPlayOutEntityLookConstructor;
-    protected Constructor<?> getPacketPlayOutEntityTeleportConstructor;
-    protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
-    protected Constructor<?> getPacketPlayOutEntityMetadataConstructor;
-    protected Constructor<?> getPacketPlayOutPlayerInfoConstructor;
-    protected Constructor<?> dataWatcherObjectConstructor;
-    protected Constructor<?> getPlayerConstructor;
-    protected Constructor<?> getPlayerInteractManagerConstructor;
-
     protected Object dataWatcherRegistryEnum;
-
     protected Object nmsWorld;
     protected Object nmsServer;
-
     protected Object packetPlayOutPlayerInfoConstructor;
-
     protected Object znEntity;
+    protected Object packetPlayOutScoreboardTeam;
 
+    @Expose(serialize = false)
+    protected GameProfile gameProfile;
+    @Expose(serialize = false)
+    protected Hologram hologram;
+
+    @Expose(serialize = false)
+    protected HashSet<Player> viewers;
+
+    @Expose(serialize = false)
+    protected int entity_id;
+
+    // Serialize
+    @Expose
+    protected int id;
+    @Expose
+    protected boolean hasGlow = false;
+    @Expose
+    protected boolean hasToggleName = false;
+    @Expose
+    protected boolean hasToggleHolo = true;
+    @Expose
+    protected boolean hasLookAt = false;
+    @Expose
+    protected boolean hasMirror = false;
+
+    @Expose
+    protected Location location;
+
+    @Expose
+    protected List<String> actions;
+
+    @Expose
+    protected HashMap<NPCItemSlot , Material> npcEquipments;
+
+    @Expose
+    protected String skin,signature;
+
+    @Expose
+    protected String glowName = "WHITE";
+
+    @Expose
     protected final boolean save;
 
+    @Expose
     protected NPCType npcType;
+
+    @Expose
+    protected String lines;
 
     /**
      * Init of the necessary functionalities for the npc
@@ -108,20 +112,19 @@ public class NPC {
      * @param skin the skin value
      * @param signature the skin signature
      * @param location the location for the npc
-     * @param hologram
      */
-    public NPC(final ServersNPC serversNPC , final int id, final String skin , final String signature , final Location location , NPCType npcType, Hologram hologram , boolean save) throws Exception {
-        this.serversNPC = serversNPC;
+    public NPC(final int id, final String lines, final String skin , final String signature , final Location location , NPCType npcType, boolean save) throws Exception {
+        this.npcEquipments = new HashMap<>();
 
-        this.npcItemSlotMaterialHashMap = new HashMap<>();
         this.viewers = new HashSet<>();
 
         this.skin = skin;
         this.signature = signature;
 
-        this.hologram = hologram;
-
         this.save = save;
+
+        this.hologram = new Hologram(location, lines.split(":"));
+        this.lines = hologram.getLinesFormatted();
 
         this.id = id;
         this.location = (location);
@@ -130,17 +133,6 @@ public class NPC {
 
         nmsServer = ClazzCache.GET_SERVER_METHOD.method.invoke(Bukkit.getServer());
         nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
-
-        getPlayerInteractManagerConstructor = ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.aClass.getDeclaredConstructors()[0];
-        getPlayerConstructor = ClazzCache.ENTITY_PLAYER_CLASS.aClass.getDeclaredConstructors()[0];
-
-        getPacketPlayOutEntityDestroyConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.aClass.getConstructor(int[].class);;
-        getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS.aClass.getDeclaredConstructor(ClazzCache.ENTITY_HUMAN_CLASS.aClass);
-        getPacketPlayOutEntityMetadataConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.aClass.getConstructor(int.class , ClazzCache.DATA_WATCHER_CLASS.aClass , boolean.class);
-        getPacketPlayOutEntityTeleportConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass);
-        getPacketPlayOutEntityHeadRotationConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass , byte.class);
-        getPacketPlayOutEntityLookConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CLASS.aClass.getConstructor(int.class , byte.class , byte.class , boolean.class);
-        getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
 
         gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
         gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
@@ -194,6 +186,15 @@ public class NPC {
      */
     public void setActions(List<String> actions) {
         this.actions = actions;
+    }
+
+    /**
+     * Set lines
+     *
+     * @param lines set
+     */
+    public void setLines(String lines) {
+        this.lines = lines;
     }
 
     /**
@@ -313,14 +314,14 @@ public class NPC {
      * Toggle the npc glow
      */
     public void toggleGlow(final Optional<Player> playerOptional, final String color, boolean fix) throws Exception {
-        if (!Utils.isVersionNewestThan(9)) return;
+        if (!Utils.isVersionNewestThan(9)) throw new UnsupportedOperationException("Version not supported");
         if (fix) hasGlow = !hasGlow;
 
         Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
 
-        dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject , dataWatcherObjectConstructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
+        dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
-        Object packet = getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true);
+        Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true);
 
         this.glowColor = getGlowColor(color);
         this.glowName = color;
@@ -365,7 +366,7 @@ public class NPC {
             else
                 getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
         }
-        npcItemSlotMaterialHashMap.put(slot , material);
+        npcEquipments.put(slot , material);
 
         Object packete;
         if (Utils.isVersionNewestThan(16)) {
@@ -412,25 +413,24 @@ public class NPC {
     public void fixSkin() throws Exception {
         Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
         if (Utils.isVersionNewestThan(9)) {
-            dataWatcherObjectConstructor = ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass.getConstructor(int.class, Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer"));
-            dataWatcherRegistryEnum = Class.forName("net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry").getField("a").get(null);
+            dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.field;
 
             int version = Utils.getVersion();
 
-            dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject ,  dataWatcherObjectConstructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
+            dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
         } else dataWatcherObject.getClass().getMethod("watch", int.class, Object.class).invoke(dataWatcherObject , 10 , (byte) 127);
     }
 
     public void changeType(final NPCType npcType) throws Exception {
         Constructor<?> constructor = (npcType != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? (Utils.getDefinedConstructor(npcType.aClass.aClass, 2, ClazzCache.ENTITY_TYPES_CLASS.aClass)) : npcType.aClass.aClass.getConstructor(ClazzCache.WORLD_CLASS.aClass)) : null);
 
-        znEntity = (npcType == NPCType.PLAYER ? getPlayerConstructor.newInstance(nmsServer , nmsWorld , gameProfile , getPlayerInteractManagerConstructor.newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? (Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass -> aClass == ClazzCache.ENTITY_TYPES_CLASS.aClass) ? constructor.newInstance(((Optional<?>) ClazzCache.ENTITY_TYPES_A_METHOD.method.invoke(ClazzCache.ENTITY_TYPES_CLASS.aClass, npcType.name.toLowerCase())).get(), nmsWorld) : constructor.newInstance(nmsWorld)) : constructor.newInstance(nmsWorld)));
+        znEntity = (npcType == NPCType.PLAYER ? ClazzCache.PLAYER_CONSTRUCTOR.constructor.newInstance(nmsServer , nmsWorld , gameProfile , ClazzCache.PLAYER_INTERACT_MANAGER_CONSTRUCTOR.constructor.newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? (Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass -> aClass == ClazzCache.ENTITY_TYPES_CLASS.aClass) ? constructor.newInstance(((Optional<?>) ClazzCache.ENTITY_TYPES_A_METHOD.method.invoke(ClazzCache.ENTITY_TYPES_CLASS.aClass, npcType.name.toLowerCase())).get(), nmsWorld) : constructor.newInstance(nmsWorld)) : constructor.newInstance(nmsWorld)));
 
         if (npcType == NPCType.PLAYER) {
             entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.aClass, 1);
             Array.set(entityPlayerArray, 0, znEntity);
 
-            packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
+            packetPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.constructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
             // Fix second layer skin for entity player
             fixSkin();
@@ -476,12 +476,12 @@ public class NPC {
 
         if (npcType == NPCType.PLAYER) ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
 
-        ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? getPacketPlayOutNamedEntitySpawnConstructor.newInstance(znEntity) : ((npcType.id < 0 ? npcType.constructor.newInstance(znEntity) : npcType.constructor.newInstance(znEntity, npcType.id)))));
+        ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.constructor.newInstance(znEntity) : ((npcType.id < 0 ? npcType.constructor.newInstance(znEntity) : npcType.constructor.newInstance(znEntity, npcType.id)))));
 
         if (npcType == NPCType.PLAYER) {
             Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
 
-            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
+            ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true));
         }
 
         viewers.add(player);
@@ -496,10 +496,10 @@ public class NPC {
         // Fix rotation
         lookAt(player , location.clone() , true);
 
-        for (final Map.Entry<NPCItemSlot, Material> test : npcItemSlotMaterialHashMap.entrySet()) equip(player , test.getKey() , test.getValue());
+        for (final Map.Entry<NPCItemSlot, Material> test : npcEquipments.entrySet()) equip(player , test.getKey() , test.getValue());
 
         if (npcType == NPCType.PLAYER) {
-            this.serversNPC.getExecutor().execute(() -> {
+            ServersNPC.getExecutor().execute(() -> {
                 try {
                     hideFromTablist(player);
                 } catch (Exception e) {
@@ -507,7 +507,7 @@ public class NPC {
                         delete(player, true);
                     } catch (Exception exception) {
                         // Should not happen
-                        this.serversNPC.getLogger().log(Level.WARNING , "Could not remove npc for player -> " + player.getName(), e);
+                        Bukkit.getLogger().log(Level.WARNING , "Could not remove npc for player -> " + player.getName(), e);
                     }
                 }
             });
@@ -517,9 +517,7 @@ public class NPC {
     public void hideFromTablist(final Player player) throws Exception {
         Object enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("REMOVE_PLAYER").get(null);
 
-        Constructor<?> getPacketPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.aClass.getConstructor(ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.aClass);
-
-        Object packetPlayOutPlayerInfoConstructor = getPacketPlayOutPlayerInfoConstructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
+        Object packetPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.constructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
         ReflectionUtils.sendPacket(player , packetPlayOutPlayerInfoConstructor);
     }
@@ -533,7 +531,7 @@ public class NPC {
         Object entityPlayerArray = Array.newInstance(int.class, 1);
         Array.set(entityPlayerArray, 0, entity_id);
 
-        ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityPlayerArray));
+        ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.constructor.newInstance(entityPlayerArray));
 
         if (removeViewer) viewers.remove(player);
 
@@ -549,8 +547,8 @@ public class NPC {
     public void lookAt(final Player player , final Location location , final boolean fix) throws Exception {
         Location direction = (fix ? this.location : this.location.clone().setDirection(location.subtract(this.location.clone()).toVector()));
 
-        if (!fix) ReflectionUtils.sendPacket(player , getPacketPlayOutEntityLookConstructor.newInstance(entity_id , (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256/360) ,  (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256/360) , false));
-        ReflectionUtils.sendPacket(player , getPacketPlayOutEntityHeadRotationConstructor.newInstance(znEntity , (byte) (((direction.getYaw()) * 256.0F) / 360.0F)));
+        if (!fix) ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.constructor.newInstance(entity_id , (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256/360) ,  (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256/360) , false));
+        ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.constructor.newInstance(znEntity , (byte) (((direction.getYaw()) * 256.0F) / 360.0F)));
     }
 
     /**
@@ -601,7 +599,7 @@ public class NPC {
         if (fix)
             hasToggleName = !hasToggleName;
 
-        Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.aClass.getConstructor().newInstance();
+        Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.constructor.newInstance();
 
         if (Utils.isVersionNewestThan(9)) {
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
@@ -666,7 +664,7 @@ public class NPC {
      * @return npc item slots with mat name
      */
     public HashMap<NPCItemSlot, Material> getNpcItemSlotMaterialHashMap() {
-        return npcItemSlotMaterialHashMap;
+        return npcEquipments;
     }
 
     /**
@@ -682,7 +680,7 @@ public class NPC {
      * Update new loc
      */
     public void updateLoc() throws Exception {
-        Object packet = getPacketPlayOutEntityTeleportConstructor.newInstance(znEntity);
+        Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.constructor.newInstance(znEntity);
 
         viewers.forEach(player -> ReflectionUtils.sendPacket(player , packet));
     }
@@ -695,7 +693,7 @@ public class NPC {
     public void setLocation(Location location) throws Exception {
         this.location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw() , location.getPitch());
 
-        znEntity.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(znEntity , this.location.getX(),  this.location.getY(), this.location.getZ(), location.getYaw() , location.getPitch());
+        ClazzCache.SET_LOCATION_METHOD.method.invoke(znEntity , this.location.getX(),  this.location.getY(), this.location.getZ(), location.getYaw() , location.getPitch());
 
         if (hologram != null) hologram.setLocation(this.location.clone().subtract(0.5, 0 , 0.5), this.npcType.holoHeight);
 

@@ -45,8 +45,6 @@ import java.util.*;
  */
 public class Hologram {
 
-    protected final ServersNPC serversNPC;
-
     public Location location;
     public String[] lines;
 
@@ -58,14 +56,7 @@ public class Hologram {
 
     protected Method IChatBaseComponentMethod;
 
-    protected Constructor<?> getArmorStandConstructor;
-    protected Constructor<?> getPacketPlayOutEntityTeleportConstructor;
-    protected Constructor<?> getPacketPlayOutEntityMetadataConstructor;
-    protected Constructor<?> getPacketPlayOutEntityDestroyConstructor;
-    protected Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
-
-    public Hologram(final ServersNPC serversNPC , final Location location , final String... lines) throws Exception {
-        this.serversNPC = serversNPC;
+    public Hologram(final Location location , final String... lines) throws Exception {
         this.viewers = new HashSet<>();
 
         this.entityArmorStands = new ArrayList<>();
@@ -73,16 +64,9 @@ public class Hologram {
         this.location = location;
         this.lines = lines;
 
-        getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.aClass.getDeclaredConstructor(ClazzCache.ENTITY_LIVING_CLASS.aClass);
-        getPacketPlayOutEntityTeleportConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass);
-        getPacketPlayOutEntityMetadataConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.aClass.getConstructor(int.class , ClazzCache.DATA_WATCHER_CLASS.aClass , boolean.class);
-        getPacketPlayOutEntityDestroyConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.aClass.getConstructor(int[].class);
-
         IChatBaseComponentMethod = ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass.getDeclaredClasses()[0].getMethod("a", String.class);
 
         nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
-
-        getArmorStandConstructor = ClazzCache.ENTITY_ARMOR_STAND_CLASS.aClass.getDeclaredConstructor(ClazzCache.WORLD_CLASS.aClass , double.class , double.class , double.class);
 
         createHolos();
     }
@@ -97,7 +81,7 @@ public class Hologram {
 
         entityArmorStands.forEach(entityArmorStand -> {
             try {
-                Object entityPlayerPacketSpawn = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entityArmorStand);
+                Object entityPlayerPacketSpawn = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.constructor.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
             } catch (Exception e) {
                 throw new RuntimeException("An exception occurred while trying to create hologram", e);
@@ -118,7 +102,7 @@ public class Hologram {
                 Object entityArmorArray = Array.newInstance(int.class, 1);
                 Array.set(entityArmorArray, 0, entityArmorStand.getClass().getMethod("getId").invoke(entityArmorStand));
 
-                ReflectionUtils.sendPacket(player , getPacketPlayOutEntityDestroyConstructor.newInstance(entityArmorArray));
+                ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.constructor.newInstance(entityArmorArray));
             } catch (Exception e) {
                 throw new RuntimeException("An exception occurred while trying to delete hologram", e);
             }
@@ -134,8 +118,9 @@ public class Hologram {
         double y = 0;
 
         this.entityArmorStands.clear();
+
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-            Object armorStand = getArmorStandConstructor.newInstance(nmsWorld , location.getX() + 0.5, (location.getY() - 0.15) + (y) , location.getZ() + 0.5);
+            Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.constructor.newInstance(nmsWorld , location.getX() + 0.5, (location.getY() - 0.15) + (y) , location.getZ() + 0.5);
 
             armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
             if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
@@ -163,14 +148,14 @@ public class Hologram {
 
             final String line = lines[i].replace("_" , " ");
 
-            if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(player, lines[i]));
-            else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
+            if (Utils.isVersionNewestThan(13)) ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand , getStringNewestVersion(player, lines[i]));
+            else ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
             int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
 
             Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
 
-            ReflectionUtils.sendPacket(player , getPacketPlayOutEntityMetadataConstructor.newInstance(entity_id , dataWatcherObject , true));
+            ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true));
         }
     }
 
@@ -182,7 +167,7 @@ public class Hologram {
     public Object getStringNewestVersion(final Player player, String text) {
         text = Utils.color(text);
         try {
-            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (serversNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
+            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
         } catch (Exception e) {
             throw new RuntimeException("An exception occurred while trying to get new line for hologram", e);
         }
@@ -194,7 +179,7 @@ public class Hologram {
     public void updateLoc() {
         entityArmorStands.forEach(o ->  {
             try {
-                Object packet = getPacketPlayOutEntityTeleportConstructor.newInstance(o);
+                Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.constructor.newInstance(o);
 
                 viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (Exception e) {
@@ -212,7 +197,7 @@ public class Hologram {
 
         double y = 0;
         for (Object o : entityArmorStands) {
-            o.getClass().getMethod("setLocation" , double.class , double.class , double.class , float.class , float.class).invoke(o , location.getX() + 0.5, (location.getY() - 0.15) + y,
+            ClazzCache.SET_LOCATION_METHOD.method.invoke(o, location.getX() + 0.5, (location.getY() - 0.15) + y,
                     location.getZ() + 0.5, location.getYaw() , location.getPitch());
 
             y+=0.3;
