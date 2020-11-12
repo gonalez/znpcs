@@ -156,9 +156,7 @@ public class ServersNPC extends JavaPlugin {
         npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
             try {
                 npc.delete(player , false);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            } catch (Exception e) {}
         }));
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
