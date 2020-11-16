@@ -20,13 +20,17 @@
  */
 package ak.znetwork.znpcservers.deserializer;
 
+import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
 import com.google.gson.*;
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 import java.lang.reflect.Type;
+import java.util.*;
 
 public class NPCDeserializer implements JsonDeserializer<NPC> {
 
@@ -34,7 +38,17 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
         final JsonObject jsonObject = json.getAsJsonObject();
 
         try {
-            return new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), new LocationSerialize().deserialize(jsonObject.get("location"), Location.class, null), NPCType.fromString(jsonObject.get("npcType").getAsString()), jsonObject.get("save").getAsBoolean());
+            // Get equipment values
+            HashMap<String, String> configMap = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
+
+            EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
+
+            // Load equipment for npc
+            configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
+
+            NPC npc = new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), new LocationSerialize().deserialize(jsonObject.get("location"), Location.class, null), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
+            npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
+            return npc;
         } catch (Exception e) {
             throw new RuntimeException("Could not deserialize npc", e);
         }

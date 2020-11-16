@@ -68,6 +68,8 @@ public enum ClazzCache {
     ITEM_STACK_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack" , null),
     CRAFT_ITEM_STACK_CLASS(ClazzType.CLASS, 8,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack" , null),
 
+    CRAFT_PLAYER_CLASS(ClazzType.CLASS, 8,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".entity.CraftPlayer" , null),
+
     PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy", null),
     PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn", null),
     PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving", null),
@@ -101,8 +103,10 @@ public enum ClazzCache {
     DATA_WATCHER_SERIALIZER_CLASS(ClazzType.CLASS, 9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer", null),
 
     //METHODS
+    GET_HANDLE_PLAYER_METHOD(ClazzType.METHOD, 8,"getHandle", ClazzCache.CRAFT_PLAYER_CLASS.getOrLoad()),
+
     ENTITY_TYPES_A_METHOD(ClazzType.METHOD, 13,"a", ClazzCache.ENTITY_TYPES_CLASS.getOrLoad(), String.class),
-    SET_CUSTOM_NAME_OLD_METHOD(ClazzType.METHOD, 8,"setCustomName", ClazzCache.ENTITY_CLASS.getOrLoad(), String.class),
+    SET_CUSTOM_NAME_OLD_METHOD(ClazzType.METHOD, 8,"setCustomName", (Utils.isVersionNewestThan(13) ? null : ClazzCache.ENTITY_CLASS.getOrLoad()), String.class),
     SET_CUSTOM_NAME_NEW_METHOD(ClazzType.METHOD, 13,"setCustomName", ClazzCache.ENTITY_CLASS.getOrLoad(), ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getOrLoad()),
     SET_LOCATION_METHOD(ClazzType.METHOD, 8,"setLocation", ClazzCache.ENTITY_CLASS.getOrLoad(), double.class , double.class , double.class , float.class , float.class),
 
@@ -186,7 +190,9 @@ public enum ClazzCache {
                     }
                     break;
                 case FIELD:
-                    if (clazzCache.name != null && clazzCache.name.length() > 0) clazzCache.field = clazzCache.aClass.getField(clazzCache.name).get(null);
+                    if (clazzCache.name != null && clazzCache.name.length() > 0) {
+                        clazzCache.field = ((Class<?>)clazzCache.object).getField(clazzCache.name).get(null);
+                    }
                     break;
             }
         }

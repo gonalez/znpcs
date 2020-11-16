@@ -146,7 +146,7 @@ public class Hologram {
 
             Object armorStand =  entityArmorStands.get(i);
 
-            final String line = lines[i].replace("_" , " ");
+            final String line = lines[i].replace(ServersNPC.getReplaceSymbol(), " ");
 
             if (Utils.isVersionNewestThan(13)) ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand , getStringNewestVersion(player, lines[i]));
             else ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
@@ -167,7 +167,7 @@ public class Hologram {
     public Object getStringNewestVersion(final Player player, String text) {
         text = Utils.color(text);
         try {
-            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text) + "\"}");
+            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player , text) : text.replace(ServersNPC.getReplaceSymbol(), " ")) + "\"}");
         } catch (Exception e) {
             throw new RuntimeException("An exception occurred while trying to get new line for hologram", e);
         }

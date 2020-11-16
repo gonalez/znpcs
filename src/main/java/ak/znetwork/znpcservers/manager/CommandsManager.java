@@ -25,6 +25,7 @@ import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
+import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -66,11 +67,11 @@ public class CommandsManager implements CommandExecutor {
 
             if (znCommand.isPresent()) znCommand.get().execute(sender, args);
         } catch (CommandExecuteException e) {
-            sender.sendMessage(ChatColor.RED + "There was an error executing the command, see the console for more information.");
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
         } catch (CommandPermissionException e) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to run this command.");
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.NO_PERMISSION);
         } catch (CommandNotFoundException e) {
-            sender.sendMessage(ChatColor.RED + "This command was not found.");
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
         }
         return true;
     }

@@ -37,6 +37,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+/**
+ * Netty API
+ *
+ * @author ZNetwork
+ *
+ *
+ * TODO
+ * - CACHE MORE
+ */
 public class PlayerNetty {
 
     protected final Object networkManager;
@@ -74,10 +83,9 @@ public class PlayerNetty {
 
     public void injectNetty(final Player player) {
            synchronized (networkManager) {
-               if (channel == null)
-                   throw new IllegalStateException("Channel is NULL!");
+               if (channel == null) throw new IllegalStateException("Channel is NULL!");
 
-               if (channel.pipeline().get("npc_interact") != null) channel.pipeline().remove("npc_interact");
+               ejectNetty();
 
                channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
                    @Override

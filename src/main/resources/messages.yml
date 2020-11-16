@@ -1,5 +1,1 @@
-no-permission: '&cYou do not have permission to execute this command.'
-npc-not-found: '&cThe npc was not found.'
-npc-found: '&cThere is already an npc created with this id.'
-item-slot-not-found: '&cThis type of equipment was not found.'
-success: '&a&lSUCCESS'
+# Messages

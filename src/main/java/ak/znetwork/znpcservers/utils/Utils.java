@@ -50,10 +50,6 @@ public class Utils {
         return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
     }
 
-    public static boolean containsStep(final Location location) {
-        return location.getBlock().getType().name().contains("STEP");
-    }
-
     public static Constructor<?> getDefinedConstructor(final Class<?> aClass , int max, final Class<?>... classes) {
         for (Constructor<?> constructor : aClass.getConstructors()) {
             if (constructor.getParameterTypes().length <= max && Arrays.stream(constructor.getParameterTypes()).anyMatch(aClass1 -> aClass1 == classes[0])) return constructor;

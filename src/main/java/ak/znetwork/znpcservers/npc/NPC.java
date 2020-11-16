@@ -23,6 +23,7 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.hologram.Hologram;
+import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -88,7 +89,7 @@ public class NPC {
     protected List<String> actions;
 
     @Expose
-    protected HashMap<NPCItemSlot , Material> npcEquipments;
+    protected EnumMap<NPCItemSlot, Material> npcEquipments;
 
     @Expose
     protected String skin,signature;
@@ -113,8 +114,8 @@ public class NPC {
      * @param signature the skin signature
      * @param location the location for the npc
      */
-    public NPC(final int id, final String lines, final String skin , final String signature , final Location location , NPCType npcType, boolean save) throws Exception {
-        this.npcEquipments = new HashMap<>();
+    public NPC(final int id, final String lines, final String skin , final String signature , final Location location , NPCType npcType, EnumMap<NPCItemSlot , Material> npcEquipments, boolean save) throws Exception {
+        this.npcEquipments = npcEquipments;
 
         this.viewers = new HashSet<>();
 
@@ -663,7 +664,7 @@ public class NPC {
     /**
      * @return npc item slots with mat name
      */
-    public HashMap<NPCItemSlot, Material> getNpcItemSlotMaterialHashMap() {
+    public EnumMap<NPCItemSlot, Material> getNpcItemSlotMaterialHashMap() {
         return npcEquipments;
     }
 
@@ -711,39 +712,5 @@ public class NPC {
 
     public boolean isHasLookAt() {
         return hasLookAt;
-    }
-
-    /**
-     * NPC ITEM SLOT
-     *
-     * Get slot by id
-     */
-    public enum NPCItemSlot  {
-        HAND(0 , 0) , HELMET(4 , 5) , CHESTPLATE(3 , 4) , LEGGINGS(2 , 3) , BOOTS(1 ,  2);
-
-        int id;
-        int newerv;
-
-        NPCItemSlot(int id , int newerv) {
-            this.id = id;
-            this.newerv = newerv;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public int getNewerv() {
-            return newerv;
-        }
-
-        public static NPCItemSlot fromString(String text) {
-            for (NPCItemSlot b : NPCItemSlot.values()) {
-                if (b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
-                    return b;
-                }
-            }
-            return null;
-        }
     }
 }

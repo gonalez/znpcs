@@ -23,20 +23,21 @@ package ak.znetwork.znpcservers;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.*;
-import ak.znetwork.znpcservers.configuration.Configuration;
+import ak.znetwork.znpcservers.configuration.ZNConfig;
+import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
+import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.deserializer.NPCDeserializer;
-import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
 import ak.znetwork.znpcservers.manager.CommandsManager;
 import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.MetricsLite;
-import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
@@ -55,8 +56,6 @@ import java.util.stream.Collectors;
 
 public class ServersNPC extends JavaPlugin {
 
-    protected Configuration messages;
-
     protected CommandsManager commandsManager;
     protected NPCManager npcManager;
 
@@ -66,13 +65,18 @@ public class ServersNPC extends JavaPlugin {
 
     private static Executor executor;
 
-    private Gson gson;
+    private static Gson gson;
 
     private File data;
 
-    private int viewDistance;
+    public ZNConfig config;
+    public ZNConfig messages;
 
     public static final int MILLI_SECOND = 20;
+
+    private int viewDistance;
+
+    private static String replaceSymbol;
 
     @Override
     public void onEnable() {
@@ -87,7 +91,17 @@ public class ServersNPC extends JavaPlugin {
             return;
         }
 
-        viewDistance = (Bukkit.getViewDistance() << 2);
+        // Load configuration
+        try {
+            config = new ZNConfig(ZNConfigType.CONFIG, getDataFolder().toPath().resolve("config.yml"));
+            messages = new ZNConfig(ZNConfigType.MESSAGES, getDataFolder().toPath().resolve("messages.yml"));
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+        // End load config
+
+        viewDistance = (Integer.parseInt(config.getValue(ZNConfigValue.VIEW_DISTANCE)));
+        replaceSymbol = (config.getValue(ZNConfigValue.REPLACE_SYMBOL));
 
         gson = new GsonBuilder().
                 registerTypeAdapter(Location.class, new LocationSerialize()). // Add custom serializer since for Location class doesn't support
@@ -101,8 +115,6 @@ public class ServersNPC extends JavaPlugin {
         playerNetties = new LinkedHashSet<>();
 
         npcManager = new NPCManager();
-
-        this.messages = new Configuration(this , "messages");
 
         commandsManager = new CommandsManager("znpcs", this);
         commandsManager.getZnCommands().add(new ZNCommand(new DefaultCommand(this)));
@@ -175,10 +187,6 @@ public class ServersNPC extends JavaPlugin {
         }
     }
 
-    public Configuration getMessages() {
-        return messages;
-    }
-
     public CommandsManager getCommandsManager() {
         return commandsManager;
     }
@@ -191,7 +199,6 @@ public class ServersNPC extends JavaPlugin {
         return playerNetties;
     }
 
-
     public int getViewDistance() {
         return viewDistance;
     }
@@ -203,6 +210,14 @@ public class ServersNPC extends JavaPlugin {
 
     public static boolean isPlaceHolderSupport() {
         return placeHolderSupport;
+    }
+
+    public static Gson getGson() {
+        return gson;
+    }
+
+    public static String getReplaceSymbol() {
+        return replaceSymbol;
     }
     // End
 
@@ -235,9 +250,9 @@ public class ServersNPC extends JavaPlugin {
         boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
 
-        this.getNpcManager().getNpcs().add(new NPC(id , holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, save));
+        this.getNpcManager().getNpcs().add(new NPC(id , holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
 
-        commandSender.ifPresent(sender -> sender.sendMessage(Utils.color(getMessages().getConfig().getString("success"))));
+        commandSender.ifPresent(sender -> messages.sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
         return true;
     }
 
