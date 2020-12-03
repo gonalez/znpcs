@@ -22,7 +22,7 @@ package ak.znetwork.znpcservers.commands.exception;
 
 public class CommandExecuteException extends Exception {
 
-    public CommandExecuteException(String message) {
-        super(message);
+    public CommandExecuteException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -64,7 +64,7 @@ public class Hologram {
         this.location = location;
         this.lines = lines;
 
-        IChatBaseComponentMethod = ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass.getDeclaredClasses()[0].getMethod("a", String.class);
+        IChatBaseComponentMethod = ClazzCache.ICHAT_BASE_COMPONENT_A_METHOD.method;
 
         nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
 
@@ -100,7 +100,7 @@ public class Hologram {
         entityArmorStands.forEach(entityArmorStand -> {
             try {
                 Object entityArmorArray = Array.newInstance(int.class, 1);
-                Array.set(entityArmorArray, 0, entityArmorStand.getClass().getMethod("getId").invoke(entityArmorStand));
+                Array.set(entityArmorArray, 0, ClazzCache.GET_ID_METHOD.method.invoke(entityArmorStand));
 
                 ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.constructor.newInstance(entityArmorArray));
             } catch (Exception e) {
@@ -122,11 +122,11 @@ public class Hologram {
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
             Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.constructor.newInstance(nmsWorld , location.getX() + 0.5, (location.getY() - 0.15) + (y) , location.getZ() + 0.5);
 
-            armorStand.getClass().getMethod("setCustomNameVisible" , boolean.class).invoke(armorStand , (lines[i]).length() >= 1);
-            if (Utils.isVersionNewestThan(13)) armorStand.getClass().getMethod("setCustomName" , ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.aClass).invoke(armorStand , getStringNewestVersion(null, lines[i]));
-            else armorStand.getClass().getMethod("setCustomName" , String.class).invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
+            ClazzCache.SET_CUSTOM_NAME_VISIBLE_METHOD.method.invoke(armorStand , (lines[i]).length() >= 1);
+            if (Utils.isVersionNewestThan(13)) ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand , getStringNewestVersion(null, lines[i]));
+            else ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , lines[i]));
 
-            armorStand.getClass().getMethod("setInvisible" , boolean.class).invoke(armorStand , true);
+            ClazzCache.SET_INVISIBLE_METHOD.method.invoke(armorStand , true);
 
             entityArmorStands.add(armorStand);
 
@@ -151,9 +151,9 @@ public class Hologram {
             if (Utils.isVersionNewestThan(13)) ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand , getStringNewestVersion(player, lines[i]));
             else ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand , ChatColor.translateAlternateColorCodes('&' , (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player , lines[i]) : line)));
 
-            int entity_id = (Integer) armorStand.getClass().getMethod("getId").invoke(armorStand);
+            int entity_id = (Integer) ClazzCache.GET_ID_METHOD.method.invoke(armorStand);
 
-            Object dataWatcherObject = armorStand.getClass().getMethod("getDataWatcher").invoke(armorStand);
+            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(armorStand);
 
             ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true));
         }

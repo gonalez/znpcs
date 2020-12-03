@@ -93,7 +93,7 @@ public class DefaultCommand {
             // All success!
             serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
         } catch (Exception e) {
-            throw new CommandExecuteException("An error occurred while creating npc");
+            throw new CommandExecuteException("An error occurred while creating npc", e);
         }
     }
 
@@ -123,7 +123,7 @@ public class DefaultCommand {
 
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while deleting npc " + id);
+            throw new CommandExecuteException("An error occurred while deleting npc " + id, exception);
         }
     }
 
@@ -166,7 +166,7 @@ public class DefaultCommand {
             } catch (Exception exception) {
                 exception.printStackTrace();
 
-                throw new CommandExecuteException("Could not connect to url");
+                throw new CommandExecuteException("Could not connect to url", exception);
             }
         } catch (MalformedURLException e) {
             // It is not a url, set default skin method
@@ -178,7 +178,7 @@ public class DefaultCommand {
             try {
                 skinFetch = Optional.of(JSONUtils.getSkin(skin));
             } catch (ExecutionException | InterruptedException executionException) {
-                throw new CommandExecuteException("An error occurred while changing skin for npc " + foundNPC.get().getId());
+                throw new UnsupportedOperationException("An error occurred while changing skin for npc " + foundNPC.get().getId());
             }
         } finally {
             if (skinFetch.isPresent()) { // All success
@@ -187,7 +187,7 @@ public class DefaultCommand {
 
                     serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
                 } catch (Exception exception) {
-                    throw new CommandExecuteException("An error occurred while changing skin for npc " + foundNPC.get().getId());
+                    throw new CommandExecuteException("An error occurred while changing skin for npc " + foundNPC.get().getId(), exception);
                 }
             }
         }
@@ -263,7 +263,7 @@ public class DefaultCommand {
 
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.get().getId());
+            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.get().getId(), exception);
         }
     }
 
@@ -297,7 +297,7 @@ public class DefaultCommand {
 
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while moving npc");
+            throw new CommandExecuteException("An error occurred while moving npc", exception);
         }
     }
 
@@ -343,7 +343,7 @@ public class DefaultCommand {
 
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception e) {
-            throw new CommandExecuteException("An error occurred while changing npc type");
+            throw new CommandExecuteException("An error occurred while changing npc type", e);
         }
     }
 
@@ -377,7 +377,7 @@ public class DefaultCommand {
             }
 
             NPCAction npcAction = NPCAction.fromString(split[0]);
-            if (npcAction == null) throw new CommandExecuteException(String.format("The action type %s was not found" , split[0]));
+            if (npcAction == null) throw new UnsupportedOperationException(String.format("The action type %s was not found" , split[0]));
 
             foundNPC.get().getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
@@ -454,7 +454,7 @@ public class DefaultCommand {
 
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing toggle command");
+            throw new CommandExecuteException("An error occurred while changing toggle command", exception);
         }
     }
 }

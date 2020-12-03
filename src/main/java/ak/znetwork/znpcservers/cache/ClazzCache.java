@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.cache.type.ClazzType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -11,127 +12,152 @@ import java.lang.reflect.Method;
 public enum ClazzCache {
 
     // Methods
-    GET_SERVER_METHOD(ClazzType.METHOD,8, "getServer" , Bukkit.getServer().getClass()),
-    GET_HANDLE_METHOD(ClazzType.METHOD,8, "getHandle" , "org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".CraftWorld"),
+    GET_SERVER_METHOD(ClazzType.METHOD,8, 20,"getServer" , Bukkit.getServer().getClass()),
+    GET_HANDLE_METHOD(ClazzType.METHOD,8, 20,"getHandle" , "org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".CraftWorld"),
 
     // Classes
-    WORLD_CLASS(ClazzType.CLASS, 8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World" , null),
+    WORLD_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World" , null),
 
-    PLAYER_INTERACT_MANAGER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerInteractManager" , null),
+    PLAYER_INTERACT_MANAGER_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerInteractManager" , null),
 
-    ENTITY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity", null),
-    ENTITY_LIVING_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving", null),
+    ENTITY_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Entity", null),
+    ENTITY_LIVING_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLiving", null),
 
-    ENTITY_PLAYER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer" , null),
-    ENTITY_ARMOR_STAND_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand" , null),
-    ENTITY_BAT_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBat" , null),
-    ENTITY_BLAZE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBlaze" , null),
-    ENTITY_CAVE_SPIDER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCaveSpider" , null),
-    ENTITY_CHICKEN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityChicken" , null),
-    ENTITY_COW_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCow" , null),
-    ENTITY_CREEPER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCreeper" , null),
-    ENTITY_ENDER_DRAGON_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderDragon" , null),
-    ENTITY_ENDERMAN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderman" , null),
-    ENTITY_ENDERMITE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEndermite" , null),
-    ENTITY_GHAST_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGhast" , null),
-    ENTITY_IRON_GOLEM_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityIronGolem" , null),
-    ENTITY_GIANT_ZOMBIE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGiantZombie" , null),
-    ENTITY_GUARDIAN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGuardian" , null),
-    ENTITY_HORSE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHorse" , null),
-    ENTITY_LLAMA_CLASS(ClazzType.CLASS, 11, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLlama", null),
-    ENTITY_MAGMA_CUBE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMagmaCube" , null),
-    ENTITY_MUSHROOM_COW_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMushroomCow" , null),
-    ENTITY_OCELOT_CLASS(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityOcelot" , null),
-    ENTITY_PARROT_CLASS(ClazzType.CLASS, 12, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityParrot", null),
-    ENTITY_PIG_CLASS(ClazzType.CLASS, 8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPig" , null),
-    ENTITY_PIG_ZOMBIE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPigZombie" , null),
-    ENTITY_POLAR_BEAR_CLASS(ClazzType.CLASS, 10, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPolarBear", null),
-    ENTITY_SHEEP_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySheep" , null),
-    ENTITY_SILVERFISH_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySilverfish" , null),
-    ENTITY_SKELETON_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySkeleton" , null),
-    ENTITY_SLIME_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySlime" , null),
-    ENTITY_SPIDER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySpider" , null),
-    ENTITY_SQUID_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySquid" , null),
-    ENTITY_VILLAGER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityVillager" , null),
-    ENTITY_WITCH_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWitch" , null),
-    ENTITY_WITHER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWither" , null),
-    ENTITY_ZOMBIE_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityZombie" , null),
-    ENTITY_WOLF_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWolf" , null),
-    ENTITY_END_CRYSTAL_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
+    ENTITY_PLAYER_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer" , null),
+    ENTITY_ARMOR_STAND_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityArmorStand" , null),
+    ENTITY_BAT_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBat" , null),
+    ENTITY_BLAZE_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityBlaze" , null),
+    ENTITY_CAVE_SPIDER_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCaveSpider" , null),
+    ENTITY_CHICKEN_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityChicken" , null),
+    ENTITY_COW_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCow" , null),
+    ENTITY_CREEPER_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityCreeper" , null),
+    ENTITY_ENDER_DRAGON_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderDragon" , null),
+    ENTITY_ENDERMAN_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderman" , null),
+    ENTITY_ENDERMITE_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEndermite" , null),
+    ENTITY_GHAST_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGhast" , null),
+    ENTITY_IRON_GOLEM_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityIronGolem" , null),
+    ENTITY_GIANT_ZOMBIE_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGiantZombie" , null),
+    ENTITY_GUARDIAN_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityGuardian" , null),
+    ENTITY_HORSE_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHorse" , null),
+    ENTITY_LLAMA_CLASS(ClazzType.CLASS, 11, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityLlama", null),
+    ENTITY_MAGMA_CUBE_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMagmaCube" , null),
+    ENTITY_MUSHROOM_COW_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityMushroomCow" , null),
+    ENTITY_OCELOT_CLASS(ClazzType.CLASS,8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityOcelot" , null),
+    ENTITY_PARROT_CLASS(ClazzType.CLASS, 12, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityParrot", null),
+    ENTITY_PIG_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPig" , null),
+    ENTITY_PIG_ZOMBIE_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPigZombie" , null),
+    ENTITY_POLAR_BEAR_CLASS(ClazzType.CLASS, 10, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPolarBear", null),
+    ENTITY_SHEEP_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySheep" , null),
+    ENTITY_SILVERFISH_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySilverfish" , null),
+    ENTITY_SKELETON_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySkeleton" , null),
+    ENTITY_SLIME_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySlime" , null),
+    ENTITY_SPIDER_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySpider" , null),
+    ENTITY_SQUID_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntitySquid" , null),
+    ENTITY_VILLAGER_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityVillager" , null),
+    ENTITY_WITCH_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWitch" , null),
+    ENTITY_WITHER_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWither" , null),
+    ENTITY_ZOMBIE_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityZombie" , null),
+    ENTITY_WOLF_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityWolf" , null),
+    ENTITY_END_CRYSTAL_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityEnderCrystal" , null),
 
-    ENTITY_TYPES_CLASS(ClazzType.CLASS, 12, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes", null),
+    ENTITY_TYPES_CLASS(ClazzType.CLASS, 12, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityTypes", null),
 
-    ENTITY_PLAYER_ARRAY_CLASS(ClazzType.CLASS, 8,"[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;" , null),
+    ENTITY_PLAYER_ARRAY_CLASS(ClazzType.CLASS, 8, 20, "[Lnet.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityPlayer;" , null),
 
-    ENTITY_HUMAN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman" , null),
+    ENTITY_HUMAN_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EntityHuman" , null),
 
-    ITEM_STACK_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack" , null),
-    CRAFT_ITEM_STACK_CLASS(ClazzType.CLASS, 8,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack" , null),
+    ITEM_STACK_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ItemStack" , null),
+    CRAFT_ITEM_STACK_CLASS(ClazzType.CLASS, 8, 20,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".inventory.CraftItemStack" , null),
 
-    CRAFT_PLAYER_CLASS(ClazzType.CLASS, 8,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".entity.CraftPlayer" , null),
+    CRAFT_PLAYER_CLASS(ClazzType.CLASS, 8, 20,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".entity.CraftPlayer" , null),
 
-    PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy", null),
-    PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn", null),
-    PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving", null),
+    PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityDestroy", null),
+    PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutNamedEntitySpawn", null),
+    PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntityLiving", null),
 
-    PACKET_PLAY_OUT_ENTITY_SPAWN_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntity", null),
+    PACKET_PLAY_OUT_ENTITY_SPAWN_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutSpawnEntity", null),
 
-    PACKET_PLAY_IN_USE_ENTITY_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayInUseEntity", null),
+    PACKET_PLAY_IN_USE_ENTITY_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayInUseEntity", null),
 
-    PACKET_PLAY_OUT_ENTITY_METADATA_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata", null),
+    PACKET_PLAY_OUT_ENTITY_METADATA_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityMetadata", null),
 
-    PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment", null),
+    PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityEquipment", null),
 
-    PACKET_PLAY_OUT_SCOREBOARD_TEAM(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam", null),
+    PACKET_PLAY_OUT_SCOREBOARD_TEAM(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam", null),
 
-    ENUM_ITEM_SLOT_CLASS(ClazzType.CLASS,9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot", null),
-    ENUM_PLAYER_INFO_ACTION_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction", null),
-    ENUM_CHAT_FORMAT_CLASS(ClazzType.CLASS,  9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumChatFormat", null),
+    ENUM_ITEM_SLOT_CLASS(ClazzType.CLASS,9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot", null),
+    ENUM_PLAYER_INFO_ACTION_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction", null),
+    ENUM_CHAT_FORMAT_CLASS(ClazzType.CLASS,  9, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumChatFormat", null),
 
-    PACKET_PLAY_OUT_PLAYER_INFO(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo", null),
+    PACKET_PLAY_OUT_PLAYER_INFO(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo", null),
 
-    PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport", null),
-    PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation", null),
-    PACKET_PLAY_OUT_ENTITY_LOOK_CLASS(ClazzType.CLASS,8, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook", null),
+    PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport", null),
+    PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation", null),
+    PACKET_PLAY_OUT_ENTITY_LOOK_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook", null),
 
-    I_CHAT_BASE_COMPONENT_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".IChatBaseComponent", null),
+    I_CHAT_BASE_COMPONENT_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".IChatBaseComponent", null),
 
-    DATA_WATCHER_CLASS(ClazzType.CLASS, 8,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher", null),
-    DATA_WATCHER_OBJECT_CLASS(ClazzType.CLASS, 9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherObject", null),
-    DATA_WATCHER_REGISTRY_CLASS(ClazzType.CLASS,9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry", null),
+    DATA_WATCHER_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcher", null),
+    DATA_WATCHER_OBJECT_CLASS(ClazzType.CLASS, 9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherObject", null),
+    DATA_WATCHER_REGISTRY_CLASS(ClazzType.CLASS,9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherRegistry", null),
 
-    DATA_WATCHER_SERIALIZER_CLASS(ClazzType.CLASS, 9, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer", null),
+    DATA_WATCHER_SERIALIZER_CLASS(ClazzType.CLASS, 9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".DataWatcherSerializer", null),
+
+    CHAT_COMPONENT_TEXT_CLASS(ClazzType.CLASS, 9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ChatComponentText", null),
 
     //METHODS
-    GET_HANDLE_PLAYER_METHOD(ClazzType.METHOD, 8,"getHandle", ClazzCache.CRAFT_PLAYER_CLASS.getOrLoad()),
+    GET_HANDLE_PLAYER_METHOD(ClazzType.METHOD, 8, 20,"getHandle", ClazzCache.CRAFT_PLAYER_CLASS.getAClass()),
 
-    ENTITY_TYPES_A_METHOD(ClazzType.METHOD, 13,"a", ClazzCache.ENTITY_TYPES_CLASS.getOrLoad(), String.class),
-    SET_CUSTOM_NAME_OLD_METHOD(ClazzType.METHOD, 8,"setCustomName", (Utils.isVersionNewestThan(13) ? null : ClazzCache.ENTITY_CLASS.getOrLoad()), String.class),
-    SET_CUSTOM_NAME_NEW_METHOD(ClazzType.METHOD, 13,"setCustomName", ClazzCache.ENTITY_CLASS.getOrLoad(), ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getOrLoad()),
-    SET_LOCATION_METHOD(ClazzType.METHOD, 8,"setLocation", ClazzCache.ENTITY_CLASS.getOrLoad(), double.class , double.class , double.class , float.class , float.class),
+    ENTITY_TYPES_A_METHOD(ClazzType.METHOD, 13,20,"a", ClazzCache.ENTITY_TYPES_CLASS.getAClass(), String.class),
+    SET_CUSTOM_NAME_OLD_METHOD(ClazzType.METHOD, 8,12,"setCustomName", ClazzCache.ENTITY_CLASS.getAClass(), String.class),
+    SET_CUSTOM_NAME_NEW_METHOD(ClazzType.METHOD, 13,20,"setCustomName", ClazzCache.ENTITY_CLASS.getAClass(), ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getAClass()),
+    SET_LOCATION_METHOD(ClazzType.METHOD, 8,20,"setLocation", ClazzCache.ENTITY_CLASS.getAClass(), double.class , double.class , double.class , float.class , float.class),
 
-    DATA_WATCHER_OBJECT_CONSTRUCTOR(ClazzType.CONSTRUCTOR,9, "", ClazzCache.DATA_WATCHER_OBJECT_CLASS.getOrLoad(), int.class, ClazzCache.DATA_WATCHER_SERIALIZER_CLASS.getOrLoad()),
+    SET_CUSTOM_NAME_VISIBLE_METHOD(ClazzType.METHOD, 8,20,"setCustomNameVisible", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), boolean.class),
+    SET_INVISIBLE_METHOD(ClazzType.METHOD, 8,20,"setInvisible", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), boolean.class),
+
+    ICHAT_BASE_COMPONENT_A_METHOD(ClazzType.METHOD, 8,20,"a-", ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getAClass(), String.class),
+
+    DATA_WATCHER_OBJECT_CONSTRUCTOR(ClazzType.CONSTRUCTOR,9, 20, "", ClazzCache.DATA_WATCHER_OBJECT_CLASS.getAClass(), int.class, ClazzCache.DATA_WATCHER_SERIALIZER_CLASS.getAClass()),
+
+    GET_DATA_WATCHER_METHOD(ClazzType.METHOD, 8, 20, "getDataWatcher", ClazzCache.ENTITY_LIVING_CLASS.getAClass()),
+
+    SET_DATA_WATCHER_METHOD(ClazzType.METHOD, 9,20, "set", ClazzCache.DATA_WATCHER_CLASS.getAClass(), ClazzCache.DATA_WATCHER_OBJECT_CLASS.getAClass(), Object.class),
+    WATCH_DATA_WATCHER_METHOD(ClazzType.METHOD, 8,8, "watch", ClazzCache.DATA_WATCHER_CLASS.getAClass(), int.class, Object.class),
+
+    GET_ENUM_CHAT_ID(ClazzType.METHOD, 9, 20, "b", ClazzCache.ENUM_CHAT_FORMAT_CLASS.getAClass()),
+    GET_ENUM_CHAT_NAME(ClazzType.METHOD, 9,20, "a", ClazzCache.ENUM_CHAT_FORMAT_CLASS.getAClass(), int.class),
+
+    GET_ENUM_CHAT_TO_STRING(ClazzType.METHOD, 9, 20, "toString", ClazzCache.ENUM_CHAT_FORMAT_CLASS.getAClass()),
+
+    AS_NMS_COPY_METHOD(ClazzType.METHOD, 8,20,"asNMSCopy", ClazzCache.CRAFT_ITEM_STACK_CLASS.getAClass(), ItemStack.class),
+
+    GET_PROFILE_METHOD(ClazzType.METHOD, 8, 20,"getProfile", ClazzCache.ENTITY_HUMAN_CLASS.getAClass()),
+
+    GET_ID_METHOD(ClazzType.METHOD, 8, 20,"getId", ClazzCache.ENTITY_LIVING_CLASS.getAClass()),
 
     // CONSTRUCTOR
-    PLAYER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, "z", ClazzCache.ENTITY_PLAYER_CLASS.getOrLoad()),
-    PLAYER_INTERACT_MANAGER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, "z", ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.getOrLoad()),
+    CHAT_COMPONENT_TEXT_CONSTRUCTOR(ClazzType.CONSTRUCTOR,9, 20,"", ClazzCache.CHAT_COMPONENT_TEXT_CLASS.getAClass(), String.class),
 
-    PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, "a", ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.getOrLoad()),
+    PLAYER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8,20, "z", ClazzCache.ENTITY_PLAYER_CLASS.getAClass()),
+    PLAYER_INTERACT_MANAGER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, 20,"z", ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.getAClass()),
 
-    PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, "", ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.getOrLoad(), ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.getOrLoad() , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.getOrLoad()),
-    PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CLASS.getOrLoad(), int.class , byte.class , byte.class , boolean.class),
-    PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS.getOrLoad(), ClazzCache.ENTITY_CLASS.getOrLoad(), byte.class),
-    PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.getOrLoad(), ClazzCache.ENTITY_CLASS.getOrLoad()),
-    PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.getOrLoad(), int.class, ClazzCache.DATA_WATCHER_CLASS.getOrLoad(), boolean.class),
-    PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS.getOrLoad(), ClazzCache.ENTITY_HUMAN_CLASS.getOrLoad()),
-    PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.getOrLoad(), int[].class),
+    PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8,20, "a", ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.getAClass()),
 
-    PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.getOrLoad(), ClazzCache.ENTITY_LIVING_CLASS.getOrLoad()),
+    PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, 20,"", ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO.getAClass(), ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.getAClass() , ClazzCache.ENTITY_PLAYER_ARRAY_CLASS.getAClass()),
+    PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CLASS.getAClass(), int.class , byte.class , byte.class , boolean.class),
+    PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8, 20, "", ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS.getAClass(), ClazzCache.ENTITY_CLASS.getAClass(), byte.class),
+    PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS.getAClass(), ClazzCache.ENTITY_CLASS.getAClass()),
+    PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_METADATA_CLASS.getAClass(), int.class, ClazzCache.DATA_WATCHER_CLASS.getAClass(), boolean.class),
+    PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_SPAWN_CLASS.getAClass(), ClazzCache.ENTITY_HUMAN_CLASS.getAClass()),
+    PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS.getAClass(), int[].class),
 
-    ARMOR_STAND_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,"", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getOrLoad(), ClazzCache.WORLD_CLASS.getOrLoad(), double.class, double.class, double.class),
+    PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.getAClass(), ClazzCache.ENTITY_LIVING_CLASS.getAClass()),
+
+    ARMOR_STAND_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), ClazzCache.WORLD_CLASS.getAClass(), double.class, double.class, double.class),
 
     //FIELDS
-    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, "a", ClazzCache.DATA_WATCHER_REGISTRY_CLASS.getOrLoad(), null);
+    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, 20, "a", ClazzCache.DATA_WATCHER_REGISTRY_CLASS.getAClass(), null);
 
     public final ClazzType clazzType;
 
@@ -139,7 +165,7 @@ public enum ClazzCache {
 
     public Object object;
 
-    public int minVersion;
+    public int minVersion,maxVersion;
 
     public Class<?> aClass;
 
@@ -149,51 +175,46 @@ public enum ClazzCache {
     public Method method;
     public Object field;
 
-    ClazzCache(final ClazzType clazzType, final int minVersion, final String name , Object object , final Class<?>... classes)  {
+    ClazzCache(final ClazzType clazzType, final int minVersion, final int maxVersion, final String name , Object object , final Class<?>... classes)  {
         this.clazzType = clazzType;
 
         this.minVersion = minVersion;
+        this.maxVersion = maxVersion;
+
         this.name = name;
         this.object = object;
 
         this.classes = classes;
     }
 
-    public Class<?> getOrLoad() {
-        if (this.name == null || this.name.length() <= 0) return null;
-        if (Utils.getVersion() < minVersion) return null;
-
-        try { return aClass == null ? aClass = Class.forName(name) : aClass;
-        } catch (ClassNotFoundException e) {e.printStackTrace();} return null;
+    public Class<?> getAClass() {
+        try {
+            return (aClass != null ? aClass : Class.forName(name));
+        } catch (ClassNotFoundException e) { 
+            return null;
+        }
     }
 
-    public static void load() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
-        for (final ClazzCache clazzCache : ClazzCache.values()) {
-            if (Utils.getVersion() < clazzCache.minVersion) continue;
-            switch (clazzCache.clazzType) {
-                case METHOD:
-                    if (clazzCache.object instanceof Class) clazzCache.method  = ((Class<?>)clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
-                    else {
-                        if (clazzCache.object != null && clazzCache.name != null) clazzCache.method = Class.forName((String) clazzCache.object).getMethod(clazzCache.name , clazzCache.classes);
-                    }
-                    break;
-                case CLASS:
-                    if (clazzCache.aClass == null) clazzCache.getOrLoad(); // Try
-                    break;
-                case CONSTRUCTOR:
-                    if (clazzCache.object instanceof Class) {
-                        if (clazzCache.name.length() > 0) {
-                            if (clazzCache.name.equalsIgnoreCase("z")) clazzCache.constructor = ((Class<?>)clazzCache.object).getDeclaredConstructors()[0];
-                            else clazzCache.constructor = ((Class<?>)clazzCache.object).getConstructor();
-                        }
-                        else clazzCache.constructor = ((Class<?>)clazzCache.object).getConstructor(clazzCache.classes);
-                    }
-                    break;
-                case FIELD:
-                    if (clazzCache.name != null && clazzCache.name.length() > 0) {
-                        clazzCache.field = ((Class<?>)clazzCache.object).getField(clazzCache.name).get(null);
-                    }
-                    break;
+    public void load() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        if (Utils.getVersion() < this.minVersion  || Utils.getVersion() > this.maxVersion) return;
+
+        if (this.clazzType == ClazzType.CLASS) { // Class
+            this.aClass = Class.forName(name);
+        } else if (this.clazzType == ClazzType.METHOD) { // Method
+            if (this.name != null && this.name.contains("-")) this.method  = ((Class<?>) this.object).getDeclaredClasses()[0].getMethod(this.name.replace("-", ""), this.classes);
+            else {
+                if (this.object instanceof Class) this.method  = ((Class<?>) this.object).getMethod(this.name , this.classes);
+                else if (this.object != null) this.method = Class.forName((String) this.object).getMethod(this.name, this.classes);
+            }
+        } else if (this.clazzType == ClazzType.FIELD) { // Field
+            if (this.name != null && this.name.length() > 0) this.field = ((Class<?>) this.object).getField(this.name).get(null);
+        } else { // Constructor
+            if (this.object instanceof Class) {
+                if (this.name.length() > 0) {
+                    if (this.name.equalsIgnoreCase("z")) this.constructor = ((Class<?>) this.object).getDeclaredConstructors()[0];
+                    else this.constructor = ((Class<?>) this.object).getConstructor();
+                }
+                else this.constructor = ((Class<?>) this.object).getConstructor(this.classes);
             }
         }
     }

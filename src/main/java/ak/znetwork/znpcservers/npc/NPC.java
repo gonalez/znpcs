@@ -318,9 +318,9 @@ public class NPC {
         if (!Utils.isVersionNewestThan(9)) throw new UnsupportedOperationException("Version not supported");
         if (fix) hasGlow = !hasGlow;
 
-        Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
+        Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(znEntity);
 
-        dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
+        ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject, ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(0, dataWatcherRegistryEnum) , (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
         Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true);
 
@@ -336,7 +336,7 @@ public class NPC {
         final Class<?> clazzCache = ClazzCache.ENUM_CHAT_FORMAT_CLASS.aClass;
 
         try {
-            return clazzCache.getField(string.toUpperCase()).get(null);
+            return clazzCache.getField(string.trim().toUpperCase()).get(null);
         } catch (NoSuchFieldException e) {
             return clazzCache.getField("WHITE").get(null);
         }
@@ -350,22 +350,20 @@ public class NPC {
      * @param material material
      */
     public void equip(final Player player , NPCItemSlot slot , Material material) throws Exception {
-        Object stack = ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass.getMethod("asNMSCopy" , ItemStack.class).invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass , new ItemStack(material));
+        Object stack = ClazzCache.AS_NMS_COPY_METHOD.method.invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass, new ItemStack(material));
 
         Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
 
         Object v16b = null;
 
-        if (!Utils.isVersionNewestThan(9))
-            getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
-        else{
+        if (!Utils.isVersionNewestThan(9)) getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
+        else {
             if (Utils.isVersionNewestThan(16)) {
                 getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , List.class);
 
                 v16b = ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.newInstance() , "b");
             }
-            else
-                getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
+            else getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
         }
         npcEquipments.put(slot , material);
 
@@ -392,13 +390,13 @@ public class NPC {
         setSkin(skinFetch.value);
         setSignature(skinFetch.signature);
 
-        final GameProfile gameProfile = new GameProfile(UUID.randomUUID() , "znpc_" + getId());
+        final GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "znpc_" + getId());
         gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
-        Object gameProfileObj = znEntity.getClass().getMethod("getProfile").invoke(znEntity);
+        Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.method.invoke(znEntity);
 
-        ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
-        ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
+        ReflectionUtils.setValue(gameProfileObj , "id", UUID.randomUUID());
+        ReflectionUtils.setValue(gameProfileObj , "properties", gameProfile.getProperties());
 
         final Iterator<Player> it = this.getViewers().iterator();
 
@@ -412,14 +410,14 @@ public class NPC {
     }
 
     public void fixSkin() throws Exception {
-        Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
+        Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(znEntity);
         if (Utils.isVersionNewestThan(9)) {
             dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.field;
 
             int version = Utils.getVersion();
 
-            dataWatcherObject.getClass().getMethod("set", ClazzCache.DATA_WATCHER_OBJECT_CLASS.aClass, Object.class).invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
-        } else dataWatcherObject.getClass().getMethod("watch", int.class, Object.class).invoke(dataWatcherObject , 10 , (byte) 127);
+            ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
+        } else ClazzCache.WATCH_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , 10 , (byte) 127);
     }
 
     public void changeType(final NPCType npcType) throws Exception {
@@ -453,7 +451,7 @@ public class NPC {
         }
 
         // Update new id
-        entity_id = (Integer) ClazzCache.ENTITY_PLAYER_CLASS.aClass.getMethod("getId").invoke(znEntity);
+        entity_id = (Integer) ClazzCache.GET_ID_METHOD.method.invoke(znEntity);
     }
 
     /**
@@ -466,7 +464,7 @@ public class NPC {
         if (npcType == NPCType.PLAYER && isHasMirror()) {
             final GameProfile gameProfile = getGameProfileForPlayer(player);
 
-            Object gameProfileObj = znEntity.getClass().getMethod("getProfile").invoke(znEntity);
+            Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.method.invoke(znEntity);
 
             ReflectionUtils.setValue(gameProfileObj , "id" , UUID.randomUUID());
             ReflectionUtils.setValue(gameProfileObj , "properties" , gameProfile.getProperties());
@@ -480,7 +478,7 @@ public class NPC {
         ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.constructor.newInstance(znEntity) : ((npcType.id < 0 ? npcType.constructor.newInstance(znEntity) : npcType.constructor.newInstance(znEntity, npcType.id)))));
 
         if (npcType == NPCType.PLAYER) {
-            Object dataWatcherObject = znEntity.getClass().getMethod("getDataWatcher").invoke(znEntity);
+            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(znEntity);
 
             ReflectionUtils.sendPacket(player , ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id , dataWatcherObject , true));
         }
@@ -492,7 +490,7 @@ public class NPC {
         if (hasGlow) toggleGlow(Optional.of(player), glowName ,false);
 
         // Update entity id
-        entity_id = (Integer) ClazzCache.ENTITY_CLASS.aClass.getMethod("getId").invoke(znEntity);
+        entity_id = (Integer) ClazzCache.GET_ID_METHOD.method.invoke(znEntity);
 
         // Fix rotation
         lookAt(player , location.clone() , true);
@@ -580,8 +578,8 @@ public class NPC {
      * @return game profile for player
      */
     public GameProfile getGameProfileForPlayer(final Player player) throws Exception {
-        Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-        Object gameProfileObj = craftPlayer.getClass().getMethod("getProfile").invoke(craftPlayer);
+        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.method.invoke(player);
+        Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.method.invoke(craftPlayer);
 
         GameProfile gameProfileClone = (GameProfile) gameProfileObj;
         GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
@@ -597,37 +595,28 @@ public class NPC {
      */
     @SuppressWarnings("unchecked")
     public void toggleName(boolean fix) throws Exception {
-        if (fix)
-            hasToggleName = !hasToggleName;
+        if (fix) hasToggleName = !hasToggleName;
 
         Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.constructor.newInstance();
 
-        if (Utils.isVersionNewestThan(9)) {
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", (hasToggleName ? 0 : 1));
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "j", 0);
+        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "i" : "h"), (hasToggleName ? 0 : 1));
+        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
+        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
+        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "j" : "i"), 0);
 
-            if (hasGlow && glowColor != null) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", glowColor);
+        if (Utils.isVersionNewestThan(9) && hasGlow && glowColor != null){
+            int id = (int) ClazzCache.GET_ENUM_CHAT_ID.method.invoke(glowColor);
 
-            Collection<String> collection = Lists.newArrayList();
-            collection.add(gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", id);
 
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
-        } else {
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", (hasToggleName ? 0 : 1));
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", gameProfile.getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "i", 1);
-
-            Field f = packetPlayOutScoreboardTeam.getClass().getDeclaredField("g");
-            f.setAccessible(true);
-
-            Collection<String> collection = (Collection<String>) f.get(packetPlayOutScoreboardTeam);
-            collection.add(gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", ClazzCache.GET_ENUM_CHAT_TO_STRING.method.invoke(glowColor));
         }
+
+        Collection<String> collection = Collections.singletonList(gameProfile.getName());
+
+        if (Utils.isVersionNewestThan(9)) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
+        else ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", collection);
 
         this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
 

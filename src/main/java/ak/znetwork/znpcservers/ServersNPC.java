@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ServersNPC extends JavaPlugin {
 
@@ -123,7 +124,13 @@ public class ServersNPC extends JavaPlugin {
         new MetricsLite(this, pluginId);
 
         // Load reflection cache
-        try { ClazzCache.load();} catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException | IllegalAccessException ignored) {ignored.printStackTrace();}
+        Stream.of(ClazzCache.values()).forEach(clazzCache -> {
+            try {
+                clazzCache.load();
+            } catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
 
         executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
 
@@ -174,6 +181,8 @@ public class ServersNPC extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
 
         // Save values on config (???)
+        if (getNpcManager().getNpcs().isEmpty()) return;
+
         long startMs = System.currentTimeMillis();
         try {
             final String json = gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()));

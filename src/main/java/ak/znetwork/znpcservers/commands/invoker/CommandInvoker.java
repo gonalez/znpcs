@@ -42,11 +42,7 @@ public class CommandInvoker<T extends CommandSender> extends ZNCommandAbstract<T
         try {
             getMethod().invoke(getObject(), sender, object);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-
-            if (e.getCause() instanceof CommandExecuteException)  {
-                throw new CommandExecuteException(e.getMessage());
-            }
+            throw new CommandExecuteException(e.getMessage(), e.getCause());
         }
     }
 }

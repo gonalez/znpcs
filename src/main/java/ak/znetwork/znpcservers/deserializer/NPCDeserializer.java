@@ -25,6 +25,7 @@ import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
+import ak.znetwork.znpcservers.utils.Utils;
 import com.google.gson.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,6 +49,14 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
 
             NPC npc = new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), new LocationSerialize().deserialize(jsonObject.get("location"), Location.class, null), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
             npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
+
+            npc.setHasLookAt(jsonObject.get("hasLookAt").getAsBoolean());
+            npc.setHasGlow(jsonObject.get("hasGlow").getAsBoolean());
+            npc.setHasMirror(jsonObject.get("hasMirror").getAsBoolean());
+            npc.setHasToggleHolo(jsonObject.get("hasToggleHolo").getAsBoolean());
+            npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
+
+            if (Utils.isVersionNewestThan(9)) npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
             return npc;
         } catch (Exception e) {
             throw new RuntimeException("Could not deserialize npc", e);

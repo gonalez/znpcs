@@ -68,6 +68,9 @@ public class CommandsManager implements CommandExecutor {
             if (znCommand.isPresent()) znCommand.get().execute(sender, args);
         } catch (CommandExecuteException e) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
+
+            // if logs enabled
+            e.printStackTrace();
         } catch (CommandPermissionException e) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.NO_PERMISSION);
         } catch (CommandNotFoundException e) {
