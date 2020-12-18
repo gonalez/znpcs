@@ -22,21 +22,11 @@ package ak.znetwork.znpcservers.utils;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 
 public class Utils {
-
-    public static boolean isInteger(String s) {
-        try {
-            Integer.parseInt(s);
-        } catch(NumberFormatException | NullPointerException e) {
-            return false;
-        }
-        return true;
-    }
 
     public static boolean isVersionNewestThan(int ver) {
         return getVersion() >= ver;

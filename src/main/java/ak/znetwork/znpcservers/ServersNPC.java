@@ -79,8 +79,12 @@ public class ServersNPC extends JavaPlugin {
 
     private static String replaceSymbol;
 
+    public long startTimer;
+
     @Override
     public void onEnable() {
+        startTimer = System.currentTimeMillis();
+
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
 
         data = new File(getDataFolder() , "data.json");
@@ -181,18 +185,12 @@ public class ServersNPC extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
 
         // Save values on config (???)
-        if (getNpcManager().getNpcs().isEmpty()) return;
+        if (System.currentTimeMillis() - startTimer <= (1000) * 2) return;
 
-        long startMs = System.currentTimeMillis();
-        try {
-            final String json = gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()));
-            try(FileWriter writer = new FileWriter(data)) {
-                writer.append(json);
-            }
-
-            System.out.println("(Saved " +  getNpcManager().getNpcs().size() + "npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+        try (FileWriter writer = new FileWriter(data)) {
+            writer.write(gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList())));
         } catch (IOException e) {
-            throw new RuntimeException("An exception occurred while trying to save npcs" , e);
+            e.printStackTrace();
         }
     }
 

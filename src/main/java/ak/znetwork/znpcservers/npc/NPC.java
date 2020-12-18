@@ -416,7 +416,7 @@ public class NPC {
 
             int version = Utils.getVersion();
 
-            ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance((version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
+            ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(version < 12 ? 0 : (version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
         } else ClazzCache.WATCH_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , 10 , (byte) 127);
     }
 
@@ -681,7 +681,7 @@ public class NPC {
      * @param location new
      */
     public void setLocation(Location location) throws Exception {
-        this.location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw() , location.getPitch());
+        this.location = new Location(location.getWorld(), location.getBlockX() + 0.5D, location.getY(), location.getBlockZ() + 0.5D, location.getYaw() , location.getPitch());
 
         ClazzCache.SET_LOCATION_METHOD.method.invoke(znEntity , this.location.getX(),  this.location.getY(), this.location.getZ(), location.getYaw() , location.getPitch());
 

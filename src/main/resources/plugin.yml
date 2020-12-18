@@ -1,6 +1,6 @@
 name: ZNPCS
 main: ak.znetwork.znpcservers.ServersNPC
-version: 1.9
+version: 2.0
 api-version: 1.13
 softdepend: [PlaceholderAPI]
 
