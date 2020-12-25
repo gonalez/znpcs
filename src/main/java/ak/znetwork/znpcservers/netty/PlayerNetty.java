@@ -34,7 +34,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -67,7 +66,7 @@ public class PlayerNetty {
         this.uuid = player.getUniqueId();
         this.actionCooldown = new HashMap<>();
 
-        Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
+        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.method.invoke(player);
         Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
 
         networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
@@ -153,9 +152,9 @@ public class PlayerNetty {
     }
 
     public void ejectNetty() {
-        if (!channel.pipeline().names().contains("npc_interact")) return;
-
-        channel.eventLoop().execute(() -> channel.pipeline().remove("npc_interact"));
+        channel.eventLoop().execute(() -> {
+            if (channel.pipeline().names().contains("npc_interact")) channel.pipeline().remove("npc_interact");
+        });
     }
 }
 
