@@ -67,13 +67,12 @@ public class PlayerNetty {
         this.actionCooldown = new HashMap<>();
 
         Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.method.invoke(player);
-        Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
+        Object playerConnection = ClazzCache.PLAYER_CONNECTION_FIELD.field.get(craftPlayer);
 
-        networkManager = playerConnection.getClass().getField("networkManager").get(playerConnection);
-        channel = (Channel) networkManager.getClass().getField("channel").get(networkManager);
+        networkManager = ClazzCache.NETWORK_MANAGER_FIELD.field.get(playerConnection);
+        channel = (Channel) ClazzCache.CHANNEL_FIELD.field.get(networkManager);
 
-        idField = ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass.getDeclaredField("a");
-        idField.setAccessible(true);
+        idField = ClazzCache.ID_FIELD.field;
     }
 
     public UUID getUuid() {
@@ -130,10 +129,10 @@ public class PlayerNetty {
 
                                            switch (npcAction) {
                                                case CMD:
-                                                   player.performCommand((serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                   player.performCommand((ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
                                                    break;
                                                case CONSOLE:
-                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (serversNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
                                                    break;
                                                case SERVER:
                                                    serversNPC.sendPlayerToServer(player, action);

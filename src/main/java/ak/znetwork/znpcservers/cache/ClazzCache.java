@@ -1,5 +1,6 @@
 package ak.znetwork.znpcservers.cache;
 
+import ak.znetwork.znpcservers.cache.exception.ClassLoadException;
 import ak.znetwork.znpcservers.cache.type.ClazzType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -7,16 +8,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public enum ClazzCache {
 
-    // Methods
-    GET_SERVER_METHOD(ClazzType.METHOD,8, 20,"getServer" , Bukkit.getServer().getClass()),
-    GET_HANDLE_METHOD(ClazzType.METHOD,8, 20,"getHandle" , "org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".CraftWorld"),
-
     // Classes
     WORLD_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".World" , null),
+    CRAFT_WORLD_CLASS(ClazzType.CLASS, 8, 20,"org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage() + ".CraftWorld", null),
 
     PLAYER_INTERACT_MANAGER_CLASS(ClazzType.CLASS, 8,20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerInteractManager" , null),
 
@@ -91,6 +90,9 @@ public enum ClazzCache {
 
     PACKET_PLAY_OUT_PLAYER_INFO(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo", null),
 
+    PLAYER_CONNECTION_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerConnection", null),
+    NETWORK_MANAGER_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".NetworkManager", null),
+
     PACKET_PLAY_OUT_ENTITY_TELEPORT_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityTeleport", null),
     PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntityHeadRotation", null),
     PACKET_PLAY_OUT_ENTITY_LOOK_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutEntity$PacketPlayOutEntityLook", null),
@@ -106,6 +108,9 @@ public enum ClazzCache {
     CHAT_COMPONENT_TEXT_CLASS(ClazzType.CLASS, 9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ChatComponentText", null),
 
     //METHODS
+    GET_SERVER_METHOD(ClazzType.METHOD,8, 20,"getServer" , Bukkit.getServer().getClass()),
+    GET_HANDLE_METHOD(ClazzType.METHOD,8, 20,"getHandle" , ClazzCache.CRAFT_WORLD_CLASS.getAClass()),
+
     GET_HANDLE_PLAYER_METHOD(ClazzType.METHOD, 8, 20,"getHandle", ClazzCache.CRAFT_PLAYER_CLASS.getAClass()),
 
     ENTITY_TYPES_A_METHOD(ClazzType.METHOD, 13,20,"a", ClazzCache.ENTITY_TYPES_CLASS.getAClass(), String.class),
@@ -116,7 +121,7 @@ public enum ClazzCache {
     SET_CUSTOM_NAME_VISIBLE_METHOD(ClazzType.METHOD, 8,20,"setCustomNameVisible", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), boolean.class),
     SET_INVISIBLE_METHOD(ClazzType.METHOD, 8,20,"setInvisible", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), boolean.class),
 
-    ICHAT_BASE_COMPONENT_A_METHOD(ClazzType.METHOD, 8,20,"a-", ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getAClass(), String.class),
+    ICHAT_BASE_COMPONENT_A_METHOD(ClazzType.METHOD, 8,20,"a", ClazzCache.I_CHAT_BASE_COMPONENT_CLASS.getAClass(), String.class),
 
     DATA_WATCHER_OBJECT_CONSTRUCTOR(ClazzType.CONSTRUCTOR,9, 20, "", ClazzCache.DATA_WATCHER_OBJECT_CLASS.getAClass(), int.class, ClazzCache.DATA_WATCHER_SERIALIZER_CLASS.getAClass()),
 
@@ -139,7 +144,7 @@ public enum ClazzCache {
     // CONSTRUCTOR
     CHAT_COMPONENT_TEXT_CONSTRUCTOR(ClazzType.CONSTRUCTOR,9, 20,"", ClazzCache.CHAT_COMPONENT_TEXT_CLASS.getAClass(), String.class),
 
-    PLAYER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8,20, "z", ClazzCache.ENTITY_PLAYER_CLASS.getAClass()),
+    PLAYER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8,20, "", ClazzCache.ENTITY_PLAYER_CLASS.getAClass()),
     PLAYER_INTERACT_MANAGER_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8, 20,"z", ClazzCache.PLAYER_INTERACT_MANAGER_CLASS.getAClass()),
 
     PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR(ClazzType.CONSTRUCTOR,8,20, "a", ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM.getAClass()),
@@ -157,7 +162,15 @@ public enum ClazzCache {
     ARMOR_STAND_ENTITY_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8,20,"", ClazzCache.ENTITY_ARMOR_STAND_CLASS.getAClass(), ClazzCache.WORLD_CLASS.getAClass(), double.class, double.class, double.class),
 
     //FIELDS
-    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, 20, "a", ClazzCache.DATA_WATCHER_REGISTRY_CLASS.getAClass(), null);
+    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, 20, "a", ClazzCache.DATA_WATCHER_REGISTRY_CLASS.getAClass(), null),
+    PLAYER_CONNECTION_FIELD(ClazzType.FIELD, 8, 20, "playerConnection", ClazzCache.ENTITY_PLAYER_CLASS.getAClass()),
+
+    NETWORK_MANAGER_FIELD(ClazzType.FIELD, 8, 20, "networkManager", ClazzCache.PLAYER_CONNECTION_CLASS.getAClass()),
+    CHANNEL_FIELD(ClazzType.FIELD, 8, 20, "channel", ClazzCache.NETWORK_MANAGER_CLASS.getAClass()),
+
+    ID_FIELD(ClazzType.FIELD, 8, 20, "a", ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.getAClass()),
+
+    REMOVE_PLAYER_FIELD(ClazzType.FIELD, 8, 20, "REMOVE_PLAYER", ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.getAClass());
 
     public final ClazzType clazzType;
 
@@ -173,7 +186,7 @@ public enum ClazzCache {
 
     public Constructor<?> constructor;
     public Method method;
-    public Object field;
+    public Field field;
 
     ClazzCache(final ClazzType clazzType, final int minVersion, final int maxVersion, final String name , Object object , final Class<?>... classes)  {
         this.clazzType = clazzType;
@@ -195,26 +208,49 @@ public enum ClazzCache {
         }
     }
 
-    public void load() throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+    public void load() throws ClassLoadException {
         if (Utils.getVersion() < this.minVersion  || Utils.getVersion() > this.maxVersion) return;
 
         if (this.clazzType == ClazzType.CLASS) { // Class
-            this.aClass = Class.forName(name);
+            try {
+                this.aClass = Class.forName(name);
+            } catch (ClassNotFoundException e) {
+                throw new ClassLoadException("Class could not be loaded: " + name(), e.getCause());
+            }
         } else if (this.clazzType == ClazzType.METHOD) { // Method
-            if (this.name != null && this.name.contains("-")) this.method  = ((Class<?>) this.object).getDeclaredClasses()[0].getMethod(this.name.replace("-", ""), this.classes);
-            else {
-                if (this.object instanceof Class) this.method  = ((Class<?>) this.object).getMethod(this.name , this.classes);
-                else if (this.object != null) this.method = Class.forName((String) this.object).getMethod(this.name, this.classes);
+            try {
+                this.method  = ((Class<?>) this.object).getMethod(this.name , this.classes);
+            } catch (NoSuchMethodException e) {
+                try {
+                    this.method = ((Class<?>) this.object).getDeclaredClasses()[0].getMethod(this.name, this.classes);
+                } catch (NoSuchMethodException noSuchMethodException) {
+                    throw new ClassLoadException("Method could not be loaded: " + name(), e.getCause());
+                }
             }
         } else if (this.clazzType == ClazzType.FIELD) { // Field
-            if (this.name != null && this.name.length() > 0) this.field = ((Class<?>) this.object).getField(this.name).get(null);
+            if (this.name != null && this.name.length() > 0) {
+                try {
+                    this.field = ((Class<?>) this.object).getField(this.name);
+                } catch (NoSuchFieldException e) {
+                    try {
+                        this.field = ((Class<?>) this.object).getDeclaredField(this.name);
+                        this.field.setAccessible(true);
+                    } catch (NoSuchFieldException noSuchFieldException) {
+                        throw new ClassLoadException("Field could not be loaded: " + name(), e.getCause());
+                    }
+                }
+            }
         } else { // Constructor
             if (this.object instanceof Class) {
-                if (this.name.length() > 0) {
-                    if (this.name.equalsIgnoreCase("z")) this.constructor = ((Class<?>) this.object).getDeclaredConstructors()[0];
-                    else this.constructor = ((Class<?>) this.object).getConstructor();
+                try {
+                    this.constructor = ((Class<?>) this.object).getConstructor(this.classes);
+                } catch (NoSuchMethodException e) {
+                    try {
+                        this.constructor = ((Class<?>) this.object).getConstructor();
+                    } catch (NoSuchMethodException noSuchMethodException) {
+                        this.constructor = ((Class<?>) this.object).getDeclaredConstructors()[0];
+                    }
                 }
-                else this.constructor = ((Class<?>) this.object).getConstructor(this.classes);
             }
         }
     }

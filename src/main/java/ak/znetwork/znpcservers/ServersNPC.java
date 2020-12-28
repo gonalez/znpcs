@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.cache.ClazzCache;
+import ak.znetwork.znpcservers.cache.exception.ClassLoadException;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.*;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
@@ -35,6 +36,7 @@ import ak.znetwork.znpcservers.netty.PlayerNetty;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.MetricsLite;
@@ -128,13 +130,13 @@ public class ServersNPC extends JavaPlugin {
         new MetricsLite(this, pluginId);
 
         // Load reflection cache
-        Stream.of(ClazzCache.values()).forEach(clazzCache -> {
+        for (ClazzCache clazzCache : ClazzCache.values()) {
             try {
                 clazzCache.load();
-            } catch (NoSuchMethodException | ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            } catch (ClassLoadException e) {
                 e.printStackTrace();
             }
-        });
+        }
 
         executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
 
@@ -164,6 +166,8 @@ public class ServersNPC extends JavaPlugin {
                 //throw new RuntimeException("An exception occurred while trying to load npcs" , e);
             }
 
+            new NPCSaveTask(this, (Integer.parseInt(config.getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS))));
+
             // Setup netty again for online players
             Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
         });
@@ -185,13 +189,7 @@ public class ServersNPC extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
 
         // Save values on config (???)
-        if (System.currentTimeMillis() - startTimer <= (1000) * 2) return;
-
-        try (FileWriter writer = new FileWriter(data)) {
-            writer.write(gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList())));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        saveAllNpcs();
     }
 
     public CommandsManager getCommandsManager() {
@@ -227,6 +225,16 @@ public class ServersNPC extends JavaPlugin {
         return replaceSymbol;
     }
     // End
+
+    public void saveAllNpcs() {
+        if (System.currentTimeMillis() - startTimer <= (1000) * 2) return;
+
+        try (FileWriter writer = new FileWriter(data)) {
+            gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()), writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Setup netty for player

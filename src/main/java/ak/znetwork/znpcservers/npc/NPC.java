@@ -412,11 +412,11 @@ public class NPC {
     public void fixSkin() throws Exception {
         Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(znEntity);
         if (Utils.isVersionNewestThan(9)) {
-            dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.field;
+            dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.field.get(null);
 
             int version = Utils.getVersion();
 
-            ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(version < 12 ? 0 : (version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
+            ClazzCache.SET_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.constructor.newInstance(version < 11 ? 10 : (version == 11 || version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum) , (byte) 127);
         } else ClazzCache.WATCH_DATA_WATCHER_METHOD.method.invoke(dataWatcherObject , 10 , (byte) 127);
     }
 
@@ -514,7 +514,7 @@ public class NPC {
     }
 
     public void hideFromTablist(final Player player) throws Exception {
-        Object enumPlayerInfoAction = ClazzCache.ENUM_PLAYER_INFO_ACTION_CLASS.aClass.getField("REMOVE_PLAYER").get(null);
+        Object enumPlayerInfoAction = ClazzCache.REMOVE_PLAYER_FIELD.field.get(null);
 
         Object packetPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.constructor.newInstance(enumPlayerInfoAction , entityPlayerArray);
 
