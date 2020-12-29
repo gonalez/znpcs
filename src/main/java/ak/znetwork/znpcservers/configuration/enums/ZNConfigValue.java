@@ -29,7 +29,7 @@ public enum ZNConfigValue {
 
     REPLACE_SYMBOL(ZNConfigType.CONFIG,"-", String.class), // Replace spaces symbol , default = " ' "
 
-    SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG,60 * (5), Integer.class), // by Block distance
+    SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG,60 * (10), Integer.class), // Save NPC delay (10 minutes)
 
     // Messages
     NO_PERMISSION(ZNConfigType.MESSAGES,"&cYou do not have permission to execute this command.", String.class),

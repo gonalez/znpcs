@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.npc.enums.types;
 
 import ak.znetwork.znpcservers.cache.ClazzCache;
+import ak.znetwork.znpcservers.utils.Utils;
 
 import java.lang.reflect.Constructor;
 
@@ -44,14 +45,14 @@ public enum  NPCType {
     HORSE(ClazzCache.ENTITY_HORSE_CLASS,  -1, 0),
     LLAMA(ClazzCache.ENTITY_LLAMA_CLASS, -1, 0),
     MAGMA_CUBE(ClazzCache.ENTITY_MAGMA_CUBE_CLASS, -1, -1.25),
-    MUSHROOM_COW(ClazzCache.ENTITY_MUSHROOM_COW_CLASS, -1, -0.25),
+    MOOSHROOM(ClazzCache.ENTITY_MUSHROOM_COW_CLASS, -1, -0.25),
     OCELOT(ClazzCache.ENTITY_OCELOT_CLASS,  -1, -1),
     PARROT(ClazzCache.ENTITY_PARROT_CLASS,  -1, -1.5),
     PIG(ClazzCache.ENTITY_PIG_CLASS,  -1, -1),
-    PIG_ZOMBIE(ClazzCache.ENTITY_PIG_ZOMBIE_CLASS,  -1, 0),
+    ZOMBIFIED_PIGLIN(ClazzCache.ENTITY_PIG_ZOMBIE_CLASS,  -1, 0),
     POLAR_BEAR(ClazzCache.ENTITY_POLAR_BEAR_CLASS, -1, -0.5),
     SHEEP(ClazzCache.ENTITY_SHEEP_CLASS, -1, -0.5),
-    SILVER_FISH(ClazzCache.ENTITY_SILVERFISH_CLASS,  -1, -1.5),
+    SILVERFISH(ClazzCache.ENTITY_SILVERFISH_CLASS,  -1, -1.5),
     SKELETON(ClazzCache.ENTITY_SKELETON_CLASS,  -1, 0),
     SLIME(ClazzCache.ENTITY_SLIME_CLASS,  -1, -1.25),
     SPIDER(ClazzCache.ENTITY_SPIDER_CLASS,  -1, -1),
@@ -71,6 +72,8 @@ public enum  NPCType {
 
     public Constructor<?> constructor = null;
 
+    public Object entityType;
+
     NPCType(final ClazzCache aClass , final int id, final double holoHeight) {
         this.aClass = aClass;
 
@@ -78,12 +81,18 @@ public enum  NPCType {
 
         this.holoHeight = holoHeight;
         this.id = id;
+    }
 
+    public void load() {
         if (aClass.aClass != null) {
             try {
                 this.constructor = (id < 0 ? ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.aClass.getConstructor(ClazzCache.ENTITY_LIVING_CLASS.aClass) : ClazzCache.PACKET_PLAY_OUT_ENTITY_SPAWN_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass , int.class));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException("Couldn't create constructor for entity " + name, e);
+
+                if (Utils.isVersionNewestThan(13)) {
+                    entityType = ClazzCache.ENTITY_TYPES_CLASS.aClass.getField(name()).get(null);
+                }
+            } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException("Couldn't load entity " + name, e);
             }
         }
     }

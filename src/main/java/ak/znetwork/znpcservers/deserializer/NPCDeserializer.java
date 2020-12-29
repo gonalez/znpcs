@@ -42,9 +42,8 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             // Get equipment values
             HashMap<String, String> configMap = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
 
+            // Load npc equipment
             EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
-
-            // Load equipment for npc
             configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
 
             NPC npc = new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
@@ -57,6 +56,7 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
 
             if (Utils.isVersionNewestThan(9)) npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
+
             return npc;
         } catch (Exception e) {
             throw new RuntimeException("Could not deserialize npc", e);

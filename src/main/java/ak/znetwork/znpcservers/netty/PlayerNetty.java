@@ -80,11 +80,10 @@ public class PlayerNetty {
     }
 
     public void injectNetty(final Player player) {
-           synchronized (networkManager) {
-               if (channel == null) throw new IllegalStateException("Channel is NULL!");
+        if (channel == null) throw new IllegalStateException("Channel is NULL!");
 
-               ejectNetty();
-
+        ejectNetty();
+        synchronized (networkManager) {
                channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
                    @Override
                    protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
@@ -115,7 +114,6 @@ public class PlayerNetty {
                                            if (npcAction == null) return;
 
                                            final String action = actions[1];
-
                                            if (actions.length > 2) {
                                                final int id = npc.getActions().indexOf(string);
 

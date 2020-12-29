@@ -130,13 +130,16 @@ public class ServersNPC extends JavaPlugin {
         new MetricsLite(this, pluginId);
 
         // Load reflection cache
-        for (ClazzCache clazzCache : ClazzCache.values()) {
+        Arrays.stream(ClazzCache.values()).forEach(clazzCache -> {
             try {
                 clazzCache.load();
             } catch (ClassLoadException e) {
                 e.printStackTrace();
             }
-        }
+        });
+
+        // Load entity type cache
+        Arrays.stream(NPCType.values()).forEach(NPCType::load);
 
         executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
 
@@ -186,7 +189,7 @@ public class ServersNPC extends JavaPlugin {
             } catch (Exception e) {}
         }));
 
-        Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid() == o.getUniqueId()).findFirst().ifPresent(PlayerNetty::ejectNetty));
+        Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(PlayerNetty::ejectNetty));
 
         // Save values on config (???)
         saveAllNpcs();
@@ -227,7 +230,7 @@ public class ServersNPC extends JavaPlugin {
     // End
 
     public void saveAllNpcs() {
-        if (System.currentTimeMillis() - startTimer <= (1000) * 2) return;
+        if (System.currentTimeMillis() - startTimer <= (1000) * 5) return;
 
         try (FileWriter writer = new FileWriter(data)) {
             gson.toJson(getNpcManager().getNpcs().stream().filter(NPC::isSave).collect(Collectors.toList()), writer);
