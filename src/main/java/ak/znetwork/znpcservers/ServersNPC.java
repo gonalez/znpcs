@@ -41,8 +41,10 @@ import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -55,7 +57,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ServersNPC extends JavaPlugin {
 
@@ -148,25 +149,18 @@ public class ServersNPC extends JavaPlugin {
             System.out.println("Loading npcs...");
 
             long startMs = System.currentTimeMillis();
-
-            int size = 0;
             try {
-                final FileReader fileReader = new FileReader(data);
+                String zNPCdata = Files.toString(data, Charsets.UTF_8);
 
-                final JsonReader reader = new JsonReader(new FileReader(data));
+                List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>(){}.getType());
+                this.npcManager.getNpcs().addAll(npcList);
 
-                // Empty check
-                if (fileReader.read() == -1 ||!reader.hasNext()) return;
-
-                reader.beginArray();
-                while (reader.hasNext()) {
-                    this.npcManager.getNpcs().add(gson.fromJson(reader, NPC.class));
-
-                    size++;
-                }
-                System.out.println("(Loaded " + size + " npcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                System.out.println("(Loaded " + npcList.size() + " znpcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
             } catch (IOException e) {
-                //throw new RuntimeException("An exception occurred while trying to load npcs" , e);
+                getServer().getPluginManager().disablePlugin(this);
+
+                getLogger().log(Level.WARNING, "Can't load npc", e);
+                return;
             }
 
             new NPCSaveTask(this, (Integer.parseInt(config.getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS))));
