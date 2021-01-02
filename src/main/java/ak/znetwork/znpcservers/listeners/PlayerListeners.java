@@ -28,7 +28,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerListeners implements Listener {
 
-    protected final ServersNPC serversNPC;
+    private final ServersNPC serversNPC;
 
     public PlayerListeners(final ServersNPC serversNPC)  {
         this.serversNPC = serversNPC;

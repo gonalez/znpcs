@@ -28,8 +28,8 @@ package ak.znetwork.znpcservers.npc.enums;
 public enum NPCItemSlot  {
     HAND(0 , 0) , HELMET(4 , 5) , CHESTPLATE(3 , 4) , LEGGINGS(2 , 3) , BOOTS(1 ,  2);
 
-    int id;
-    int newerv;
+    private final int id;
+    private final int newerv;
 
     NPCItemSlot(int id , int newerv) {
         this.id = id;
@@ -46,7 +46,7 @@ public enum NPCItemSlot  {
 
     public static NPCItemSlot fromString(String text) {
         for (NPCItemSlot b : NPCItemSlot.values()) {
-            if (b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
+            if (b.name().equalsIgnoreCase(text)) {
                 return b;
             }
         }

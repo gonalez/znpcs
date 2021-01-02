@@ -60,10 +60,10 @@ import java.util.stream.Collectors;
 
 public class ServersNPC extends JavaPlugin {
 
-    protected CommandsManager commandsManager;
-    protected NPCManager npcManager;
+    private CommandsManager commandsManager;
+    private NPCManager npcManager;
 
-    protected LinkedHashSet<PlayerNetty> playerNetties;
+    private LinkedHashSet<PlayerNetty> playerNetties;
 
     private static boolean placeHolderSupport;
 

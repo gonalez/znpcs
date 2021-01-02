@@ -48,13 +48,13 @@ public class Hologram {
     public Location location;
     public String[] lines;
 
-    protected List<Object> entityArmorStands;
+    private final List<Object> entityArmorStands;
 
-    protected HashSet<Player> viewers;
+    private final HashSet<Player> viewers;
 
-    protected Object nmsWorld;
+    private final Object nmsWorld;
 
-    protected Method IChatBaseComponentMethod;
+    private final Method IChatBaseComponentMethod;
 
     public Hologram(final Location location , final String... lines) throws Exception {
         this.viewers = new HashSet<>();

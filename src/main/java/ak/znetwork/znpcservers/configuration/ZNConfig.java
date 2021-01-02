@@ -47,13 +47,13 @@ import java.util.stream.Collectors;
  */
 public class ZNConfig implements ZNConfigInterface {
 
-  protected Path path;
+  private final Path path;
 
-  protected ZNConfigType znConfigType;
+  private final ZNConfigType znConfigType;
 
-  private EnumMap<ZNConfigValue, Object> configValueStringEnumMap;
+  private final EnumMap<ZNConfigValue, Object> configValueStringEnumMap;
 
-  protected final Yaml yaml = getYaml();
+  private final Yaml yaml = getYaml();
 
   public ZNConfig(final ZNConfigType znConfigType, final Path path) throws IOException {
     this.znConfigType = znConfigType;

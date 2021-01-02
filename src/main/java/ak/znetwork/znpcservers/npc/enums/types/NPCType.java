@@ -99,7 +99,7 @@ public enum  NPCType {
 
     public static NPCType fromString(String text) {
         for (NPCType b : NPCType.values()) {
-            if (text != null && b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
+            if (text != null && b.name().equalsIgnoreCase(text)) {
                 return b;
             }
         }

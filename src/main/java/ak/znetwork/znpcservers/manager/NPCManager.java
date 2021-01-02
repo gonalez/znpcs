@@ -25,7 +25,7 @@ import java.util.LinkedHashSet;
 
 public class NPCManager {
 
-    protected LinkedHashSet<NPC> npcs;
+    private final LinkedHashSet<NPC> npcs;
 
     public NPCManager() {
         this.npcs = new LinkedHashSet<>();

@@ -37,9 +37,9 @@ import java.util.Optional;
 
 public class CommandsManager implements CommandExecutor {
 
-    protected final ServersNPC serversNPC;
+    private final ServersNPC serversNPC;
 
-    protected LinkedHashSet<ZNCommand> znCommands;
+    private LinkedHashSet<ZNCommand> znCommands;
 
     public CommandsManager(final String cmd , final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;

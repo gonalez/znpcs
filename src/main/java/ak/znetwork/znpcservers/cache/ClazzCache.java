@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public enum ClazzCache {
 
@@ -89,6 +90,10 @@ public enum ClazzCache {
     ENUM_CHAT_FORMAT_CLASS(ClazzType.CLASS,  9, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumChatFormat", null),
 
     PACKET_PLAY_OUT_PLAYER_INFO(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo", null),
+
+    PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD(ClazzType.CONSTRUCTOR,8, 8,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.getAClass(), int.class, int.class, ClazzCache.ITEM_STACK_CLASS.getAClass()),
+    PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD(ClazzType.CONSTRUCTOR,9, 15,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.getAClass(), int.class, ClazzCache.ENUM_ITEM_SLOT_CLASS.getAClass(), ClazzCache.ITEM_STACK_CLASS.getAClass()),
+    PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW(ClazzType.CONSTRUCTOR,16, 20,"", ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.getAClass(), int.class, List.class),
 
     PLAYER_CONNECTION_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PlayerConnection", null),
     NETWORK_MANAGER_CLASS(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".NetworkManager", null),
@@ -176,13 +181,13 @@ public enum ClazzCache {
 
     public final String name;
 
-    public Object object;
-
-    public int minVersion,maxVersion;
-
-    public Class<?> aClass;
+    public final int minVersion,maxVersion;
 
     public final Class<?>[] classes;
+
+    public Object object;
+
+    public Class<?> aClass;
 
     public Constructor<?> constructor;
     public Method method;
@@ -212,11 +217,7 @@ public enum ClazzCache {
         if (Utils.getVersion() < this.minVersion  || Utils.getVersion() > this.maxVersion) return;
 
         if (this.clazzType == ClazzType.CLASS) { // Class
-            try {
-                this.aClass = Class.forName(name);
-            } catch (ClassNotFoundException e) {
-                throw new ClassLoadException("Class could not be loaded: " + name(), e.getCause());
-            }
+            this.aClass = getAClass();
         } else if (this.clazzType == ClazzType.METHOD) { // Method
             try {
                 this.method  = ((Class<?>) this.object).getMethod(this.name , this.classes);

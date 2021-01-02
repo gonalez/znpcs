@@ -27,7 +27,7 @@ import java.net.URLEncoder;
 
 public class FileHttp {
 
-	public String value;
+	private String value;
 
 	public FileHttp(final String url, final String skin) throws IOException {
 		final URL url1 = new URL(url);

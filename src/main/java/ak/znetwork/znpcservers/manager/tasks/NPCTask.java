@@ -28,7 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class NPCTask extends BukkitRunnable {
 
-    protected final ServersNPC serversNPC;
+    private final ServersNPC serversNPC;
 
     public NPCTask(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;

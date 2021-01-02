@@ -22,7 +22,6 @@ package ak.znetwork.znpcservers.netty;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
-import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
@@ -31,10 +30,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 /**
  * Netty API
@@ -47,18 +46,21 @@ import java.util.*;
  */
 public class PlayerNetty {
 
-    protected final Object networkManager;
-    protected Channel channel;
+    private final Object networkManager;
 
-    protected UUID uuid;
+    private final Channel channel;
 
-    protected Field idField;
+    private final UUID uuid;
 
-    protected final ServersNPC serversNPC;
+    private final Field idField;
 
-    protected long last_interact = 0;
+    private final ServersNPC serversNPC;
 
-    protected HashMap<Integer, HashMap<Long, Integer>> actionCooldown;
+    private long last_interact = 0;
+
+    private final HashMap<Integer, HashMap<Long, Integer>> actionCooldown;
+
+    private final Executor executor;
 
     public PlayerNetty(final ServersNPC serversNPC , final Player player) throws Exception {
         this.serversNPC = serversNPC;
@@ -73,6 +75,8 @@ public class PlayerNetty {
         channel = (Channel) ClazzCache.CHANNEL_FIELD.field.get(networkManager);
 
         idField = ClazzCache.ID_FIELD.field;
+
+        executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r , 2);
     }
 
     public UUID getUuid() {
@@ -84,68 +88,64 @@ public class PlayerNetty {
 
         ejectNetty();
         synchronized (networkManager) {
-               channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
-                   @Override
-                   protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) {
-                       out.add(packet);
+            channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
+                @Override
+                protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) throws Exception {
+                    out.add(packet);
 
-                       if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
-                           try {
-                               Object className = ReflectionUtils.getValue(packet, "action");
+                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
+                        Object actionName = ReflectionUtils.getValue(packet, "action");
 
-                               if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2) || !className.toString().equalsIgnoreCase("INTERACT")) return;
+                        if (!actionName.toString().equalsIgnoreCase("INTERACT")) return;
+                        if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2)) return;
 
-                               int entityId2 = (int) idField.get(packet);
+                        int entityId = (int) idField.get(packet);
+                        serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
+                            if (npc.getActions() == null || npc.getActions().isEmpty()) return;
 
-                               final NPC npc = serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId2).findFirst().orElse(null);
+                            last_interact = System.currentTimeMillis();
 
-                               if (npc == null || npc.getActions() == null || npc.getActions().isEmpty()) return;
+                            executor.execute(() -> {
+                                for (String string : npc.getActions()) {
+                                    String[] actions = string.split(":");
 
-                               last_interact = System.currentTimeMillis();
+                                    NPCAction npcAction = NPCAction.fromString(actions[0]);
+                                    if (npcAction == null) return;
 
-                               new BukkitRunnable() {
-                                   @Override
-                                   public void run() {
-                                       for (String string : npc.getActions()) {
-                                           final String[] actions = string.split(":");
+                                    if (actions.length > 1) {
+                                        int id = npc.getActions().indexOf(string);
 
-                                           final NPCAction npcAction = NPCAction.fromString(actions[0]);
+                                        // Check for cooldown
+                                        if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0])) return;
 
-                                           if (npcAction == null) return;
+                                        if (actions.length > 2) {
+                                            actionCooldown.put(id, new HashMap<Long, Integer>() {{
+                                                put(System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
+                                            }});
+                                        }
 
-                                           final String action = actions[1];
-                                           if (actions.length > 2) {
-                                               final int id = npc.getActions().indexOf(string);
+                                        String action = actions[1];
+                                        switch (npcAction) {
+                                            case CMD:
+                                                player.performCommand((ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                break;
+                                            case CONSOLE:
+                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                break;
+                                            case SERVER:
+                                                serversNPC.sendPlayerToServer(player, action);
+                                                break;
+                                            default:break;
+                                        }
+                                    }
+                                }
+                            });
+                        });
 
-                                               // Check for action cooldown
-                                               if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0])) return;
-
-                                               actionCooldown.put(id, new HashMap<Long, Integer>() {{
-                                                   put(System.currentTimeMillis(), Integer.parseInt(actions[2]));
-                                               }});
-                                           }
-
-                                           switch (npcAction) {
-                                               case CMD:
-                                                   player.performCommand((ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
-                                                   break;
-                                               case CONSOLE:
-                                                   Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
-                                                   break;
-                                               case SERVER:
-                                                   serversNPC.sendPlayerToServer(player, action);
-                                                   break;
-                                           }
-                                       }
-                                   }
-                               }.runTaskLater(serversNPC, 2L);
-                           } catch (Exception e) {
-                               // Ignore...
-                           }
-                       }
-                   }
-               });
-           }
+                    }
+                }
+            });
+        }
     }
 
     public void ejectNetty() {

@@ -28,7 +28,6 @@ import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
-import com.google.common.collect.Lists;
 import com.google.gson.annotations.Expose;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -47,64 +46,65 @@ public class NPC {
 
     // Exclude
     @Expose(serialize = false)
-    protected Object entityPlayerArray;
-    protected Object enumPlayerInfoAction;
-    protected Object glowColor;
-    protected Object dataWatcherRegistryEnum;
-    protected Object nmsWorld;
-    protected Object nmsServer;
-    protected Object packetPlayOutPlayerInfoConstructor;
-    protected Object znEntity;
-    protected Object packetPlayOutScoreboardTeam;
+    private Object entityPlayerArray;
+    private final Object enumPlayerInfoAction;
+    private Object glowColor;
+    private Object dataWatcherRegistryEnum;
+    private final Object nmsWorld;
+    private final Object nmsServer;
+    private Object packetPlayOutPlayerInfoConstructor;
+    private Object znEntity;
+    private Object packetPlayOutScoreboardTeam;
 
     @Expose(serialize = false)
-    protected GameProfile gameProfile;
-    @Expose(serialize = false)
-    protected Hologram hologram;
+    private final GameProfile gameProfile;
 
     @Expose(serialize = false)
-    protected HashSet<Player> viewers;
+    private final Hologram hologram;
 
     @Expose(serialize = false)
-    protected int entity_id;
+    private final HashSet<Player> viewers;
+
+    @Expose(serialize = false)
+    private int entity_id;
 
     // Serialize
     @Expose
-    protected int id;
+    private final int id;
     @Expose
-    protected boolean hasGlow = false;
+    private boolean hasGlow = false;
     @Expose
-    protected boolean hasToggleName = false;
+    private boolean hasToggleName = false;
     @Expose
-    protected boolean hasToggleHolo = true;
+    private boolean hasToggleHolo = true;
     @Expose
-    protected boolean hasLookAt = false;
+    private boolean hasLookAt = false;
     @Expose
-    protected boolean hasMirror = false;
+    private boolean hasMirror = false;
 
     @Expose
-    protected Location location;
+    private Location location;
 
     @Expose
-    protected List<String> actions;
+    private List<String> actions;
 
     @Expose
-    protected EnumMap<NPCItemSlot, Material> npcEquipments;
+    private final EnumMap<NPCItemSlot, Material> npcEquipments;
 
     @Expose
-    protected String skin,signature;
+    private String skin,signature;
 
     @Expose
-    protected String glowName = "WHITE";
+    private String glowName = "WHITE";
 
     @Expose
-    protected final boolean save;
+    private final boolean save;
 
     @Expose
-    protected NPCType npcType;
+    private NPCType npcType;
 
     @Expose
-    protected String lines;
+    private String lines;
 
     /**
      * Init of the necessary functionalities for the npc
@@ -352,33 +352,31 @@ public class NPC {
     public void equip(final Player player , NPCItemSlot slot , Material material) throws Exception {
         Object stack = ClazzCache.AS_NMS_COPY_METHOD.method.invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.aClass, new ItemStack(material));
 
-        Constructor<?> getPacketPlayOutNamedEntitySpawnConstructor;
+        Object packet;
+        if (!Utils.isVersionNewestThan(9)) {
+            Constructor<?> equipConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.constructor;
 
-        Object v16b = null;
-
-        if (!Utils.isVersionNewestThan(9)) getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , int.class , ClazzCache.ITEM_STACK_CLASS.aClass);
-        else {
+            packet = equipConstructor.newInstance(entity_id , slot.getId(), stack);
+        } else {
             if (Utils.isVersionNewestThan(16)) {
-                getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , List.class);
+                Constructor<?> equipConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.constructor;
 
-                v16b = ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.newInstance() , "b");
+                List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.newInstance() , "b");
+                pairs.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()]  , stack));
+
+                packet = equipConstructor.newInstance(entity_id , pairs);
+            } else {
+                Constructor<?> equipConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.constructor;
+
+                packet = equipConstructor.newInstance(entity_id , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()], stack);
             }
-            else getPacketPlayOutNamedEntitySpawnConstructor = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.aClass.getConstructor(int.class , ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass , ClazzCache.ITEM_STACK_CLASS.aClass);
         }
         npcEquipments.put(slot , material);
 
-        Object packete;
-        if (Utils.isVersionNewestThan(16)) {
-            List<Pair<?, ?>> asd = (List<Pair<?, ?>>) v16b;
-            asd.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()]  , stack));
-
-            packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , asd);
-        } else  {
-            packete = getPacketPlayOutNamedEntitySpawnConstructor.newInstance(entity_id , (Utils.isVersionNewestThan(9) ? ClazzCache.ENUM_ITEM_SLOT_CLASS.aClass.getEnumConstants()[slot.getNewerv()] : slot.getId()), stack);
+        if (player != null) ReflectionUtils.sendPacket(player, packet);
+        else {
+            viewers.forEach(player1 -> ReflectionUtils.sendPacket(player1, packet));
         }
-
-        if (player == null) getViewers().forEach(player1 -> ReflectionUtils.sendPacket(player1, packete));
-        else ReflectionUtils.sendPacket(player, packete);
     }
 
     /**

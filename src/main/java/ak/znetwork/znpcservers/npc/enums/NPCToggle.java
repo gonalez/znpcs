@@ -26,7 +26,7 @@ public enum  NPCToggle {
 
     public static NPCToggle fromString(String text) {
         for (NPCToggle b : NPCToggle.values()) {
-            if (text != null && b.name().toUpperCase().equalsIgnoreCase(text.toUpperCase())) {
+            if (text != null && b.name().equalsIgnoreCase(text)) {
                 return b;
             }
         }

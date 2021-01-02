@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutionException;
 
 public class DefaultCommand {
 
-    protected final ServersNPC serversNPC;
+    private final ServersNPC serversNPC;
 
     public DefaultCommand(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
