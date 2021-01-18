@@ -23,7 +23,6 @@ package ak.znetwork.znpcservers.commands.invoker;
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.impl.ZNCommandAbstract;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.InvocationTargetException;

@@ -85,6 +85,8 @@ public enum ClazzCache {
 
     PACKET_PLAY_OUT_SCOREBOARD_TEAM(ClazzType.CLASS,8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutScoreboardTeam", null),
 
+    ENUM_COLOR_CLASS(ClazzType.CLASS,8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumColor", null),
+
     ENUM_ITEM_SLOT_CLASS(ClazzType.CLASS,9, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumItemSlot", null),
     ENUM_PLAYER_INFO_ACTION_CLASS(ClazzType.CLASS, 8, 20,"net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".PacketPlayOutPlayerInfo$EnumPlayerInfoAction", null),
     ENUM_CHAT_FORMAT_CLASS(ClazzType.CLASS,  9, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".EnumChatFormat", null),
@@ -220,7 +222,10 @@ public enum ClazzCache {
             this.aClass = getAClass();
         } else if (this.clazzType == ClazzType.METHOD) { // Method
             try {
-                this.method  = ((Class<?>) this.object).getMethod(this.name , this.classes);
+                // Skip
+                if (name().startsWith("ICHAT")) throw new NoSuchMethodException();
+
+                this.method = ((Class<?>) this.object).getMethod(this.name , this.classes);
             } catch (NoSuchMethodException e) {
                 try {
                     this.method = ((Class<?>) this.object).getDeclaredClasses()[0].getMethod(this.name, this.classes);

@@ -44,30 +44,6 @@ import java.util.logging.Level;
 
 public class NPC {
 
-    // Exclude
-    @Expose(serialize = false)
-    private Object entityPlayerArray;
-    private final Object enumPlayerInfoAction;
-    private Object glowColor;
-    private Object dataWatcherRegistryEnum;
-    private final Object nmsWorld;
-    private final Object nmsServer;
-    private Object packetPlayOutPlayerInfoConstructor;
-    private Object znEntity;
-    private Object packetPlayOutScoreboardTeam;
-
-    @Expose(serialize = false)
-    private final GameProfile gameProfile;
-
-    @Expose(serialize = false)
-    private final Hologram hologram;
-
-    @Expose(serialize = false)
-    private final HashSet<Player> viewers;
-
-    @Expose(serialize = false)
-    private int entity_id;
-
     // Serialize
     @Expose
     private final int id;
@@ -106,6 +82,33 @@ public class NPC {
     @Expose
     private String lines;
 
+    @Expose
+    public Map<String, List> customizationMap;
+
+    /*
+    Serialize = false
+     */
+    private String worldName;
+
+    private Object entityPlayerArray;
+    private Object glowColor;
+    private Object dataWatcherRegistryEnum;
+    private Object packetPlayOutPlayerInfoConstructor;
+    private Object znEntity;
+    private Object packetPlayOutScoreboardTeam;
+
+    private final Object nmsWorld;
+    private final Object nmsServer;
+    private final Object enumPlayerInfoAction;
+
+    private final GameProfile gameProfile;
+
+    private final Hologram hologram;
+
+    private final HashSet<Player> viewers;
+
+    private int entity_id;
+
     /**
      * Init of the necessary functionalities for the npc
      *
@@ -131,6 +134,8 @@ public class NPC {
         this.location = (location);
 
         this.actions = new ArrayList<>();
+
+        this.customizationMap = new HashMap<>();
 
         nmsServer = ClazzCache.GET_SERVER_METHOD.method.invoke(Bukkit.getServer());
         nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
@@ -397,7 +402,6 @@ public class NPC {
         ReflectionUtils.setValue(gameProfileObj , "properties", gameProfile.getProperties());
 
         final Iterator<Player> it = this.getViewers().iterator();
-
         while (it.hasNext())  {
             final Player player = it.next();
 
@@ -419,9 +423,9 @@ public class NPC {
     }
 
     public void changeType(final NPCType npcType) throws Exception {
-        Constructor<?> constructor = (npcType != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? npcType.aClass.aClass.getConstructor(npcType.entityType.getClass(), ClazzCache.WORLD_CLASS.aClass) : npcType.aClass.aClass.getConstructor(ClazzCache.WORLD_CLASS.aClass)) : null);
+        Constructor<?> constructor = (npcType != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? npcType.getaClass().aClass.getConstructor(npcType.getEntityType().getClass(), ClazzCache.WORLD_CLASS.aClass) : npcType.getaClass().aClass.getConstructor(ClazzCache.WORLD_CLASS.aClass)) : null);
 
-        znEntity = (npcType == NPCType.PLAYER ? ClazzCache.PLAYER_CONSTRUCTOR.constructor.newInstance(nmsServer , nmsWorld , gameProfile , ClazzCache.PLAYER_INTERACT_MANAGER_CONSTRUCTOR.constructor.newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? constructor.newInstance(npcType.entityType, nmsWorld) : constructor.newInstance(nmsWorld)));
+        znEntity = (npcType == NPCType.PLAYER ? ClazzCache.PLAYER_CONSTRUCTOR.constructor.newInstance(nmsServer , nmsWorld , gameProfile , ClazzCache.PLAYER_INTERACT_MANAGER_CONSTRUCTOR.constructor.newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? constructor.newInstance(npcType.getEntityType(), nmsWorld) : constructor.newInstance(nmsWorld)));
 
         if (npcType == NPCType.PLAYER) {
             entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.aClass, 1);
@@ -473,7 +477,7 @@ public class NPC {
 
         if (npcType == NPCType.PLAYER) ReflectionUtils.sendPacket(player ,packetPlayOutPlayerInfoConstructor);
 
-        ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.constructor.newInstance(znEntity) : ((npcType.id < 0 ? npcType.constructor.newInstance(znEntity) : npcType.constructor.newInstance(znEntity, npcType.id)))));
+        ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.constructor.newInstance(znEntity) : ((npcType.getId() < 0 ? npcType.getConstructor().newInstance(znEntity) : npcType.getConstructor().newInstance(znEntity, npcType.getId())))));
 
         if (npcType == NPCType.PLAYER) {
             Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(znEntity);
@@ -494,6 +498,8 @@ public class NPC {
         lookAt(player , location.clone() , true);
 
         for (final Map.Entry<NPCItemSlot, Material> test : npcEquipments.entrySet()) equip(player , test.getKey() , test.getValue());
+
+        ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(this.getEntity_id(), ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(this.getZnEntity()), true));
 
         if (npcType == NPCType.PLAYER) {
             ServersNPC.getExecutor().execute(() -> {
@@ -621,6 +627,17 @@ public class NPC {
         viewers.forEach(player -> ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam));
     }
 
+    public void customize(final String name, final List values) {
+        this.customizationMap.put(name, values);
+
+        // Update entity for current viewers
+        viewers.forEach(player -> {
+            try {
+                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(this.getEntity_id(), ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(this.getZnEntity()), true));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException ignored) {}
+        });
+    }
+
     /**
      * Obtain the id of the npc
      *
@@ -656,6 +673,13 @@ public class NPC {
     }
 
     /**
+     * @return entity
+     */
+    public Object getZnEntity() {
+        return znEntity;
+    }
+
+    /**
      * Get hologram for npc
      *
      * @return holo
@@ -683,7 +707,7 @@ public class NPC {
 
         ClazzCache.SET_LOCATION_METHOD.method.invoke(znEntity , this.location.getX(),  this.location.getY(), this.location.getZ(), location.getYaw() , location.getPitch());
 
-        if (hologram != null) hologram.setLocation(this.location.clone().subtract(0.5, 0 , 0.5), this.npcType.holoHeight);
+        if (hologram != null) hologram.setLocation(this.location.clone().subtract(0.5, 0 , 0.5), this.npcType.getHoloHeight());
 
         updateLoc();
     }
@@ -697,7 +721,34 @@ public class NPC {
         return viewers;
     }
 
+    /**
+     * Update customization for npc
+     *
+     * @param customizationMap
+     */
+    public void setCustomizationMap(HashMap<String, List> customizationMap) {
+        this.customizationMap = customizationMap;
+        for (Map.Entry<String, List> stringEntry : customizationMap.entrySet()) {
+            if (this.npcType.getCustomizationMethods().containsKey(stringEntry.getKey())) {
+                try {
+                    npcType.invokeMethod(stringEntry.getKey(), getZnEntity(), NPCType.arrayToPrimitive( (String[]) stringEntry.getValue().stream().map(Objects::toString).toArray(String[]::new), npcType.getCustomizationMethods().get(stringEntry.getKey())));
+                } catch (Exception e) {
+                    // Remove customization from map
+                    customizationMap.remove(stringEntry.getKey());
+                }
+            }
+        }
+    }
+
     public boolean isHasLookAt() {
         return hasLookAt;
+    }
+
+    public String getWorldName() {
+        return worldName;
+    }
+
+    public void setWorldName(String worldName) {
+        this.worldName = worldName;
     }
 }

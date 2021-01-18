@@ -24,10 +24,9 @@ import com.google.gson.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import java.io.Serializable;
 import java.lang.reflect.Type;
 
-public class LocationSerialize  implements JsonSerializer<Location>, JsonDeserializer<Location> {
+public class LocationSerialize implements JsonSerializer<Location>, JsonDeserializer<Location> {
 
     @Override
     public JsonElement serialize(Location src, Type typeOfSrc, JsonSerializationContext context) {

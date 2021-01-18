@@ -73,8 +73,7 @@ public class ServersNPC extends JavaPlugin {
 
     private File data;
 
-    public ZNConfig config;
-    public ZNConfig messages;
+    private ZNConfig config,messages;
 
     public static final int MILLI_SECOND = 20;
 
@@ -142,7 +141,7 @@ public class ServersNPC extends JavaPlugin {
         // Load entity type cache
         Arrays.stream(NPCType.values()).forEach(NPCType::load);
 
-        executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (3));
+        executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (2));
 
         // Load all npc from data
         executor.execute(() -> {
@@ -153,9 +152,11 @@ public class ServersNPC extends JavaPlugin {
                 String zNPCdata = Files.toString(data, Charsets.UTF_8);
 
                 List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>(){}.getType());
-                this.npcManager.getNpcs().addAll(npcList);
+                if (npcList != null) {
+                    this.npcManager.getNpcs().addAll(npcList);
 
-                System.out.println("(Loaded " + npcList.size() + " znpcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                    System.out.println("(Loaded " + npcList.size() + " znpcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                }
             } catch (IOException e) {
                 getServer().getPluginManager().disablePlugin(this);
 
@@ -257,7 +258,7 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean createNPC(int id , final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
-        final SkinFetch skinFetch = JSONUtils.getSkin(skin);
+        final SkinFetch skinFetch = JSONUtils.getDefaultSkin(skin);
 
         boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
@@ -285,7 +286,6 @@ public class ServersNPC extends JavaPlugin {
         getNpcManager().getNpcs().remove(npc);
 
         final Iterator<Player> it = npc.getViewers().iterator();
-
         while (it.hasNext())  {
             final Player player = it.next();
 
@@ -312,7 +312,6 @@ public class ServersNPC extends JavaPlugin {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         p.sendPluginMessage(this, "BungeeCord", b.toByteArray());
     }
 }

@@ -24,8 +24,8 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
-import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.Utils;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -47,6 +47,11 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
 
             NPC npc = new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
+
+            // Fix NPC disappearing after world load/unload update
+            npc.setWorldName(jsonObject.get("location").getAsJsonObject().get("world").getAsString());
+            //
+
             npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
 
             npc.setHasLookAt(jsonObject.get("hasLookAt").getAsBoolean());
@@ -56,6 +61,11 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
 
             if (Utils.isVersionNewestThan(9)) npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
+
+            // Customization
+            if (jsonObject.get("customizationMap") != null) {
+                npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>(){}.getType())); // Load actions..
+            }
 
             return npc;
         } catch (Exception e) {

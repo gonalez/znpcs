@@ -38,10 +38,12 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class DefaultCommand {
 
@@ -157,15 +159,12 @@ public class DefaultCommand {
 
         final String skin = args.get("skin").trim();
 
-        Optional<SkinFetch> skinFetch = Optional.empty();
+        SkinFetch skinFetch = null;
         try {
             URL url = new URL(skin);
-
             try {
-                skinFetch = Optional.of(JSONUtils.getByURL(skin));
+                skinFetch = JSONUtils.getByURL(skin).get();
             } catch (Exception exception) {
-                exception.printStackTrace();
-
                 throw new CommandExecuteException("Could not connect to url", exception);
             }
         } catch (MalformedURLException e) {
@@ -176,18 +175,18 @@ public class DefaultCommand {
             }
 
             try {
-                skinFetch = Optional.of(JSONUtils.getSkin(skin));
-            } catch (ExecutionException | InterruptedException executionException) {
-                throw new UnsupportedOperationException("An error occurred while changing skin for npc " + foundNPC.get().getId());
+                skinFetch = JSONUtils.getDefaultSkin(skin);
+            } catch (Exception exception) {
+                throw new RuntimeException("An error occurred while changing skin for npc " + foundNPC.get().getId(), exception);
             }
         } finally {
-            if (skinFetch.isPresent()) { // All success
+            if (skinFetch != null) { // All success
                 try {
-                    foundNPC.get().updateSkin(skinFetch.get());
+                    foundNPC.get().updateSkin(skinFetch);
 
                     serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
-                } catch (Exception exception) {
-                    throw new CommandExecuteException("An error occurred while changing skin for npc " + foundNPC.get().getId(), exception);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -329,11 +328,11 @@ public class DefaultCommand {
             sender.sendMessage(ChatColor.RED + "NPC type not found");
             sender.sendMessage(ChatColor.GOLD + "Valid Types:");
 
-            for (NPCType npcTypes : NPCType.values()) sender.sendMessage(ChatColor.RED + npcTypes.name);
+            for (NPCType npcTypes : NPCType.values()) sender.sendMessage(ChatColor.RED + npcTypes.name());
             return;
         }
 
-        if (npcType.constructor == null) {
+        if (npcType.getConstructor() == null) {
             sender.sendMessage(ChatColor.RED + "NPC type not available for your current version.");
             return;
         }
@@ -455,6 +454,60 @@ public class DefaultCommand {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
             throw new CommandExecuteException("An error occurred while changing toggle command", exception);
+        }
+    }
+
+    @CMDInfo(aliases = {"-id", "-customize"}, required = "customize", permission = "znpcs.cmd.customize")
+    public void customize(final CommandSender sender, Map<String, String> args) throws Exception {
+        if (args.size() < 2) {
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
+            return;
+        }
+
+        Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
+            return;
+        }
+
+        NPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+
+        if (foundNPC == null) {
+            serversNPC.messages.sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
+            return;
+        }
+
+        String[] value = args.get("customize").trim().split(" ");
+
+        NPCType npcType = foundNPC.getNpcType();
+
+        String methodName = value[0];
+        if (npcType.getCustomizationMethods().containsKey(methodName)) {
+            String[] split = Arrays.copyOfRange(value, 1, value.length);
+
+            Method method = npcType.getCustomizationMethods().get(methodName);
+
+            if ((value.length) - 1 < method.getParameterTypes().length) {
+                sender.sendMessage(ChatColor.RED + "Too few arguments");
+                return;
+            }
+
+            try {
+                Object[] objects = NPCType.arrayToPrimitive(split, method);
+
+                npcType.invokeMethod(methodName, foundNPC.getZnEntity(), objects);
+
+                foundNPC.customize(methodName, Arrays.asList(objects));
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
+                throw new CommandExecuteException("An error occurred while customizing npc", exception);
+            }
+        } else {
+            sender.sendMessage(ChatColor.RED + "Method not found");
+            sender.sendMessage(ChatColor.GOLD + "Valid Methods:");
+
+            for (Method method : npcType.getCustomizationMethods().values()) sender.sendMessage(ChatColor.RED + method.getName() + " " + Arrays.stream(method.getParameterTypes()).map(Class::getName).collect(Collectors.joining(" ")));
+            return;
         }
     }
 }

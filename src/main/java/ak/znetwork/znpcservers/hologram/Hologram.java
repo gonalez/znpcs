@@ -30,7 +30,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -82,7 +81,7 @@ public class Hologram {
         entityArmorStands.forEach(entityArmorStand -> {
             try {
                 Object entityPlayerPacketSpawn = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.constructor.newInstance(entityArmorStand);
-                ReflectionUtils.sendPacket(player ,entityPlayerPacketSpawn);
+                ReflectionUtils.sendPacket(player , entityPlayerPacketSpawn);
             } catch (Exception e) {
                 throw new RuntimeException("An exception occurred while trying to create hologram", e);
             }
