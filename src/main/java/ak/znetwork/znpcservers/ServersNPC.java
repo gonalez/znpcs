@@ -152,8 +152,7 @@ public class ServersNPC extends JavaPlugin {
             try {
                 String zNPCdata = Files.toString(data, Charsets.UTF_8);
 
-                List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>() {
-                }.getType());
+                List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>(){}.getType());
                 if (npcList != null) {
                     this.npcManager.getNpcs().addAll(npcList);
 
@@ -180,12 +179,7 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
-            try {
-                npc.delete(player, false);
-            } catch (Exception e) {
-            }
-        }));
+        removeAllViewers();
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(PlayerNetty::ejectNetty));
 
@@ -226,6 +220,23 @@ public class ServersNPC extends JavaPlugin {
         return replaceSymbol;
     }
     // End
+
+    public void removeAllViewers() {
+        for (NPC npc : getNpcManager().getNpcs()) {
+            final Iterator<Player> it = npc.getViewers().iterator();
+            while (it.hasNext()) {
+                final Player player = it.next();
+
+                try {
+                    npc.delete(player, false);
+                } catch (Exception ignored) {
+                    getLogger().log(Level.WARNING, String.format("Cannot remove npc for player %s", player.getName()));
+                }
+
+                it.remove();
+            }
+        }
+    }
 
     public void saveAllNpcs() {
         if (System.currentTimeMillis() - startTimer <= (1000) * 5) return;
@@ -315,6 +326,7 @@ public class ServersNPC extends JavaPlugin {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         p.sendPluginMessage(this, "BungeeCord", b.toByteArray());
     }
 }
