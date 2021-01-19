@@ -22,5 +22,5 @@ package ak.znetwork.znpcservers.configuration.enums.type;
 
 public enum ZNConfigType {
 
-    CONFIG,MESSAGES;
+    CONFIG, MESSAGES;
 }

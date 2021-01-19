@@ -22,7 +22,7 @@ package ak.znetwork.znpcservers.npc.enums;
 
 public enum NPCAction {
 
-    CMD,CONSOLE,SERVER;
+    CMD, CONSOLE, SERVER;
 
     public static NPCAction fromString(String text) {
         for (NPCAction b : NPCAction.values()) {

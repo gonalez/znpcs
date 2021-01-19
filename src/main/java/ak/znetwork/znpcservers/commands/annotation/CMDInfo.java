@@ -27,6 +27,8 @@ import java.lang.annotation.RetentionPolicy;
 public @interface CMDInfo {
 
     String[] aliases();
+
     String required();
+
     String permission();
 }

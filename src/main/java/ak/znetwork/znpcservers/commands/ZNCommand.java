@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * COMMAND API
  *
  * @author ZNetwork
- *
+ * <p>
  * TODO
  * - *
  */
@@ -74,7 +74,7 @@ public class ZNCommand {
             if (contains(cmdInfo, input)) {
                 final StringBuilder value = new StringBuilder();
 
-                for (int text = (Math.min(args.length, i)); text < args.length;) {
+                for (int text = (Math.min(args.length, i)); text < args.length; ) {
                     if (!contains(cmdInfo, args[text++])) value.append(args[i++]).append(" ");
                     else break;
 

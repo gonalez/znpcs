@@ -37,7 +37,7 @@ public class LocationSerialize implements JsonSerializer<Location>, JsonDeserial
         jsonObject.addProperty("z", src.getBlockZ());
         jsonObject.addProperty("yaw", src.getYaw());
         jsonObject.addProperty("pitch", src.getPitch());
-        return jsonObject ;
+        return jsonObject;
     }
 
     @Override

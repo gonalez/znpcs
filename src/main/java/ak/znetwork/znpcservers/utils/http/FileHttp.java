@@ -20,40 +20,43 @@
  */
 package ak.znetwork.znpcservers.utils.http;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
 public class FileHttp {
 
-	private String value;
+    private String value;
 
-	public FileHttp(final String url, final String skin) throws IOException {
-		final URL url1 = new URL(url);
+    public FileHttp(final String url, final String skin) throws IOException {
+        final URL url1 = new URL(url);
 
-		final HttpURLConnection httpURLConnection = (HttpURLConnection) url1.openConnection();
-		httpURLConnection.setDoOutput(true);
+        final HttpURLConnection httpURLConnection = (HttpURLConnection) url1.openConnection();
+        httpURLConnection.setDoOutput(true);
 
-		httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setRequestMethod("POST");
 
-		try (final DataOutputStream outputStream = new DataOutputStream(httpURLConnection.getOutputStream())) {
-			outputStream.writeBytes("url=" + URLEncoder.encode(skin, "UTF-8"));
-		}
+        try (final DataOutputStream outputStream = new DataOutputStream(httpURLConnection.getOutputStream())) {
+            outputStream.writeBytes("url=" + URLEncoder.encode(skin, "UTF-8"));
+        }
 
-		if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-			final StringBuilder stringBuilder = new StringBuilder();
-			try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
-				String line;
-				while ((line = bufferedReader.readLine()) != null) {
-					stringBuilder.append(line);
-				}
-			}
-			value = stringBuilder.toString();
-		}
-	}
+        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            final StringBuilder stringBuilder = new StringBuilder();
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+            }
+            value = stringBuilder.toString();
+        }
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 }

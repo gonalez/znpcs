@@ -57,11 +57,11 @@ public class DefaultCommand {
     public void defaultCommand(final CommandSender sender, Map<String, String> args) {
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
         sender.sendMessage(Utils.color("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)"));
-        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> znCommand.getConsumerSet().forEach((cmdInfo, commandInvoker) -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + cmdInfo.required() + " " + String.join(" " , cmdInfo.aliases())))));
+        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> znCommand.getConsumerSet().forEach((cmdInfo, commandInvoker) -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + cmdInfo.required() + " " + String.join(" ", cmdInfo.aliases())))));
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
     }
 
-    @CMDInfo(aliases = {"-id" , "-skin" , "-name"}, required = "create", permission = "znpcs.cmd.create")
+    @CMDInfo(aliases = {"-id", "-skin", "-name"}, required = "create", permission = "znpcs.cmd.create")
     public void createNPC(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 3) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -93,7 +93,7 @@ public class DefaultCommand {
 
         try {
             // All success!
-            serversNPC.createNPC(id, Optional.of(sender), ((Player)sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+            serversNPC.createNPC(id, Optional.of(sender), ((Player) sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
         } catch (Exception e) {
             throw new CommandExecuteException("An error occurred while creating npc", e);
         }
@@ -133,10 +133,11 @@ public class DefaultCommand {
     public void list(final CommandSender sender, Map<String, String> args) {
         if (serversNPC.getNpcManager().getNpcs().isEmpty()) {
             sender.sendMessage(ChatColor.RED + "No NPC found.");
-        } else serversNPC.getNpcManager().getNpcs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
+        } else
+            serversNPC.getNpcManager().getNpcs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
     }
 
-    @CMDInfo(aliases = {"-id" , "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
+    @CMDInfo(aliases = {"-id", "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
     public void setSkin(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -192,7 +193,7 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id" , "-hand" , "-helmet" , "-chestplate" , "-leggings" , "-boots"}, required = "equip", permission = "znpcs.cmd.equip")
+    @CMDInfo(aliases = {"-id", "-hand", "-helmet", "-chestplate", "-leggings", "-boots"}, required = "equip", permission = "znpcs.cmd.equip")
     public void equip(final CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -219,7 +220,7 @@ public class DefaultCommand {
 
             if (npcItemSlot != null && material != null) {
                 try {
-                    foundNPC.get().equip(null , npcItemSlot, material);
+                    foundNPC.get().equip(null, npcItemSlot, material);
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
@@ -228,7 +229,7 @@ public class DefaultCommand {
         serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
     }
 
-    @CMDInfo(aliases = {"-id" , "-lines"}, required = "lines", permission = "znpcs.cmd.lines")
+    @CMDInfo(aliases = {"-id", "-lines"}, required = "lines", permission = "znpcs.cmd.lines")
     public void changeLines(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -290,7 +291,7 @@ public class DefaultCommand {
         try {
             if (foundNPC.get().isHasLookAt()) foundNPC.get().toggleLookAt();
 
-            final Location location = ((Player)sender).getLocation();
+            final Location location = ((Player) sender).getLocation();
 
             foundNPC.get().setLocation((location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location));
 
@@ -346,7 +347,7 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id", "-add" , "-remove" , "-cooldown" , "-list"}, required = "action", permission = "znpcs.cmd.action")
+    @CMDInfo(aliases = {"-id", "-add", "-remove", "-cooldown", "-list"}, required = "action", permission = "znpcs.cmd.action")
     public void action(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -376,7 +377,8 @@ public class DefaultCommand {
             }
 
             NPCAction npcAction = NPCAction.fromString(split[0]);
-            if (npcAction == null) throw new UnsupportedOperationException(String.format("The action type %s was not found" , split[0]));
+            if (npcAction == null)
+                throw new UnsupportedOperationException(String.format("The action type %s was not found", split[0]));
 
             foundNPC.get().getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
             serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
@@ -413,17 +415,18 @@ public class DefaultCommand {
                     int action = Integer.parseInt(split[0]);
                     int seconds = Integer.parseInt(split[1]);
 
-                    foundNPC.get().getActions().set(action, String.join(":", Arrays.copyOfRange(foundNPC.get().getActions().get(action).split(":"), 0, 2))  + ":" + seconds);
+                    foundNPC.get().getActions().set(action, String.join(":", Arrays.copyOfRange(foundNPC.get().getActions().get(action).split(":"), 0, 2)) + ":" + seconds);
                     serversNPC.messages.sendMessage(sender, ZNConfigValue.SUCCESS);
                 }
             }
         } else if (args.containsKey("list")) {
             if (foundNPC.get().getActions().isEmpty()) sender.sendMessage(ChatColor.GREEN + "No actions found.");
-            else foundNPC.get().getActions().forEach(s -> sender.sendMessage(Utils.color("&8(&a" + foundNPC.get().getActions().indexOf(s) + "&8) &6" + s)));
+            else
+                foundNPC.get().getActions().forEach(s -> sender.sendMessage(Utils.color("&8(&a" + foundNPC.get().getActions().indexOf(s) + "&8) &6" + s)));
         }
     }
 
-    @CMDInfo(aliases = {"-id", "-holo" , "-name" , "-glow", "-mirror", "-look"}, required = "toggle", permission = "znpcs.cmd.toggle")
+    @CMDInfo(aliases = {"-id", "-holo", "-name", "-glow", "-mirror", "-look"}, required = "toggle", permission = "znpcs.cmd.toggle")
     public void toggle(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             serversNPC.messages.sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
@@ -447,7 +450,8 @@ public class DefaultCommand {
         try {
             if (args.containsKey("holo")) foundNPC.get().toggleHolo();
             else if (args.containsKey("name")) foundNPC.get().toggleName(true);
-            else if (args.containsKey("glow")) foundNPC.get().toggleGlow(Optional.ofNullable((Player)sender), args.get("glow"),true);
+            else if (args.containsKey("glow"))
+                foundNPC.get().toggleGlow(Optional.ofNullable((Player) sender), args.get("glow"), true);
             else if (args.containsKey("mirror")) foundNPC.get().toggleMirror();
             else if (args.containsKey("look")) foundNPC.get().toggleLookAt();
 
@@ -506,7 +510,8 @@ public class DefaultCommand {
             sender.sendMessage(ChatColor.RED + "Method not found");
             sender.sendMessage(ChatColor.GOLD + "Valid Methods:");
 
-            for (Method method : npcType.getCustomizationMethods().values()) sender.sendMessage(ChatColor.RED + method.getName() + " " + Arrays.stream(method.getParameterTypes()).map(Class::getName).collect(Collectors.joining(" ")));
+            for (Method method : npcType.getCustomizationMethods().values())
+                sender.sendMessage(ChatColor.RED + method.getName() + " " + Arrays.stream(method.getParameterTypes()).map(Class::getName).collect(Collectors.joining(" ")));
             return;
         }
     }

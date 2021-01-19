@@ -14,7 +14,7 @@ public class NPCSaveTask extends BukkitRunnable {
 
         this.seconds = seconds;
 
-        runTaskTimer(serversNPC,100L, seconds);
+        runTaskTimer(serversNPC, 100L, seconds);
     }
 
     @Override

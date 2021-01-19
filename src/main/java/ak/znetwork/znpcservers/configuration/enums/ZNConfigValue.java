@@ -25,18 +25,18 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 public enum ZNConfigValue {
 
     // Config
-    VIEW_DISTANCE(ZNConfigType.CONFIG,32, Integer.class), // by Block distance
+    VIEW_DISTANCE(ZNConfigType.CONFIG, 32, Integer.class), // by Block distance
 
-    REPLACE_SYMBOL(ZNConfigType.CONFIG,"-", String.class), // Replace spaces symbol , default = " ' "
+    REPLACE_SYMBOL(ZNConfigType.CONFIG, "-", String.class), // Replace spaces symbol , default = " ' "
 
-    SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG,60 * (10), Integer.class), // Save NPC delay (10 minutes)
+    SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG, 60 * (10), Integer.class), // Save NPC delay (10 minutes)
 
     // Messages
-    NO_PERMISSION(ZNConfigType.MESSAGES,"&cYou do not have permission to execute this command.", String.class),
-    SUCCESS(ZNConfigType.MESSAGES,"&aDone...", String.class),
-    INCORRECT_USAGE(ZNConfigType.MESSAGES,"&cIncorrect use of command.", String.class),
-    COMMAND_NOT_FOUND(ZNConfigType.MESSAGES,"&cThis command was not found.", String.class),
-    COMMAND_ERROR(ZNConfigType.MESSAGES,"&cThere was an error executing the command, see the console for more information.", String.class),
+    NO_PERMISSION(ZNConfigType.MESSAGES, "&cYou do not have permission to execute this command.", String.class),
+    SUCCESS(ZNConfigType.MESSAGES, "&aDone...", String.class),
+    INCORRECT_USAGE(ZNConfigType.MESSAGES, "&cIncorrect use of command.", String.class),
+    COMMAND_NOT_FOUND(ZNConfigType.MESSAGES, "&cThis command was not found.", String.class),
+    COMMAND_ERROR(ZNConfigType.MESSAGES, "&cThere was an error executing the command, see the console for more information.", String.class),
 
     INVALID_NUMBER(ZNConfigType.MESSAGES, "&cHey!, The inserted number/id does not look like a number..", String.class),
     NPC_NOT_FOUND(ZNConfigType.MESSAGES, "&cHey!, I couldnt find a npc with this id.", String.class);

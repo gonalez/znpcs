@@ -31,7 +31,7 @@ public final class SkinFetch {
 
     public long finishMS = -1;
 
-    public SkinFetch(final UUID uuid , final String value , final String signature) {
+    public SkinFetch(final UUID uuid, final String value, final String signature) {
         this.uuid = uuid;
 
         this.value = value;

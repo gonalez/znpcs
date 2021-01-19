@@ -47,14 +47,14 @@ public class ReflectionUtils {
      * @param player receiver
      * @param object packet to send
      */
-    public static void sendPacket(final Player player , final Object object) {
+    public static void sendPacket(final Player player, final Object object) {
         try {
             Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
             Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
 
-            Method sendPacket = playerConnection.getClass().getMethod("sendPacket" , Class.forName("net.minecraft.server." + getBukkitPackage() + ".Packet"));
+            Method sendPacket = playerConnection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + getBukkitPackage() + ".Packet"));
 
-            sendPacket.invoke(playerConnection , object);
+            sendPacket.invoke(playerConnection, object);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -75,8 +75,8 @@ public class ReflectionUtils {
      * @return bukkit friendly version name
      */
     public static String getFriendlyBukkitPackage() {
-        String version = getBukkitPackage().replace("v" , "").replace("R" , "");
-        version = version.substring(2 , version.length() - 2);
+        String version = getBukkitPackage().replace("v", "").replace("R", "");
+        version = version.substring(2, version.length() - 2);
 
         return version;
     }

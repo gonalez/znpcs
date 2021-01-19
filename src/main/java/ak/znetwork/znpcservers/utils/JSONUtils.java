@@ -22,18 +22,17 @@ package ak.znetwork.znpcservers.utils;
 
 import ak.znetwork.znpcservers.utils.http.FileHttp;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
+import com.google.common.io.Resources;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import com.google.common.io.Resources;
-import org.json.simple.parser.ParseException;
 
 public class JSONUtils {
 
@@ -70,7 +69,7 @@ public class JSONUtils {
     public static CompletableFuture<String[]> fetchSkin(final UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                JSONObject jsonObject = (JSONObject) new JSONParser().parse(readUrl(PROFILE_SKIN_API + uuid.toString().replace("-" , "")));
+                JSONObject jsonObject = (JSONObject) new JSONParser().parse(readUrl(PROFILE_SKIN_API + uuid.toString().replace("-", "")));
 
                 final JSONObject jsonObject1 = (JSONObject) jsonObject.get("raw");
                 final JSONArray jsonArray = (JSONArray) jsonObject1.get("properties");
@@ -90,7 +89,7 @@ public class JSONUtils {
     }
 
     public static CompletableFuture<SkinFetch> getByURL(final String url) {
-        return CompletableFuture.supplyAsync(() ->  {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 FileHttp httpRequest = new FileHttp("https://api.mineskin.org/generate/url", url);
 

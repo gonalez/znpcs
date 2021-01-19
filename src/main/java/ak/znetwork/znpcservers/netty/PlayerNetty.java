@@ -32,15 +32,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 /**
  * Netty API
  *
  * @author ZNetwork
- *
- *
+ * <p>
+ * <p>
  * TODO
  * - CACHE MORE
  */
@@ -62,7 +64,7 @@ public class PlayerNetty {
 
     private final Executor executor;
 
-    public PlayerNetty(final ServersNPC serversNPC , final Player player) throws Exception {
+    public PlayerNetty(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
 
         this.uuid = player.getUniqueId();
@@ -76,7 +78,7 @@ public class PlayerNetty {
 
         idField = ClazzCache.ID_FIELD.field;
 
-        executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r , 2);
+        executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
     }
 
     public UUID getUuid() {
@@ -116,7 +118,8 @@ public class PlayerNetty {
                                         int id = npc.getActions().indexOf(string);
 
                                         // Check for cooldown
-                                        if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0])) return;
+                                        if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0]))
+                                            return;
 
                                         if (actions.length > 2) {
                                             actionCooldown.put(id, new HashMap<Long, Integer>() {{
@@ -135,7 +138,8 @@ public class PlayerNetty {
                                             case SERVER:
                                                 serversNPC.sendPlayerToServer(player, action);
                                                 break;
-                                            default:break;
+                                            default:
+                                                break;
                                         }
                                     }
                                 }

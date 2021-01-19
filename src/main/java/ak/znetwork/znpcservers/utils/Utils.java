@@ -33,11 +33,11 @@ public class Utils {
         return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage());
     }
 
-    public static String generateRandom()  {
+    public static String generateRandom() {
         return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
     }
 
     public static String color(String tocolor) {
-        return ChatColor.translateAlternateColorCodes('&' , tocolor);
+        return ChatColor.translateAlternateColorCodes('&', tocolor);
     }
 }

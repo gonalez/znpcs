@@ -22,16 +22,16 @@ package ak.znetwork.znpcservers.npc.enums;
 
 /**
  * NPC ITEM SLOT
- *
+ * <p>
  * Get slot by id
  */
-public enum NPCItemSlot  {
-    HAND(0 , 0) , HELMET(4 , 5) , CHESTPLATE(3 , 4) , LEGGINGS(2 , 3) , BOOTS(1 ,  2);
+public enum NPCItemSlot {
+    HAND(0, 0), HELMET(4, 5), CHESTPLATE(3, 4), LEGGINGS(2, 3), BOOTS(1, 2);
 
     private final int id;
     private final int newerv;
 
-    NPCItemSlot(int id , int newerv) {
+    NPCItemSlot(int id, int newerv) {
         this.id = id;
         this.newerv = newerv;
     }

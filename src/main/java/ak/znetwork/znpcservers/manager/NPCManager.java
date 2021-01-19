@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.npc.NPC;
+
 import java.util.LinkedHashSet;
 
 public class NPCManager {

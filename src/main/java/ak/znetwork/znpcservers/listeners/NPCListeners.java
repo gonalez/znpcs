@@ -34,10 +34,10 @@ public class NPCListeners implements Listener {
 
     private final ServersNPC serversNPC;
 
-    public NPCListeners(final ServersNPC serversNPC)  {
+    public NPCListeners(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
 
-        this.serversNPC.getServer().getPluginManager().registerEvents(this , serversNPC);
+        this.serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
     }
 
     @EventHandler

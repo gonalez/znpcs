@@ -31,7 +31,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 public class NPCDeserializer implements JsonDeserializer<NPC> {
 
@@ -60,11 +63,13 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             npc.setHasToggleHolo(jsonObject.get("hasToggleHolo").getAsBoolean());
             npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
 
-            if (Utils.isVersionNewestThan(9)) npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
+            if (Utils.isVersionNewestThan(9))
+                npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
 
             // Customization
             if (jsonObject.get("customizationMap") != null) {
-                npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>(){}.getType())); // Load actions..
+                npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>() {
+                }.getType())); // Load actions..
             }
 
             return npc;

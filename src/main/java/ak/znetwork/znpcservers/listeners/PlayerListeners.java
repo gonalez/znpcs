@@ -30,10 +30,10 @@ public class PlayerListeners implements Listener {
 
     private final ServersNPC serversNPC;
 
-    public PlayerListeners(final ServersNPC serversNPC)  {
+    public PlayerListeners(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
 
-        this.serversNPC.getServer().getPluginManager().registerEvents(this , serversNPC);
+        this.serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
     }
 
     @EventHandler
@@ -51,7 +51,7 @@ public class PlayerListeners implements Listener {
 
         this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
             try {
-                npc.delete(event.getPlayer() , true);
+                npc.delete(event.getPlayer(), true);
             } catch (Exception exception) {
                 // Ignore
             }

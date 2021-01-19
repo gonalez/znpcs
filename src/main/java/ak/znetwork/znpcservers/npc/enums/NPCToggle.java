@@ -20,9 +20,9 @@
  */
 package ak.znetwork.znpcservers.npc.enums;
 
-public enum  NPCToggle {
+public enum NPCToggle {
 
-    HOLO,NAME,GLOW,MIRROR,LOOK;
+    HOLO, NAME, GLOW, MIRROR, LOOK;
 
     public static NPCToggle fromString(String text) {
         for (NPCToggle b : NPCToggle.values()) {

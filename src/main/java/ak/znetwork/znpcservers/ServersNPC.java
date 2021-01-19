@@ -23,7 +23,7 @@ package ak.znetwork.znpcservers;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.cache.exception.ClassLoadException;
 import ak.znetwork.znpcservers.commands.ZNCommand;
-import ak.znetwork.znpcservers.commands.list.*;
+import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
@@ -43,7 +43,8 @@ import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -54,7 +55,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,7 @@ public class ServersNPC extends JavaPlugin {
 
     private File data;
 
-    private ZNConfig config,messages;
+    private ZNConfig config, messages;
 
     public static final int MILLI_SECOND = 20;
 
@@ -89,7 +90,7 @@ public class ServersNPC extends JavaPlugin {
 
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
 
-        data = new File(getDataFolder() , "data.json");
+        data = new File(getDataFolder(), "data.json");
         try {
             data.createNewFile();
         } catch (IOException e) {
@@ -141,7 +142,7 @@ public class ServersNPC extends JavaPlugin {
         // Load entity type cache
         Arrays.stream(NPCType.values()).forEach(NPCType::load);
 
-        executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r , MILLI_SECOND * (2));
+        executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r, MILLI_SECOND * (2));
 
         // Load all npc from data
         executor.execute(() -> {
@@ -151,11 +152,12 @@ public class ServersNPC extends JavaPlugin {
             try {
                 String zNPCdata = Files.toString(data, Charsets.UTF_8);
 
-                List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>(){}.getType());
+                List<NPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<NPC>>() {
+                }.getType());
                 if (npcList != null) {
                     this.npcManager.getNpcs().addAll(npcList);
 
-                    System.out.println("(Loaded " + npcList.size() + " znpcs in " +  NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                    System.out.println("(Loaded " + npcList.size() + " znpcs in " + NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
                 }
             } catch (IOException e) {
                 getServer().getPluginManager().disablePlugin(this);
@@ -180,8 +182,9 @@ public class ServersNPC extends JavaPlugin {
     public void onDisable() {
         npcManager.getNpcs().forEach(npc -> npc.getViewers().forEach(player -> {
             try {
-                npc.delete(player , false);
-            } catch (Exception e) {}
+                npc.delete(player, false);
+            } catch (Exception e) {
+            }
         }));
 
         Bukkit.getOnlinePlayers().forEach(o -> getPlayerNetties().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(PlayerNetty::ejectNetty));
@@ -241,7 +244,7 @@ public class ServersNPC extends JavaPlugin {
      */
     public void setupNetty(final Player player) {
         try {
-            final PlayerNetty playerNetty = new PlayerNetty(this , player);
+            final PlayerNetty playerNetty = new PlayerNetty(this, player);
             playerNetty.injectNetty(player);
 
             this.getPlayerNetties().add(playerNetty);
@@ -253,17 +256,17 @@ public class ServersNPC extends JavaPlugin {
     /**
      * Creation of a new npc
      *
-     * @param id the npc id
+     * @param id            the npc id
      * @param commandSender the creator of the npc
      * @return val
      */
-    public final boolean createNPC(int id , final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
+    public final boolean createNPC(int id, final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
         final SkinFetch skinFetch = JSONUtils.getDefaultSkin(skin);
 
         boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
 
-        this.getNpcManager().getNpcs().add(new NPC(id , holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
+        this.getNpcManager().getNpcs().add(new NPC(id, holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
 
         commandSender.ifPresent(sender -> messages.sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
         return true;
@@ -286,7 +289,7 @@ public class ServersNPC extends JavaPlugin {
         getNpcManager().getNpcs().remove(npc);
 
         final Iterator<Player> it = npc.getViewers().iterator();
-        while (it.hasNext())  {
+        while (it.hasNext()) {
             final Player player = it.next();
 
             npc.delete(player, false);
@@ -299,10 +302,10 @@ public class ServersNPC extends JavaPlugin {
     /**
      * Send player to server bungee
      *
-     * @param p receiver
+     * @param p      receiver
      * @param server target
      */
-    public void sendPlayerToServer(Player p, String server){
+    public void sendPlayerToServer(Player p, String server) {
         ByteArrayOutputStream b = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(b);
 

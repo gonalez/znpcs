@@ -33,7 +33,7 @@ public interface ZNConfigInterface {
 
     void sendMessage(final CommandSender player, ZNConfigValue znConfigValue);
 
-    void save(Map<Object,Object> hashMap) throws IOException;
+    void save(Map<Object, Object> hashMap) throws IOException;
 
     Yaml getYaml();
 

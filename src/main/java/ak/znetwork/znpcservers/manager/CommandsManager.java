@@ -26,7 +26,6 @@ import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -41,7 +40,7 @@ public class CommandsManager implements CommandExecutor {
 
     private LinkedHashSet<ZNCommand> znCommands;
 
-    public CommandsManager(final String cmd , final ServersNPC serversNPC) {
+    public CommandsManager(final String cmd, final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
         this.serversNPC.getCommand(cmd).setExecutor(this);
         this.znCommands = new LinkedHashSet<>();
@@ -61,7 +60,7 @@ public class CommandsManager implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String arg ,String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String arg, String[] args) {
         try {
             final Optional<ZNCommand> znCommand = this.getZnCommands().stream().findFirst();
 
