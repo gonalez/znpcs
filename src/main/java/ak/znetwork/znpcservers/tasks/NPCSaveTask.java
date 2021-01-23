@@ -19,6 +19,6 @@ public class NPCSaveTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        this.serversNPC.saveAllNpcs();
+        this.serversNPC.saveAllNPC();
     }
 }

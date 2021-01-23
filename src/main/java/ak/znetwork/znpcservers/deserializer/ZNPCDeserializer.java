@@ -21,7 +21,7 @@
 package ak.znetwork.znpcservers.deserializer;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -36,9 +36,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-public class NPCDeserializer implements JsonDeserializer<NPC> {
+public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
 
-    public NPC deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    private final ServersNPC serversNPC;
+
+    public ZNPCDeserializer(ServersNPC serversNPC) {
+        this.serversNPC = serversNPC;
+    }
+
+    public ZNPC deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         final JsonObject jsonObject = json.getAsJsonObject();
 
         try {
@@ -49,11 +55,15 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
             configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
 
-            NPC npc = new NPC(jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
+            ZNPC npc = new ZNPC(this.serversNPC, jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
 
             // Fix NPC disappearing after world load/unload update
             npc.setWorldName(jsonObject.get("location").getAsJsonObject().get("world").getAsString());
             //
+
+            JsonElement jsonObject1 = jsonObject.get("pathName");
+            if (jsonObject1 != null && !jsonObject1.getAsString().equalsIgnoreCase("none"))
+                npc.setPathName(jsonObject1.getAsString());
 
             npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
 
@@ -62,6 +72,7 @@ public class NPCDeserializer implements JsonDeserializer<NPC> {
             npc.setHasMirror(jsonObject.get("hasMirror").getAsBoolean());
             npc.setHasToggleHolo(jsonObject.get("hasToggleHolo").getAsBoolean());
             npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
+            npc.setReversePath(jsonObject.get("isReversePath").getAsBoolean());
 
             if (Utils.isVersionNewestThan(9))
                 npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);

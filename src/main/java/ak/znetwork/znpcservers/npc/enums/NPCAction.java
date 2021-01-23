@@ -22,11 +22,11 @@ package ak.znetwork.znpcservers.npc.enums;
 
 public enum NPCAction {
 
-    CMD, CONSOLE, SERVER;
+    CMD, CONSOLE, SERVER, MESSAGE;
 
     public static NPCAction fromString(String text) {
         for (NPCAction b : NPCAction.values()) {
-            if (text != null && b.name().equalsIgnoreCase(text)) {
+            if (b.name().equalsIgnoreCase(text)) {
                 return b;
             }
         }

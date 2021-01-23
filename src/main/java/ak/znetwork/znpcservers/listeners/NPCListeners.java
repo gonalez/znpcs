@@ -21,7 +21,7 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.ZNPC;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldLoadEvent;
@@ -42,7 +42,7 @@ public class NPCListeners implements Listener {
 
     @EventHandler
     public void onWorldLoad(WorldLoadEvent event) {
-        for (NPC npc : serversNPC.getNpcManager().getNpcs()) {
+        for (ZNPC npc : serversNPC.getNpcManager().getNpcs()) {
 
         }
     }

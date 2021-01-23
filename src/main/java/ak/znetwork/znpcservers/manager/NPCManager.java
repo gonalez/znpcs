@@ -20,19 +20,30 @@
  */
 package ak.znetwork.znpcservers.manager;
 
-import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.path.ZNPCPath;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 public class NPCManager {
 
-    private final LinkedHashSet<NPC> npcs;
+    private final LinkedHashSet<ZNPC> npcs;
+
+    private final List<ZNPCPath> znpcPaths;
 
     public NPCManager() {
         this.npcs = new LinkedHashSet<>();
+
+        this.znpcPaths = new ArrayList<>();
     }
 
-    public LinkedHashSet<NPC> getNpcs() {
+    public List<ZNPCPath> getZnpcPaths() {
+        return znpcPaths;
+    }
+
+    public LinkedHashSet<ZNPC> getNpcs() {
         return npcs;
     }
 }

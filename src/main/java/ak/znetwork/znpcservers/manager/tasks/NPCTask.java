@@ -21,10 +21,12 @@
 package ak.znetwork.znpcservers.manager.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.ZNPC;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.Optional;
 
 public class NPCTask extends BukkitRunnable {
 
@@ -38,7 +40,9 @@ public class NPCTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (final NPC npc : this.serversNPC.getNpcManager().getNpcs()) {
+        for (final ZNPC npc : this.serversNPC.getNpcManager().getNpcs()) {
+            npc.handlePath(); // Path
+
             for (final Player player : Bukkit.getOnlinePlayers()) {
                 try {
                     if (player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= this.serversNPC.getViewDistance() && !npc.getViewers().contains(player))
@@ -48,7 +52,7 @@ public class NPCTask extends BukkitRunnable {
                         npc.delete(player, true);
 
                     if (npc.getViewers().contains(player) && player.getLocation().distance(npc.getLocation()) <= this.serversNPC.getViewDistance()) {
-                        if (npc.isHasLookAt()) npc.lookAt(player, player.getLocation(), false);
+                        if (npc.isHasLookAt()) npc.lookAt(Optional.of(player), player.getLocation(), false);
 
                         npc.getHologram().updateNames(player);
                     }

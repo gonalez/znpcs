@@ -18,13 +18,15 @@
  *
  *
  */
-package ak.znetwork.znpcservers.netty;
+package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.npc.path.creator.ZNPCPathCreator;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
+import ak.znetwork.znpcservers.utils.Utils;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -46,7 +48,7 @@ import java.util.concurrent.Executor;
  * TODO
  * - CACHE MORE
  */
-public class PlayerNetty {
+public class ZNPCUser {
 
     private final Object networkManager;
 
@@ -64,7 +66,9 @@ public class PlayerNetty {
 
     private final Executor executor;
 
-    public PlayerNetty(final ServersNPC serversNPC, final Player player) throws Exception {
+    private ZNPCPathCreator znpcPathCreator;
+
+    public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
 
         this.uuid = player.getUniqueId();
@@ -127,16 +131,19 @@ public class PlayerNetty {
                                             }});
                                         }
 
-                                        String action = actions[1];
+                                        String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, actions[1]) : actions[1]);
                                         switch (npcAction) {
                                             case CMD:
-                                                player.performCommand((ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                player.performCommand(action);
                                                 break;
                                             case CONSOLE:
-                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, action) : action));
+                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action);
                                                 break;
                                             case SERVER:
                                                 serversNPC.sendPlayerToServer(player, action);
+                                                break;
+                                            case MESSAGE:
+                                                player.sendMessage(Utils.color(action));
                                                 break;
                                             default:
                                                 break;
@@ -155,5 +162,22 @@ public class PlayerNetty {
     public void ejectNetty() {
         if (channel.pipeline().names().contains("npc_interact")) channel.pipeline().remove("npc_interact");
     }
+
+    /*
+    Other
+     */
+
+    public Player toPlayer() {
+        return Bukkit.getPlayer(this.uuid);
+    }
+
+    public ZNPCPathCreator getZnpcPathCreator() {
+        return znpcPathCreator;
+    }
+
+    public void setZnpcPathCreator(ZNPCPathCreator znpcPathCreator) {
+        this.znpcPathCreator = znpcPathCreator;
+    }
 }
+
 
