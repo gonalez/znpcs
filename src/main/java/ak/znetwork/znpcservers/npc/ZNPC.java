@@ -25,6 +25,7 @@ import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
@@ -37,6 +38,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -194,8 +196,6 @@ public class ZNPC {
     }
 
     public void handlePath() {
-        if (getPathName() == null || getPathName().equalsIgnoreCase("none")) return;
-
         serversNPC.getNpcManager().getZnpcPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(getPathName())).findFirst().ifPresent(znpcPath1 -> {
             try {
                 if (isReversePath) {
@@ -208,7 +208,7 @@ public class ZNPC {
                 if (!reversePath) currentEntryPath++;
                 else currentEntryPath--;
 
-                updatePathLocation(currentPathLocation);
+                updatePathLocation(znpcPath1, currentPathLocation);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -434,7 +434,7 @@ public class ZNPC {
         hologram.delete(player, removeViewer);
     }
 
-    public void updatePathLocation(final Location location) throws Exception {
+    public void updatePathLocation(ZNPCPathReader znpcPathReader, Location location) throws Exception {
         if (npcType != NPCType.PLAYER) return;
 
         ClazzCache.SET_LOCATION_METHOD.method.invoke(znEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
@@ -443,21 +443,20 @@ public class ZNPC {
         if (hologram != null)
             hologram.setLocation(location.clone().subtract(0.5, 0, 0.5), this.npcType.getHoloHeight());
 
-        serversNPC.getNpcManager().getZnpcPaths().stream().filter(znpcPath -> znpcPath.getName().equalsIgnoreCase(this.getPathName())).findFirst().ifPresent(znpcPath -> {
-            int index = znpcPath.getLocationList().indexOf(this.currentPathLocation);
+        int index = znpcPathReader.getLocationList().indexOf(this.currentPathLocation);
+        Vector vector = (reversePath ? znpcPathReader.getLocationList().get(Math.max(0, Math.min(znpcPathReader.getLocationList().size() - 1, index + 1))) : znpcPathReader.getLocationList().get(Math.min(znpcPathReader.getLocationList().size() - 1, (Math.max(0, index - 1))))).toVector();
 
-            Location direction = currentPathLocation.setDirection(location.clone().subtract((reversePath ? znpcPath.getLocationList().get(Math.max(0, Math.min(znpcPath.getLocationList().size() - 1, index + 1))).toVector() : znpcPath.getLocationList().get(Math.min(znpcPath.getLocationList().size() - 1, (Math.max(0, index - 1)))).toVector())).toVector());
+        double yDiff = (location.getY() - vector.getY());
+        Location direction = currentPathLocation.clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).clone().toVector());
+        try {
+            Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.constructor.newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
 
-            try {
-                Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.constructor.newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
-
-                for (Player player : viewers) {
-                    ReflectionUtils.sendPacket(player, headRotationPacket);
-                }
-            } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
-                e.printStackTrace();
+            for (Player player : viewers) {
+                ReflectionUtils.sendPacket(player, headRotationPacket);
             }
-        });
+        } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -466,16 +465,18 @@ public class ZNPC {
      * @param location look at
      */
     public void lookAt(final Optional<Player> playerOptional, final Location location, final boolean fix) throws Exception {
-        if (getNpcType() == NPCType.PLAYER && currentPathLocation != null && !getPathName().equalsIgnoreCase("none")) return;
+        if (getNpcType() == NPCType.PLAYER && currentPathLocation != null && hasPath()) return;
 
         Location direction = (fix ? this.location : this.location.clone().setDirection(location.subtract(this.location.clone()).toVector()));
 
         Object lookPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.constructor.newInstance(entity_id, (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256 / 360), false);
         Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.constructor.newInstance(znEntity, (byte) (((direction.getYaw()) * 256.0F) / 360.0F));
 
-        if (playerOptional.isPresent()) {
-            if (!fix) ReflectionUtils.sendPacket(playerOptional.get(), lookPacket);
-            ReflectionUtils.sendPacket(playerOptional.get(), headRotationPacket);
+        for (Player player : getViewers()) {
+            if (playerOptional.isPresent() && playerOptional.get() != player) continue;
+
+            if (!fix) ReflectionUtils.sendPacket(player, lookPacket);
+            ReflectionUtils.sendPacket(player, headRotationPacket);
         }
     }
 
@@ -759,7 +760,7 @@ public class ZNPC {
      * @return npc location
      */
     public Location getLocation() {
-        return (!getPathName().equalsIgnoreCase("none") && currentPathLocation != null ? currentPathLocation : location);
+        return (hasPath() && currentPathLocation != null ? currentPathLocation : location);
     }
 
     /**
@@ -824,6 +825,10 @@ public class ZNPC {
 
     public Map<String, List> getCustomizationMap() {
         return customizationMap;
+    }
+
+    public boolean hasPath() {
+       return (getPathName() == null || getPathName().equalsIgnoreCase("none"));
     }
 
     /**

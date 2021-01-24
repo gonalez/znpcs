@@ -23,7 +23,7 @@ package ak.znetwork.znpcservers.user;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
-import ak.znetwork.znpcservers.npc.path.creator.ZNPCPathCreator;
+import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -34,9 +34,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executor;
 
 /**
@@ -62,11 +60,11 @@ public class ZNPCUser {
 
     private long last_interact = 0;
 
-    private final HashMap<Integer, HashMap<Long, Integer>> actionCooldown;
+    private final HashMap<Integer, Map<Long, Integer>> actionCooldown;
 
     private final Executor executor;
 
-    private ZNPCPathCreator znpcPathCreator;
+    private ZNPCPathWriter znpcPathCreator;
 
     public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
@@ -125,11 +123,9 @@ public class ZNPCUser {
                                         if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0]))
                                             return;
 
-                                        if (actions.length > 2) {
-                                            actionCooldown.put(id, new HashMap<Long, Integer>() {{
-                                                put(System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
-                                            }});
-                                        }
+                                        if (actions.length > 2)
+                                            actionCooldown.put(1, Collections.singletonMap(System.currentTimeMillis(), 1));
+
 
                                         String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, actions[1]) : actions[1]);
                                         switch (npcAction) {
@@ -171,11 +167,11 @@ public class ZNPCUser {
         return Bukkit.getPlayer(this.uuid);
     }
 
-    public ZNPCPathCreator getZnpcPathCreator() {
+    public ZNPCPathWriter getZnpcPathCreator() {
         return znpcPathCreator;
     }
 
-    public void setZnpcPathCreator(ZNPCPathCreator znpcPathCreator) {
+    public void setZnpcPathCreator(ZNPCPathWriter znpcPathCreator) {
         this.znpcPathCreator = znpcPathCreator;
     }
 }

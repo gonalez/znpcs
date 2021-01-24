@@ -28,8 +28,8 @@ import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
-import ak.znetwork.znpcservers.npc.path.ZNPCPath;
-import ak.znetwork.znpcservers.npc.path.creator.ZNPCPathCreator;
+import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
+import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utils.JSONUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -553,7 +553,7 @@ public class DefaultCommand {
 
             String pathName = args.get("path").trim();
 
-            ZNPCPath znpcPath = serversNPC.getNpcManager().getZnpcPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
+            ZNPCPathReader znpcPath = serversNPC.getNpcManager().getZnpcPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
 
             foundNPC.setPathName((znpcPath == null ? "none" : znpcPath.getName()));
             serversNPC.getMessages().sendMessage(sender, ZNConfigValue.SUCCESS);
@@ -579,10 +579,11 @@ public class DefaultCommand {
                 return;
             }
 
-            znpcUser.setZnpcPathCreator(new ZNPCPathCreator(serversNPC, znpcUser, pathName));
+            znpcUser.setZnpcPathCreator(new ZNPCPathWriter(serversNPC, znpcUser, pathName));
             player.sendMessage(ChatColor.GREEN + "Done, now walk where you want the npc to, when u finish type /znpcs path -exit");
         } else if (args.containsKey("exit")) {
-            if (znpcUser.getZnpcPathCreator() != null) znpcUser.getZnpcPathCreator().writeAll();
+            znpcUser.setZnpcPathCreator(null);
+
             player.sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {
             if (serversNPC.getNpcManager().getZnpcPaths().isEmpty())

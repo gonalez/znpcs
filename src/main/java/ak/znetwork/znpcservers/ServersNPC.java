@@ -35,7 +35,7 @@ import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.types.NPCType;
-import ak.znetwork.znpcservers.npc.path.ZNPCPath;
+import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utils.JSONUtils;
@@ -57,6 +57,8 @@ import java.io.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -67,23 +69,26 @@ public class ServersNPC extends JavaPlugin {
 
     private LinkedHashSet<ZNPCUser> znpcUsers;
 
+    private File data, npcPaths;
+
+    private ZNConfig config, messages;
+
+    private int viewDistance;
+
+    public long startTimer;
+
     private static boolean placeHolderSupport;
 
     private static Executor executor;
 
     private static Gson gson;
 
-    private File data, npcPaths;
+    private static String replaceSymbol;
 
-    private ZNConfig config, messages;
+    private static ExecutorService executorService;
 
     public static final int MILLI_SECOND = 20;
 
-    private int viewDistance;
-
-    private static String replaceSymbol;
-
-    public long startTimer;
 
     @Override
     public void onEnable() {
@@ -149,6 +154,8 @@ public class ServersNPC extends JavaPlugin {
         }
 
         executor = r -> this.getServer().getScheduler().scheduleSyncDelayedTask(this, r, MILLI_SECOND * (2));
+
+        executorService = Executors.newSingleThreadExecutor();
 
         // Load all npc from data
         executor.execute(() -> {
@@ -226,6 +233,10 @@ public class ServersNPC extends JavaPlugin {
     }
 
     // Default Utils
+    public static ExecutorService getExecutorService() {
+        return executorService;
+    }
+
     public static Executor getExecutor() {
         return executor;
     }
@@ -250,9 +261,9 @@ public class ServersNPC extends JavaPlugin {
         for (File file : listFiles) {
             if (file.getName().endsWith(".path")) { // Is path
                 try {
-                    this.getNpcManager().getZnpcPaths().add(new ZNPCPath(file));
+                    this.getNpcManager().getZnpcPaths().add(new ZNPCPathReader(file));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Bukkit.getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
                 }
             }
         }

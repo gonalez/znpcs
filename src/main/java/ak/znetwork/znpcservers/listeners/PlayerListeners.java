@@ -21,14 +21,10 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-
-import java.io.IOException;
-import java.util.logging.Level;
 
 public class PlayerListeners implements Listener {
 
@@ -49,14 +45,6 @@ public class PlayerListeners implements Listener {
     public void onQuit(final PlayerQuitEvent event) {
         this.serversNPC.getZnpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
             playerNetty.ejectNetty();
-
-            if (playerNetty.getZnpcPathCreator() != null) {
-                try {
-                    playerNetty.getZnpcPathCreator().writeAll();
-                } catch (IOException e) {
-                    Bukkit.getLogger().log(Level.WARNING, String.format("PlayerQuitEvent: Can't save path creation for %s", event.getPlayer().getName()));
-                }
-            }
 
             this.serversNPC.getZnpcUsers().remove(playerNetty);
         });

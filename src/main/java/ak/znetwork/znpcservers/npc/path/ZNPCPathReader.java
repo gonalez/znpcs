@@ -23,29 +23,19 @@ package ak.znetwork.znpcservers.npc.path;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ZNPCPath {
+public class ZNPCPathReader {
 
     private final File file;
 
-    private final ByteArrayInputStream byteArrayInputStream;
-    private final DataInputStream dataInputStream;
-
     private final List<Location> locationList;
 
-    public ZNPCPath(File file) throws IOException {
+    public ZNPCPathReader(File file) throws IOException {
         this.file = file;
-
-        byteArrayInputStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
-        dataInputStream = new DataInputStream(byteArrayInputStream);
 
         locationList = new ArrayList<>();
 
@@ -53,22 +43,20 @@ public class ZNPCPath {
     }
 
     public void read() throws IOException {
-        while (dataInputStream.available() > 0) {
-            int worldNameLength = dataInputStream.readInt();
+        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
+            DataInputStream dataOutputStream = new DataInputStream(byteArrayInputStream)) {
+            while (dataOutputStream.available() > 0) {
+                String worldName = dataOutputStream.readUTF();
 
-            byte[] worldNameBytes = new byte[worldNameLength];
-            dataInputStream.read(worldNameBytes, 0, worldNameBytes.length);
+                double x = dataOutputStream.readDouble();
+                double y = dataOutputStream.readDouble();
+                double z = dataOutputStream.readDouble();
 
-            String worldName = new String(worldNameBytes, StandardCharsets.UTF_8);
+                float yaw = dataOutputStream.readFloat();
+                float pitch = dataOutputStream.readFloat();
 
-            double x = dataInputStream.readDouble();
-            double y = dataInputStream.readDouble();
-            double z = dataInputStream.readDouble();
-
-            float yaw = dataInputStream.readFloat();
-            float pitch = dataInputStream.readFloat();
-
-            locationList.add(new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch));
+                locationList.add(new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch));
+            }
         }
     }
 
