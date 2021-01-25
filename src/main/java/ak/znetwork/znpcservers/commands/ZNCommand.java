@@ -44,9 +44,9 @@ import java.util.stream.Stream;
  */
 public class ZNCommand {
 
-    protected final Object object;
+    private final Object object;
 
-    protected HashMap<CMDInfo, CommandInvoker<? extends CommandSender>> consumerSet;
+    private final HashMap<CMDInfo, CommandInvoker<? extends CommandSender>> consumerSet;
 
     public ZNCommand(final Object object) {
         this.object = object;
@@ -74,12 +74,12 @@ public class ZNCommand {
             if (contains(cmdInfo, input)) {
                 final StringBuilder value = new StringBuilder();
 
-                for (int text = (Math.min(args.length, i)); text < args.length; ) {
+                for (int text = (i); text < args.length; ) {
                     if (!contains(cmdInfo, args[text++])) value.append(args[i++]).append(" ");
                     else break;
-
                 }
-                argsMap.put(input.replace("-", ""), (value.toString().length() <= 0 ? "" : value.toString()));
+
+                argsMap.put(input.replace("-", ""), (value.toString()));
             }
         }
         return argsMap;
@@ -90,14 +90,12 @@ public class ZNCommand {
     }
 
     public void load() {
-        final Method[] methods = Stream.of(object.getClass().getMethods()).filter(method -> method.isAnnotationPresent(CMDInfo.class)).toArray(Method[]::new);
+        for (Method method : object.getClass().getMethods()) {
+            if (method.isAnnotationPresent(CMDInfo.class)) {
+                final CMDInfo cmdInfo = method.getAnnotation(CMDInfo.class);
 
-        for (Method method : methods) {
-            final CMDInfo cmdInfo = method.getAnnotation(CMDInfo.class);
-
-            final CommandInvoker<? extends CommandSender> commandInvoker = new CommandInvoker<>(this.object, method, cmdInfo.permission());
-
-            this.consumerSet.put(cmdInfo, commandInvoker);
+                this.consumerSet.put(cmdInfo, new CommandInvoker<>(this.object, method, cmdInfo.permission()));
+            }
         }
     }
 

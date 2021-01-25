@@ -65,9 +65,9 @@ public class Hologram {
         this.location = location;
         this.lines = lines;
 
-        IChatBaseComponentMethod = ClazzCache.ICHAT_BASE_COMPONENT_A_METHOD.method;
+        IChatBaseComponentMethod = ClazzCache.ICHAT_BASE_COMPONENT_A_METHOD.getCacheMethod();
 
-        nmsWorld = ClazzCache.GET_HANDLE_METHOD.method.invoke(location.getWorld());
+        nmsWorld = ClazzCache.GET_HANDLE_METHOD.getCacheMethod().invoke(location.getWorld());
 
         createHolos();
     }
@@ -82,7 +82,7 @@ public class Hologram {
 
         entityArmorStands.forEach(entityArmorStand -> {
             try {
-                Object entityPlayerPacketSpawn = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.constructor.newInstance(entityArmorStand);
+                Object entityPlayerPacketSpawn = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
             } catch (Exception e) {
                 throw new RuntimeException("An exception occurred while trying to create hologram", e);
@@ -101,9 +101,9 @@ public class Hologram {
         entityArmorStands.forEach(entityArmorStand -> {
             try {
                 Object entityArmorArray = Array.newInstance(int.class, 1);
-                Array.set(entityArmorArray, 0, ClazzCache.GET_ID_METHOD.method.invoke(entityArmorStand));
+                Array.set(entityArmorArray, 0, ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(entityArmorStand));
 
-                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.constructor.newInstance(entityArmorArray));
+                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getCacheConstructor().newInstance(entityArmorArray));
             } catch (Exception e) {
                 throw new RuntimeException("An exception occurred while trying to delete hologram", e);
             }
@@ -121,15 +121,15 @@ public class Hologram {
         this.entityArmorStands.clear();
 
         for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-            Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.constructor.newInstance(nmsWorld, location.getX() + 0.5, (location.getY() - 0.15) + (y), location.getZ() + 0.5);
+            Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(nmsWorld, location.getX() + 0.5, (location.getY() - 0.15) + (y), location.getZ() + 0.5);
 
-            ClazzCache.SET_CUSTOM_NAME_VISIBLE_METHOD.method.invoke(armorStand, (lines[i]).length() >= 1);
+            ClazzCache.SET_CUSTOM_NAME_VISIBLE_METHOD.getCacheMethod().invoke(armorStand, (lines[i]).length() >= 1);
             if (Utils.isVersionNewestThan(13))
-                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand, getStringNewestVersion(null, lines[i]));
+                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(null, lines[i]));
             else
-                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand, ChatColor.translateAlternateColorCodes('&', lines[i]));
+                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', lines[i]));
 
-            ClazzCache.SET_INVISIBLE_METHOD.method.invoke(armorStand, true);
+            ClazzCache.SET_INVISIBLE_METHOD.getCacheMethod().invoke(armorStand, true);
 
             entityArmorStands.add(armorStand);
 
@@ -152,15 +152,15 @@ public class Hologram {
             final String line = lines[i].replace(ServersNPC.getReplaceSymbol(), " ");
 
             if (Utils.isVersionNewestThan(13))
-                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.method.invoke(armorStand, getStringNewestVersion(player, lines[i]));
+                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(player, lines[i]));
             else
-                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.method.invoke(armorStand, ChatColor.translateAlternateColorCodes('&', (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, lines[i]) : line)));
+                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, lines[i]) : line)));
 
-            int entity_id = (Integer) ClazzCache.GET_ID_METHOD.method.invoke(armorStand);
+            int entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(armorStand);
 
-            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.method.invoke(armorStand);
+            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(armorStand);
 
-            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.constructor.newInstance(entity_id, dataWatcherObject, true));
+            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true));
         }
     }
 
@@ -184,7 +184,7 @@ public class Hologram {
     public void updateLoc() {
         entityArmorStands.forEach(o -> {
             try {
-                Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.constructor.newInstance(o);
+                Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.getCacheConstructor().newInstance(o);
 
                 viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (Exception e) {
@@ -202,7 +202,7 @@ public class Hologram {
 
         double y = 0;
         for (Object o : entityArmorStands) {
-            ClazzCache.SET_LOCATION_METHOD.method.invoke(o, location.getX() + 0.5, (location.getY() - 0.15) + y,
+            ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(o, location.getX() + 0.5, (location.getY() - 0.15) + y,
                     location.getZ() + 0.5, location.getYaw(), location.getPitch());
 
             y += 0.3;

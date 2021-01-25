@@ -22,11 +22,11 @@ package ak.znetwork.znpcservers.npc.enums;
 
 public enum NPCToggle {
 
-    HOLO, NAME, GLOW, MIRROR, LOOK;
+    HOLO, NAME, GLOW, MIRROR, LOOK, MESSAGES;
 
     public static NPCToggle fromString(String text) {
         for (NPCToggle b : NPCToggle.values()) {
-            if (text != null && b.name().equalsIgnoreCase(text)) {
+            if (b.name().equalsIgnoreCase(text)) {
                 return b;
             }
         }

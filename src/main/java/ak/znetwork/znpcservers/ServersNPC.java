@@ -89,7 +89,6 @@ public class ServersNPC extends JavaPlugin {
 
     public static final int MILLI_SECOND = 20;
 
-
     @Override
     public void onEnable() {
         startTimer = System.currentTimeMillis();

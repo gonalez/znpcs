@@ -26,22 +26,16 @@ package ak.znetwork.znpcservers.npc.enums;
  * Get slot by id
  */
 public enum NPCItemSlot {
-    HAND(0, 0), HELMET(4, 5), CHESTPLATE(3, 4), LEGGINGS(2, 3), BOOTS(1, 2);
+    HAND(0), HELMET(4), CHESTPLATE(3), LEGGINGS(2), BOOTS(1);
 
     private final int id;
-    private final int newerv;
 
-    NPCItemSlot(int id, int newerv) {
+    NPCItemSlot(int id) {
         this.id = id;
-        this.newerv = newerv;
     }
 
     public int getId() {
         return id;
-    }
-
-    public int getNewerv() {
-        return newerv;
     }
 
     public static NPCItemSlot fromString(String text) {

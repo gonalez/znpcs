@@ -77,12 +77,15 @@ public class ZNPCPathWriter {
      * Start the path task
      */
     public void start() {
+        // Set path
+        znpcUser.setHasPath(true);
+
         // Schedule npc path task
         ServersNPC.getExecutorService().execute(() -> {
             // This while loop will continue recording new locations for path & blocking the current thread,
-            // As long the player has disconnected or recorded locations reached MAX_LOCATIONS size,
+            // As long the player is connected & the locations size hasn't reached the limit,
             // Once the loop is broken the thread will write the recorded locations to the path file.
-            while (this.znpcUser.toPlayer() != null && this.znpcUser.getZnpcPathCreator() == this && this.MAX_LOCATIONS > locationsCache.size()) {
+            while (this.znpcUser.toPlayer() != null && this.znpcUser.isHasPath() && this.MAX_LOCATIONS > locationsCache.size()) {
                 Location location = this.znpcUser.toPlayer().getLocation();
 
                 // Check if location is valid
@@ -130,6 +133,9 @@ public class ZNPCPathWriter {
 
                 boolean last = !locationIterator.hasNext();
                 if (last) {
+                    znpcUser.setHasPath(false);
+
+                    // Add path
                     serversNPC.getNpcManager().getZnpcPaths().add(new ZNPCPathReader(file));
                 }
             }

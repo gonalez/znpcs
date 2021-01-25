@@ -23,10 +23,10 @@ package ak.znetwork.znpcservers.user;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
-import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
+import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -64,40 +64,43 @@ public class ZNPCUser {
 
     private final Executor executor;
 
-    private ZNPCPathWriter znpcPathCreator;
+    private boolean hasPath = false;
+
+    private final String channel_name = "npc_interact";
 
     public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
 
         this.uuid = player.getUniqueId();
-        this.actionCooldown = new HashMap<>();
 
-        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.method.invoke(player);
-        Object playerConnection = ClazzCache.PLAYER_CONNECTION_FIELD.field.get(craftPlayer);
+        this.actionCooldown = Maps.newHashMap();
 
-        networkManager = ClazzCache.NETWORK_MANAGER_FIELD.field.get(playerConnection);
-        channel = (Channel) ClazzCache.CHANNEL_FIELD.field.get(networkManager);
+        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player);
+        Object playerConnection = ClazzCache.PLAYER_CONNECTION_FIELD.getCacheField().get(craftPlayer);
 
-        idField = ClazzCache.ID_FIELD.field;
+        networkManager = ClazzCache.NETWORK_MANAGER_FIELD.getCacheField().get(playerConnection);
+        channel = (Channel) ClazzCache.CHANNEL_FIELD.getCacheField().get(networkManager);
+
+        idField = ClazzCache.ID_FIELD.getCacheField();
 
         executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
     }
 
-    public UUID getUuid() {
-        return uuid;
-    }
-
+    /**
+     * Add channel to player network
+     *
+     * @param player to inject channel
+     */
     public void injectNetty(final Player player) {
         synchronized (networkManager) {
             if (channel == null) throw new IllegalStateException("Channel is NULL!");
 
-            ejectNetty();
-            channel.pipeline().addAfter("decoder", "npc_interact", new MessageToMessageDecoder<Object>() {
+            channel.pipeline().addAfter("decoder", channel_name, new MessageToMessageDecoder<Object>() {
                 @Override
                 protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) throws Exception {
                     out.add(packet);
 
-                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.aClass) {
+                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.getCacheClass()) {
                         Object actionName = ReflectionUtils.getValue(packet, "action");
 
                         if (!actionName.toString().equalsIgnoreCase("INTERACT")) return;
@@ -124,8 +127,7 @@ public class ZNPCUser {
                                             return;
 
                                         if (actions.length > 2)
-                                            actionCooldown.put(1, Collections.singletonMap(System.currentTimeMillis(), 1));
-
+                                            actionCooldown.put(id, Collections.singletonMap(System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1])));
 
                                         String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, actions[1]) : actions[1]);
                                         switch (npcAction) {
@@ -155,24 +157,31 @@ public class ZNPCUser {
         }
     }
 
+    /**
+     * Unregister channel
+     */
     public void ejectNetty() {
-        if (channel.pipeline().names().contains("npc_interact")) channel.pipeline().remove("npc_interact");
+        // Remove channel
+        channel.eventLoop().execute(() -> channel.pipeline().remove(channel_name));
     }
 
     /*
     Other
      */
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public boolean isHasPath() {
+        return hasPath;
+    }
+
+    public void setHasPath(boolean hasPath) {
+        this.hasPath = hasPath;
+    }
 
     public Player toPlayer() {
-        return Bukkit.getPlayer(this.uuid);
-    }
-
-    public ZNPCPathWriter getZnpcPathCreator() {
-        return znpcPathCreator;
-    }
-
-    public void setZnpcPathCreator(ZNPCPathWriter znpcPathCreator) {
-        this.znpcPathCreator = znpcPathCreator;
+        return Bukkit.getPlayer(getUuid());
     }
 }
 

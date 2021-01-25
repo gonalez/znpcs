@@ -572,17 +572,16 @@ public class DefaultCommand {
                 return;
             }
 
-            boolean hasActiveCreator = znpcUser.getZnpcPathCreator() != null;
-
+            boolean hasActiveCreator = znpcUser.isHasPath();
             if (hasActiveCreator) {
                 player.sendMessage(ChatColor.RED + "You already have a path creator active, to remove it use /znpcs path -exit.");
                 return;
             }
 
-            znpcUser.setZnpcPathCreator(new ZNPCPathWriter(serversNPC, znpcUser, pathName));
+            new ZNPCPathWriter(serversNPC, znpcUser, pathName);
             player.sendMessage(ChatColor.GREEN + "Done, now walk where you want the npc to, when u finish type /znpcs path -exit");
         } else if (args.containsKey("exit")) {
-            znpcUser.setZnpcPathCreator(null);
+            znpcUser.setHasPath(false);
 
             player.sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {

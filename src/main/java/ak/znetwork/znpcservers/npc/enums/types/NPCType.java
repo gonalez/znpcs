@@ -67,21 +67,21 @@ public enum NPCType {
     WOLF(ClazzCache.ENTITY_WOLF_CLASS, "", -1, -1, "setAngry", "setAge"),
     END_CRYSTAL(ClazzCache.ENTITY_END_CRYSTAL_CLASS, "", 51, 0);
 
-    private final ClazzCache aClass;
+    private final ClazzCache clazzCache;
     private final String newName;
 
     private final int id;
 
-    private Constructor<?> constructor = null;
-
     private final double holoHeight;
-    private Object entityType;
-
     private final String[] customization;
     private final HashMap<String, Method> customizationMethods;
 
-    NPCType(final ClazzCache aClass, final String newName, final int id, final double holoHeight, final String... customization) {
-        this.aClass = aClass;
+    private Constructor<?> constructor = null;
+
+    private Object entityType;
+
+    NPCType(final ClazzCache clazzCache, final String newName, final int id, final double holoHeight, final String... customization) {
+        this.clazzCache = clazzCache;
 
         this.newName = newName;
 
@@ -91,47 +91,41 @@ public enum NPCType {
 
         this.customization = customization;
         this.customizationMethods = new HashMap<>();
-    }
 
-    public void load() {
-        if (aClass.aClass != null) {
-            try {
-                this.constructor = (id < 0 ? ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.aClass.getConstructor(ClazzCache.ENTITY_LIVING_CLASS.aClass) : ClazzCache.PACKET_PLAY_OUT_ENTITY_SPAWN_CLASS.aClass.getConstructor(ClazzCache.ENTITY_CLASS.aClass, int.class));
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
+        // Load customization
+        for (String value : this.customization) {
+            for (Method method : this.clazzCache.getCacheClass().getMethods()) {
+                if (customizationMethods.containsKey(method.getName())) continue;
 
-            if (Utils.isVersionNewestThan(13)) {
-                try {
-                    entityType = ClazzCache.ENTITY_TYPES_CLASS.aClass.getField(name()).get(null);
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    try {
-                        entityType = ClazzCache.ENTITY_TYPES_CLASS.aClass.getField(newName).get(null);
-                    } catch (IllegalAccessException | NoSuchFieldException illegalAccessException) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            /*
-             Load customization
-             */
-            for (int i = 0; i < this.customization.length; i++) {
-                String value = this.customization[i];
-
-                for (Method method : this.aClass.aClass.getMethods()) {
-                    if (customizationMethods.containsKey(method.getName())) continue;
-
-                    if (method.getName().equalsIgnoreCase(value)) {
-                        customizationMethods.put(method.getName(), method);
-                    }
+                if (method.getName().equalsIgnoreCase(value)) {
+                    customizationMethods.put(method.getName(), method);
                 }
             }
         }
     }
 
     /**
+     * Load npc type
+     */
+    public void load() {
+        this.constructor = (id < 0 ? ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_NO_ID_CONSTRUCTOR.getCacheConstructor() : ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_ID_CONSTRUCTOR.getCacheConstructor());
+
+        if (!Utils.isVersionNewestThan(13)) return;
+
+        try {
+            entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(name()).get(null);
+        } catch (IllegalAccessException | NoSuchFieldException e) {
+            try {
+                entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(newName).get(null);
+            } catch (IllegalAccessException | NoSuchFieldException exception) {
+                throw new RuntimeException(String.format("Entity %s could not be loaded", name()), exception);
+            }
+        }
+    }
+
+    /**
      * For the customization command a is necessary convert each value to
-     * the primitive data type of the method
+     * its primitive data type of the method
      * <p>
      * Example if the class parameter types of the method are
      * boolean.class & double.class, and the input values are >
@@ -165,21 +159,18 @@ public enum NPCType {
 
     /**
      * Change/updates the npc customization
-     * <p>
-     * TODO
-     * - Improve function
      *
      * @param name   the method name
      * @param entity the entity
      * @param values the method values
-     * @throws Exception
+     * @throws Exception if method could not be invoked
      */
     public void invokeMethod(String name, Object entity, Object[] values) throws Exception {
         if (!customizationMethods.containsKey(name)) return;
 
         Method method = customizationMethods.get(name);
         if (this == NPCType.SHEEP && name.equalsIgnoreCase("setColor")) {
-            method.invoke(entity, ClazzCache.ENUM_COLOR_CLASS.getAClass().getField(String.valueOf(values[0])).get(null));
+            method.invoke(entity, ClazzCache.ENUM_COLOR_CLASS.getCacheClass().getField(String.valueOf(values[0])).get(null));
         } else method.invoke(entity, values);
     }
 
@@ -191,8 +182,8 @@ public enum NPCType {
         return constructor;
     }
 
-    public ClazzCache getaClass() {
-        return aClass;
+    public ClazzCache getClazzCache() {
+        return clazzCache;
     }
 
     public Object getEntityType() {
