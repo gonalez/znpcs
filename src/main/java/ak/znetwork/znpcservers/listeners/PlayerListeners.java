@@ -26,7 +26,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class PlayerListeners implements Listener {
+public final class PlayerListeners implements Listener {
 
     private final ServersNPC serversNPC;
 
@@ -49,7 +49,7 @@ public class PlayerListeners implements Listener {
             this.serversNPC.getZnpcUsers().remove(playerNetty);
         });
 
-        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
+        this.serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
             try {
                 npc.delete(event.getPlayer(), true);
             } catch (Exception exception) {

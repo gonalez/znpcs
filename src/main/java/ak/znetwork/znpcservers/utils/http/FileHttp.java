@@ -20,6 +20,8 @@
  */
 package ak.znetwork.znpcservers.utils.http;
 
+import com.google.common.io.CharStreams;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -30,33 +32,32 @@ import java.net.URLEncoder;
 
 public class FileHttp {
 
-    private String value;
+    private String result;
 
-    public FileHttp(final String url, final String skin) throws IOException {
-        final URL url1 = new URL(url);
+    public FileHttp(String url, String skin) throws IOException {
+        HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection();
 
-        final HttpURLConnection httpURLConnection = (HttpURLConnection) url1.openConnection();
-        httpURLConnection.setDoOutput(true);
-
+        // Use post method
         httpURLConnection.setRequestMethod("POST");
 
-        try (final DataOutputStream outputStream = new DataOutputStream(httpURLConnection.getOutputStream())) {
+        // Allow output && input
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setDoInput(true);
+
+        // Send data
+        try (DataOutputStream outputStream = new DataOutputStream(httpURLConnection.getOutputStream())) {
             outputStream.writeBytes("url=" + URLEncoder.encode(skin, "UTF-8"));
         }
 
         if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            final StringBuilder stringBuilder = new StringBuilder();
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
+                // Read
+                this.result = CharStreams.toString(bufferedReader);
             }
-            value = stringBuilder.toString();
         }
     }
 
-    public String getValue() {
-        return value;
+    public String getResult() {
+        return result;
     }
 }

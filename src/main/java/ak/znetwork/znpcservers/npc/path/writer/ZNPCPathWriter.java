@@ -22,6 +22,8 @@ package ak.znetwork.znpcservers.npc.path.writer;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
+import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import org.bukkit.Location;
@@ -38,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
 
-public class ZNPCPathWriter {
+public final class ZNPCPathWriter {
 
     private final ServersNPC serversNPC;
 
@@ -50,14 +52,12 @@ public class ZNPCPathWriter {
 
     private final List<Location> locationsCache;
 
-    private final int MAX_LOCATIONS;
+    private final int MAX_LOCATIONS = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.MAX_PATH_LOCATIONS);
 
     public ZNPCPathWriter(ServersNPC serversNPC, ZNPCUser znpcUser, String name) {
         this.serversNPC = serversNPC;
 
         this.name = name;
-
-        this.MAX_LOCATIONS = Integer.parseInt(serversNPC.getConfiguration().getValue(ZNConfigValue.MAX_PATH_LOCATIONS));
 
         this.znpcUser = znpcUser;
 
@@ -78,7 +78,7 @@ public class ZNPCPathWriter {
      */
     public void start() {
         // Set path
-        znpcUser.setHasPath(true);
+        this.znpcUser.setHasPath(true);
 
         // Schedule npc path task
         ServersNPC.getExecutorService().execute(() -> {
@@ -89,7 +89,7 @@ public class ZNPCPathWriter {
                 Location location = this.znpcUser.toPlayer().getLocation();
 
                 // Check if location is valid
-                if (!checkEntry(location)) {
+                if (checkEntry(location)) {
                     locationsCache.add(location);
                 }
 
@@ -101,6 +101,8 @@ public class ZNPCPathWriter {
             try {
                 write();
             } catch (IOException e) {
+                znpcUser.setHasPath(false);
+
                 serversNPC.getLogger().log(Level.WARNING, String.format("Path %s could not be created", this.name), e);
             }
         });
@@ -136,17 +138,23 @@ public class ZNPCPathWriter {
                     znpcUser.setHasPath(false);
 
                     // Add path
-                    serversNPC.getNpcManager().getZnpcPaths().add(new ZNPCPathReader(file));
+                    serversNPC.getNpcManager().getNPCPaths().add(new ZNPCPathReader(file));
                 }
             }
         }
     }
 
     public boolean checkEntry(Location location) {
-        if (this.locationsCache.isEmpty()) return false;
+        if (this.locationsCache.isEmpty()) return true;
 
         Location last = this.locationsCache.get(this.locationsCache.size() - 1);
-        return (Math.abs(last.getX() - location.getX()) < 0.04);
+
+        double xDiff = Math.abs(last.getX() - location.getX());
+        double yDiff = Math.abs(last.getY() - location.getY());
+        double zDiff = Math.abs(last.getZ() - location.getZ());
+
+        return (xDiff + yDiff + zDiff) > 0;
+
     }
 
     public Player getPlayer() {

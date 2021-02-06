@@ -26,10 +26,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldLoadEvent;
 
-/*
- TODO:
-  - NPC disappearing after world unload
- */
 public class NPCListeners implements Listener {
 
     private final ServersNPC serversNPC;
@@ -41,9 +37,13 @@ public class NPCListeners implements Listener {
     }
 
     @EventHandler
-    public void onWorldLoad(WorldLoadEvent event) {
-        for (ZNPC npc : serversNPC.getNpcManager().getNpcs()) {
+    public void onWorldUnload(WorldLoadEvent event) {
+        for (ZNPC npc : serversNPC.getNpcManager().getNPCs()) {
+            String worldName = npc.getWorldName();
 
+            if (npc.getWorldName().equalsIgnoreCase(event.getWorld().getName())) {
+                // Set new world
+            }
         }
     }
 }

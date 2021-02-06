@@ -92,11 +92,10 @@ public class JSONUtils {
             try {
                 FileHttp httpRequest = new FileHttp("https://api.mineskin.org/generate/url", url);
 
-                String string = httpRequest.getValue();
+                JsonObject object = jsonParser.parse(httpRequest.getResult()).getAsJsonObject();
 
-                JsonObject object = jsonParser.parse(string).getAsJsonObject();
-
-                JsonObject texture = object.get("texture").getAsJsonObject();
+                JsonObject data = object.get("data").getAsJsonObject();
+                JsonObject texture = data.get("texture").getAsJsonObject();
 
                 return new SkinFetch(UUID.randomUUID(), texture.get("value").getAsString(), texture.get("signature").getAsString());
             } catch (Exception e) {

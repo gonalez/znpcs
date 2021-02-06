@@ -85,7 +85,7 @@ public class ZNConfig implements ZNConfigInterface {
                     try {
                         ZNConfigValue znConfigValue = ZNConfigValue.valueOf(entry.getKey());
 
-                        if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.ext)) continue;
+                        if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getClazz())) continue;
                         configValueStringEnumMap.put(znConfigValue, entry.getValue());
                     } catch (IllegalArgumentException exception) {
                     } // It is not a Config Value (@ZNConfigValue)
@@ -94,8 +94,8 @@ public class ZNConfig implements ZNConfigInterface {
 
             // Default values check
             for (ZNConfigValue znConfigValue : ZNConfigValue.values())
-                if (!configValueStringEnumMap.containsKey(znConfigValue) && znConfigValue.znConfigType == this.znConfigType)
-                    configValueStringEnumMap.put(znConfigValue, znConfigValue.value); // Default
+                if (!configValueStringEnumMap.containsKey(znConfigValue) && znConfigValue.getConfigType() == this.znConfigType)
+                    configValueStringEnumMap.put(znConfigValue, znConfigValue.getValue()); // Default
 
             // Save to file
             save(configValueStringEnumMap.entrySet().stream().collect(Collectors.toMap(key -> key.getKey().name(), Map.Entry::getValue)));
@@ -119,13 +119,13 @@ public class ZNConfig implements ZNConfigInterface {
 
     @Override
     public void sendMessage(CommandSender player, ZNConfigValue znConfigValue) {
-        String value = getValue(znConfigValue);
-
-        if (value != null) player.sendMessage(Utils.color(value));
+        player.sendMessage(Utils.color(this.getValue(znConfigValue)));
     }
 
     @Override
-    public String getValue(ZNConfigValue znConfigValue) {
-        return String.valueOf(this.configValueStringEnumMap.get(znConfigValue));
+    public <T> T getValue(ZNConfigValue znConfigValue) {
+        Object object = this.configValueStringEnumMap.get(znConfigValue);
+
+        return (T) object;
     }
 }

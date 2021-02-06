@@ -24,22 +24,27 @@ import java.util.UUID;
 
 public final class SkinFetch {
 
-    public final UUID uuid;
+    private final UUID uuid;
 
-    public String value;
-    public String signature;
+    private final String value;
+    private final String signature;
 
-    public long finishMS = -1;
-
-    public SkinFetch(final UUID uuid, final String value, final String signature) {
+    public SkinFetch(UUID uuid, String value, String signature) {
         this.uuid = uuid;
 
         this.value = value;
         this.signature = signature;
     }
 
-    public SkinFetch setFinishMS(long finishMS) {
-        this.finishMS = finishMS;
-        return this;
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getSignature() {
+        return signature;
     }
 }

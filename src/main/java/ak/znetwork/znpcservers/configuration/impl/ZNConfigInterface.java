@@ -37,5 +37,5 @@ public interface ZNConfigInterface {
 
     Yaml getYaml();
 
-    String getValue(ZNConfigValue znConfigValue);
+    <T> T getValue(ZNConfigValue znConfigValue);
 }

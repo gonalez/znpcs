@@ -35,12 +35,12 @@ public class NPCTask extends BukkitRunnable {
     public NPCTask(final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
 
-        this.runTaskTimerAsynchronously(this.serversNPC, 0L, 1L);
+        this.runTaskTimerAsynchronously(this.serversNPC, 60L, 1L);
     }
 
     @Override
     public void run() {
-        for (final ZNPC npc : this.serversNPC.getNpcManager().getNpcs()) {
+        for (final ZNPC npc : this.serversNPC.getNpcManager().getNPCs()) {
             npc.handlePath(); // Path
 
             for (final Player player : Bukkit.getOnlinePlayers()) {

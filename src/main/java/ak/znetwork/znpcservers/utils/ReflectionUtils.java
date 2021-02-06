@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers.utils;
 
+import ak.znetwork.znpcservers.cache.ClazzCache;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -45,17 +46,12 @@ public class ReflectionUtils {
      * Sends the packet to the receiver
      *
      * @param player receiver
-     * @param object packet to send
+     * @param packet packet to send
      */
-    public static void sendPacket(final Player player, final Object object) {
+    public static void sendPacket(final Player player, final Object packet) {
         try {
-            Object craftPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object playerConnection = craftPlayer.getClass().getField("playerConnection").get(craftPlayer);
-
-            Method sendPacket = playerConnection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + getBukkitPackage() + ".Packet"));
-
-            sendPacket.invoke(playerConnection, object);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | ClassNotFoundException e) {
+            ClazzCache.SEND_PACKET_METHOD.getCacheMethod().invoke(ClazzCache.PLAYER_CONNECTION_FIELD.getCacheField().get(ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player)), packet);
+        } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -76,8 +72,7 @@ public class ReflectionUtils {
      */
     public static String getFriendlyBukkitPackage() {
         String version = getBukkitPackage().replace("v", "").replace("R", "");
-        version = version.substring(2, version.length() - 2);
 
-        return version;
+        return version.substring(2, version.length() - 2);
     }
 }

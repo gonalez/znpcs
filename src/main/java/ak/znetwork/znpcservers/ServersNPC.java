@@ -24,12 +24,13 @@ import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.cache.exception.ClassLoadException;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
-import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.deserializer.ZNPCDeserializer;
+import ak.znetwork.znpcservers.listeners.NPCListeners;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
 import ak.znetwork.znpcservers.manager.CommandsManager;
+import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
@@ -71,21 +72,21 @@ public class ServersNPC extends JavaPlugin {
 
     private File data, npcPaths;
 
-    private ZNConfig config, messages;
-
     private int viewDistance;
 
     public long startTimer;
 
+    private static File dataFolder;
+
     private static boolean placeHolderSupport;
-
-    private static Executor executor;
-
-    private static Gson gson;
 
     private static String replaceSymbol;
 
+    private static Executor executor;
+
     private static ExecutorService executorService;
+
+    private static Gson gson;
 
     public static final int MILLI_SECOND = 20;
 
@@ -95,10 +96,12 @@ public class ServersNPC extends JavaPlugin {
 
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
 
-        npcPaths = this.getDataFolder().toPath().resolve("paths").toFile();
+        dataFolder = getDataFolder();
+
+        npcPaths = dataFolder.toPath().resolve("paths").toFile();
         if (!npcPaths.exists()) npcPaths.mkdirs();
 
-        data = new File(getDataFolder(), "data.json");
+        data = new File(dataFolder, "data.json");
         try {
             data.createNewFile();
         } catch (IOException e) {
@@ -107,17 +110,8 @@ public class ServersNPC extends JavaPlugin {
             return;
         }
 
-        // Load configuration
-        try {
-            config = new ZNConfig(ZNConfigType.CONFIG, getDataFolder().toPath().resolve("config.yml"));
-            messages = new ZNConfig(ZNConfigType.MESSAGES, getDataFolder().toPath().resolve("messages.yml"));
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-        // End load config
-
-        viewDistance = (Integer.parseInt(config.getValue(ZNConfigValue.VIEW_DISTANCE)));
-        replaceSymbol = (config.getValue(ZNConfigValue.REPLACE_SYMBOL));
+        viewDistance = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.VIEW_DISTANCE);
+        replaceSymbol = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.REPLACE_SYMBOL);
 
         gson = new GsonBuilder().
                 registerTypeAdapter(Location.class, new LocationSerialize()). // Add custom serializer since for Location class doesn't support
@@ -163,21 +157,20 @@ public class ServersNPC extends JavaPlugin {
             long startMs = System.currentTimeMillis();
             try {
                 /*
-                LOAD NPCS
-                 */
-                String zNPCdata = Files.toString(data, Charsets.UTF_8);
-                List<ZNPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<ZNPC>>() {
-                }.getType());
-                if (npcList != null) {
-                    this.npcManager.getNpcs().addAll(npcList);
-
-                    System.out.println("(Loaded " + npcList.size() + " znpcs in " + NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-                }
-
-                /*
                 LOAD PATHS
                  */
                 loadAllPaths();
+
+                /*
+                LOAD NPCS
+                 */
+                String zNPCdata = Files.toString(data, Charsets.UTF_8);
+                List<ZNPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<ZNPC>>(){}.getType());
+                if (npcList != null) {
+                    this.npcManager.getNPCs().addAll(npcList);
+
+                    System.out.println("(Loaded " + npcList.size() + " znpcs in " + NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
+                }
             } catch (IOException e) {
                 getServer().getPluginManager().disablePlugin(this);
 
@@ -185,7 +178,7 @@ public class ServersNPC extends JavaPlugin {
                 return;
             }
 
-            new NPCSaveTask(this, (Integer.parseInt(config.getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS))));
+            new NPCSaveTask(this, ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS));
 
             // Setup netty again for online players
             Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
@@ -194,7 +187,9 @@ public class ServersNPC extends JavaPlugin {
         // Init task for all npc
         new NPCTask(this);
 
+        // Register listeners
         new PlayerListeners(this);
+        new NPCListeners(this);
     }
 
     @Override
@@ -205,14 +200,6 @@ public class ServersNPC extends JavaPlugin {
 
         // Save values on config (???)
         saveAllNPC();
-    }
-
-    public ZNConfig getMessages() {
-        return messages;
-    }
-
-    public ZNConfig getConfiguration() {
-        return config;
     }
 
     public CommandsManager getCommandsManager() {
@@ -232,6 +219,10 @@ public class ServersNPC extends JavaPlugin {
     }
 
     // Default Utils
+    public static File getPluginFolder() {
+        return dataFolder;
+    }
+
     public static ExecutorService getExecutorService() {
         return executorService;
     }
@@ -260,7 +251,7 @@ public class ServersNPC extends JavaPlugin {
         for (File file : listFiles) {
             if (file.getName().endsWith(".path")) { // Is path
                 try {
-                    this.getNpcManager().getZnpcPaths().add(new ZNPCPathReader(file));
+                    this.getNpcManager().getNPCPaths().add(new ZNPCPathReader(file));
                 } catch (IOException e) {
                     Bukkit.getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
                 }
@@ -269,7 +260,7 @@ public class ServersNPC extends JavaPlugin {
     }
 
     public void removeAllViewers() {
-        for (ZNPC npc : getNpcManager().getNpcs()) {
+        for (ZNPC npc : getNpcManager().getNPCs()) {
             final Iterator<Player> it = npc.getViewers().iterator();
             while (it.hasNext()) {
                 final Player player = it.next();
@@ -289,7 +280,7 @@ public class ServersNPC extends JavaPlugin {
         if (System.currentTimeMillis() - startTimer <= (1000) * 5) return;
 
         try (FileWriter writer = new FileWriter(data)) {
-            gson.toJson(getNpcManager().getNpcs().stream().filter(ZNPC::isSave).collect(Collectors.toList()), writer);
+            gson.toJson(getNpcManager().getNPCs().stream().filter(ZNPC::isSave).collect(Collectors.toList()), writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -321,12 +312,12 @@ public class ServersNPC extends JavaPlugin {
     public final boolean createNPC(int id, final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
         final SkinFetch skinFetch = JSONUtils.getDefaultSkin(skin);
 
-        boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean found = this.getNpcManager().getNPCs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
 
-        this.getNpcManager().getNpcs().add(new ZNPC(this, id, holo_lines, skinFetch.value, skinFetch.signature, location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
+        this.getNpcManager().getNPCs().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
 
-        commandSender.ifPresent(sender -> messages.sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
+        commandSender.ifPresent(sender -> ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
         return true;
     }
 
@@ -337,14 +328,14 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean deleteNPC(int id) throws Exception {
-        final ZNPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
+        final ZNPC npc = this.npcManager.getNPCs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
 
         // Try find
         if (npc == null) {
             return false;
         }
 
-        getNpcManager().getNpcs().remove(npc);
+        getNpcManager().getNPCs().remove(npc);
 
         final Iterator<Player> it = npc.getViewers().iterator();
         while (it.hasNext()) {

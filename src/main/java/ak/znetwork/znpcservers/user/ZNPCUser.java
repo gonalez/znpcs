@@ -22,6 +22,7 @@ package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
+import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
@@ -44,7 +45,7 @@ import java.util.concurrent.Executor;
  * <p>
  * <p>
  * TODO
- * - CACHE MORE
+ * -
  */
 public class ZNPCUser {
 
@@ -58,15 +59,15 @@ public class ZNPCUser {
 
     private final ServersNPC serversNPC;
 
-    private long last_interact = 0;
-
     private final HashMap<Integer, Map<Long, Integer>> actionCooldown;
 
     private final Executor executor;
 
+    private final String channel_name = "npc_interact";
+
     private boolean hasPath = false;
 
-    private final String channel_name = "npc_interact";
+    private long last_interact = 0;
 
     public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
@@ -107,10 +108,13 @@ public class ZNPCUser {
                         if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2)) return;
 
                         int entityId = (int) idField.get(packet);
-                        serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
-                            if (npc.getActions() == null || npc.getActions().isEmpty()) return;
-
+                        serversNPC.getNpcManager().getNPCs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
                             last_interact = System.currentTimeMillis();
+
+                            // Call NPC interact event
+                            Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(player, npc));
+
+                            if (npc.getActions() == null || npc.getActions().isEmpty()) return;
 
                             executor.execute(() -> {
                                 for (String string : npc.getActions()) {
@@ -161,6 +165,8 @@ public class ZNPCUser {
      * Unregister channel
      */
     public void ejectNetty() {
+        if (!channel.pipeline().names().contains(channel_name)) return;
+
         // Remove channel
         channel.eventLoop().execute(() -> channel.pipeline().remove(channel_name));
     }

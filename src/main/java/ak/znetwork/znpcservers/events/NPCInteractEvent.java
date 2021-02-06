@@ -18,26 +18,40 @@
  *
  *
  */
-package ak.znetwork.znpcservers.utils;
+package ak.znetwork.znpcservers.events;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.bukkit.ChatColor;
+import ak.znetwork.znpcservers.npc.ZNPC;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 
-public class Utils {
+public class NPCInteractEvent extends Event {
 
-    public static boolean isVersionNewestThan(int ver) {
-        return getVersion() >= ver;
+    private static final HandlerList handlerList = new HandlerList();
+
+    private final Player player;
+
+    private final ZNPC znpc;
+
+    public NPCInteractEvent(Player player, ZNPC znpc) {
+        this.player = player;
+        this.znpc = znpc;
     }
 
-    public static int getVersion() {
-        return Integer.parseInt(ReflectionUtils.getFriendlyBukkitPackage());
+    public Player getPlayer() {
+        return player;
     }
 
-    public static String generateRandom() {
-        return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
+    public ZNPC getNPC() {
+        return znpc;
     }
 
-    public static String color(String string) {
-        return ChatColor.translateAlternateColorCodes('&', string);
+    @Override
+    public HandlerList getHandlers() {
+        return handlerList;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
     }
 }

@@ -26,6 +26,7 @@ import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
+import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -43,6 +44,7 @@ public class CommandsManager implements CommandExecutor {
     public CommandsManager(final String cmd, final ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
         this.serversNPC.getCommand(cmd).setExecutor(this);
+
         this.znCommands = new LinkedHashSet<>();
     }
 
@@ -66,14 +68,14 @@ public class CommandsManager implements CommandExecutor {
 
             if (znCommand.isPresent()) znCommand.get().execute(sender, args);
         } catch (CommandExecuteException e) {
-            serversNPC.getMessages().sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
 
             // if logs enabled
             e.printStackTrace();
         } catch (CommandPermissionException e) {
-            serversNPC.getMessages().sendMessage(sender, ZNConfigValue.NO_PERMISSION);
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NO_PERMISSION);
         } catch (CommandNotFoundException e) {
-            serversNPC.getMessages().sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
         }
         return true;
     }

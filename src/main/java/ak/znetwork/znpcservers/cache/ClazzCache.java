@@ -134,9 +134,13 @@ public enum ClazzCache {
 
     CHAT_COMPONENT_TEXT_CLASS(ClazzType.CLASS, 9, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".ChatComponentText", null),
 
-    //METHODS
+    PACKET_CLASS(ClazzType.CLASS, 8, 20, "net.minecraft.server." + ReflectionUtils.getBukkitPackage() + ".Packet", null),
+
+    // METHOD
     GET_SERVER_METHOD(ClazzType.METHOD, 8, 20, "getServer", Bukkit.getServer().getClass()),
     GET_HANDLE_METHOD(ClazzType.METHOD, 8, 20, "getHandle", CRAFT_WORLD_CLASS.getCacheClass()),
+
+    SEND_PACKET_METHOD(ClazzType.METHOD, 8, 20, "sendPacket", PLAYER_CONNECTION_CLASS.getCacheClass(), PACKET_CLASS.getCacheClass()),
 
     GET_HANDLE_PLAYER_METHOD(ClazzType.METHOD, 8, 20, "getHandle", CRAFT_PLAYER_CLASS.getCacheClass()),
 

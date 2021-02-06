@@ -22,28 +22,28 @@ package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
+import com.google.common.collect.Lists;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-public class NPCManager {
+public final class NPCManager {
 
-    private final LinkedHashSet<ZNPC> npcs;
+    private final LinkedHashSet<ZNPC> npcList;
 
-    private final List<ZNPCPathReader> znpcPaths;
+    private final List<ZNPCPathReader> npcPaths;
 
     public NPCManager() {
-        this.npcs = new LinkedHashSet<>();
+        this.npcList = new LinkedHashSet<>();
 
-        this.znpcPaths = new ArrayList<>();
+        this.npcPaths = Lists.newArrayList();
     }
 
-    public List<ZNPCPathReader> getZnpcPaths() {
-        return znpcPaths;
+    public List<ZNPCPathReader> getNPCPaths() {
+        return npcPaths;
     }
 
-    public LinkedHashSet<ZNPC> getNpcs() {
-        return npcs;
+    public LinkedHashSet<ZNPC> getNPCs() {
+        return npcList;
     }
 }

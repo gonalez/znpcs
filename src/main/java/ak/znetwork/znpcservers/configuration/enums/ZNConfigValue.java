@@ -43,17 +43,29 @@ public enum ZNConfigValue {
     INVALID_NUMBER(ZNConfigType.MESSAGES, "&cHey!, The inserted number/id does not look like a number..", String.class),
     NPC_NOT_FOUND(ZNConfigType.MESSAGES, "&cHey!, I couldnt find a npc with this id.", String.class);
 
-    public final ZNConfigType znConfigType;
+    private final ZNConfigType znConfigType;
 
-    public final Object value;
+    private final Object value;
 
-    public final Class<?> ext;
+    private final Class<?> clazz;
 
-    ZNConfigValue(ZNConfigType znConfigType, Object value, Class<?> ext) {
+    ZNConfigValue(ZNConfigType znConfigType, Object value, Class<?> clazz) {
         this.znConfigType = znConfigType;
 
-        this.ext = ext;
+        this.clazz = clazz;
 
         this.value = value;
+    }
+
+    public ZNConfigType getConfigType() {
+        return znConfigType;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public Class<?> getClazz() {
+        return clazz;
     }
 }
