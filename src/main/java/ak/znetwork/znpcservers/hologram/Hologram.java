@@ -46,9 +46,6 @@ import java.util.List;
  */
 public class Hologram {
 
-    public Location location;
-    public String[] lines;
-
     private final List<Object> entityArmorStands;
 
     private final HashSet<Player> viewers;
@@ -56,6 +53,10 @@ public class Hologram {
     private final Object nmsWorld;
 
     private final Method IChatBaseComponentMethod;
+
+    private String[] lines;
+
+    private Location location;
 
     public Hologram(final Location location, final String... lines) throws Exception {
         this.viewers = new HashSet<>();
@@ -211,7 +212,25 @@ public class Hologram {
         updateLoc();
     }
 
+    public void setLines(String[] lines) {
+        this.lines = lines;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public String[] getLines() {
+        return lines;
+    }
+
     public String getLinesFormatted() {
         return String.join(":", lines);
     }
+
+
 }

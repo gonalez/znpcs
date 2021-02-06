@@ -67,6 +67,6 @@ public final class ConfigManager {
      * @return configuration
      */
     public static ZNConfig getByType(ZNConfigType type) {
-        return CONFIG_IMMUTABLE_MAP.get(type.name().toUpperCase());
+        return CONFIG_IMMUTABLE_MAP.get(type.name());
     }
 }

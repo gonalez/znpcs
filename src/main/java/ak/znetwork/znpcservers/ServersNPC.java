@@ -196,7 +196,7 @@ public class ServersNPC extends JavaPlugin {
     public void onDisable() {
         removeAllViewers();
 
-        Bukkit.getOnlinePlayers().forEach(o -> getZnpcUsers().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(ZNPCUser::ejectNetty));
+        Bukkit.getOnlinePlayers().forEach(o -> getNPCUsers().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(ZNPCUser::ejectNetty));
 
         // Save values on config (???)
         saveAllNPC();
@@ -210,7 +210,7 @@ public class ServersNPC extends JavaPlugin {
         return npcManager;
     }
 
-    public LinkedHashSet<ZNPCUser> getZnpcUsers() {
+    public LinkedHashSet<ZNPCUser> getNPCUsers() {
         return znpcUsers;
     }
 
@@ -296,7 +296,7 @@ public class ServersNPC extends JavaPlugin {
             final ZNPCUser playerNetty = new ZNPCUser(this, player);
             playerNetty.injectNetty(player);
 
-            this.getZnpcUsers().add(playerNetty);
+            this.getNPCUsers().add(playerNetty);
         } catch (Exception exception) {
             throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
         }

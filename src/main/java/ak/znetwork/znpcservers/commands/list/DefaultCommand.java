@@ -260,7 +260,7 @@ public class DefaultCommand {
             final List<String> stringList = Arrays.asList(lines.split(" "));
             Collections.reverse(stringList);
 
-            foundNPC.get().getHologram().lines = stringList.toArray(new String[0]);
+            foundNPC.get().getHologram().setLines(stringList.toArray(new String[0]));
             foundNPC.get().getHologram().createHolos();
 
             // Update lines
@@ -529,7 +529,7 @@ public class DefaultCommand {
 
         Player player = (Player) sender;
 
-        ZNPCUser znpcUser = this.serversNPC.getZnpcUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(player.getUniqueId())).findFirst().orElse(null);
+        ZNPCUser znpcUser = this.serversNPC.getNPCUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(player.getUniqueId())).findFirst().orElse(null);
         if (znpcUser == null) return;
 
         if (args.containsKey("set")) {

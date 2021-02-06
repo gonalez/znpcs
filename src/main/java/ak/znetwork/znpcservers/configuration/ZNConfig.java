@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * TODO
  * - -
  */
-public class ZNConfig implements ZNConfigInterface {
+public final class ZNConfig implements ZNConfigInterface {
 
     private final Path path;
 
@@ -87,8 +87,7 @@ public class ZNConfig implements ZNConfigInterface {
 
                         if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getClazz())) continue;
                         configValueStringEnumMap.put(znConfigValue, entry.getValue());
-                    } catch (IllegalArgumentException exception) {
-                    } // It is not a Config Value (@ZNConfigValue)
+                    } catch (IllegalArgumentException exception) {} // It is not a Config Value (@ZNConfigValue)
                 }
             }
 

@@ -43,10 +43,10 @@ public final class PlayerListeners implements Listener {
 
     @EventHandler
     public void onQuit(final PlayerQuitEvent event) {
-        this.serversNPC.getZnpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
+        this.serversNPC.getNPCUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
             playerNetty.ejectNetty();
 
-            this.serversNPC.getZnpcUsers().remove(playerNetty);
+            this.serversNPC.getNPCUsers().remove(playerNetty);
         });
 
         this.serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
