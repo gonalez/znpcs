@@ -37,7 +37,7 @@ public class NPCListeners implements Listener {
     }
 
     @EventHandler
-    public void onWorldUnload(WorldLoadEvent event) {
+    public void onWorldLoad(WorldLoadEvent event) {
         for (ZNPC npc : serversNPC.getNpcManager().getNPCs()) {
             String worldName = npc.getWorldName();
 

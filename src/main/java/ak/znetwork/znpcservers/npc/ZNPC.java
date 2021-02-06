@@ -454,9 +454,6 @@ public class ZNPC {
         double yDiff = (location.getY() - vector.getY());
         Location direction = currentPathLocation.clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).clone().toVector());
         try {
-            Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
-            Object lookPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, (byte) (direction.getYaw() % (!direction.equals(this.location) ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (!direction.equals(this.location) ? 360. : 0) * 256 / 360), false);
-
             lookAt(Optional.empty(), direction, true);
         } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
