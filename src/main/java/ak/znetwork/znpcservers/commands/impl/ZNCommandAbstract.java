@@ -22,34 +22,23 @@ package ak.znetwork.znpcservers.commands.impl;
 
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
+import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
 
 public abstract class ZNCommandAbstract<T extends CommandSender> {
 
-    private final Object object;
-    private final Method method;
+    @Getter private final Object object;
+    @Getter private final Method method;
 
-    private final String permission;
+    @Getter private final String permission;
 
     public ZNCommandAbstract(final Object object, final Method method, final String permission) {
         this.object = object;
         this.method = method;
 
         this.permission = permission;
-    }
-
-    protected Object getObject() {
-        return object;
-    }
-
-    protected String getPermission() {
-        return permission;
-    }
-
-    protected Method getMethod() {
-        return method;
     }
 
     public abstract void execute(T sender, Object args) throws CommandPermissionException, CommandExecuteException;

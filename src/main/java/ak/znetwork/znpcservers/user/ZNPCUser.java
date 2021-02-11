@@ -31,6 +31,8 @@ import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -50,24 +52,19 @@ import java.util.concurrent.Executor;
 public class ZNPCUser {
 
     private final Object networkManager;
-
     private final Channel channel;
-
-    private final UUID uuid;
-
     private final Field idField;
 
+    private final String channel_name = "npc_interact";
+    private long last_interact = 0;
+
     private final ServersNPC serversNPC;
+    private final Executor executor;
 
     private final HashMap<Integer, Map<Long, Integer>> actionCooldown;
 
-    private final Executor executor;
-
-    private final String channel_name = "npc_interact";
-
-    private boolean hasPath = false;
-
-    private long last_interact = 0;
+    @Getter private final UUID uuid;
+    @Getter @Setter private boolean hasPath = false;
 
     public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
         this.serversNPC = serversNPC;
@@ -108,7 +105,7 @@ public class ZNPCUser {
                         if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2)) return;
 
                         int entityId = (int) idField.get(packet);
-                        serversNPC.getNpcManager().getNPCs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
+                        serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
                             last_interact = System.currentTimeMillis();
 
                             // Call NPC interact event
@@ -174,17 +171,6 @@ public class ZNPCUser {
     /*
     Other
      */
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public boolean isHasPath() {
-        return hasPath;
-    }
-
-    public void setHasPath(boolean hasPath) {
-        this.hasPath = hasPath;
-    }
 
     public Player toPlayer() {
         return Bukkit.getPlayer(getUuid());

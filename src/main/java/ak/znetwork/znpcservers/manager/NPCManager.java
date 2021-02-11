@@ -23,27 +23,19 @@ package ak.znetwork.znpcservers.manager;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import com.google.common.collect.Lists;
+import lombok.Getter;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 
 public final class NPCManager {
 
-    private final LinkedHashSet<ZNPC> npcList;
-
-    private final List<ZNPCPathReader> npcPaths;
+    @Getter private final LinkedHashSet<ZNPC> npcs;
+    @Getter private final List<ZNPCPathReader> npcPaths;
 
     public NPCManager() {
-        this.npcList = new LinkedHashSet<>();
+        this.npcs = new LinkedHashSet<>();
 
         this.npcPaths = Lists.newArrayList();
-    }
-
-    public List<ZNPCPathReader> getNPCPaths() {
-        return npcPaths;
-    }
-
-    public LinkedHashSet<ZNPC> getNPCs() {
-        return npcList;
     }
 }

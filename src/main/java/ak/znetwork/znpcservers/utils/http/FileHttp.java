@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.utils.http;
 
 import com.google.common.io.CharStreams;
+import lombok.Getter;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -32,7 +33,7 @@ import java.net.URLEncoder;
 
 public class FileHttp {
 
-    private String result;
+    @Getter private String result;
 
     public FileHttp(String url, String skin) throws IOException {
         HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url).openConnection();
@@ -55,9 +56,5 @@ public class FileHttp {
                 this.result = CharStreams.toString(bufferedReader);
             }
         }
-    }
-
-    public String getResult() {
-        return result;
     }
 }

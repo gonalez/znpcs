@@ -40,7 +40,7 @@ public class NPCTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (final ZNPC npc : this.serversNPC.getNpcManager().getNPCs()) {
+        for (final ZNPC npc : this.serversNPC.getNpcManager().getNpcs()) {
             npc.handlePath(); // Path
 
             for (final Player player : Bukkit.getOnlinePlayers()) {

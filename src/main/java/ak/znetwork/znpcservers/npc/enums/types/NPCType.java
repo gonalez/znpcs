@@ -22,6 +22,7 @@ package ak.znetwork.znpcservers.npc.enums.types;
 
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.utils.Utils;
+import lombok.Getter;
 import org.apache.commons.lang.math.NumberUtils;
 
 import java.lang.reflect.Constructor;
@@ -67,18 +68,19 @@ public enum NPCType {
     WOLF(ClazzCache.ENTITY_WOLF_CLASS, "", -1, -1, "setAngry", "setAge"),
     END_CRYSTAL(ClazzCache.ENTITY_END_CRYSTAL_CLASS, "", 51, 0);
 
-    private final ClazzCache clazzCache;
+    @Getter private final double holoHeight;
+
+    @Getter private final ClazzCache clazzCache;
+    @Getter private Constructor<?> constructor = null;
+
+    @Getter private Object entityType;
+
+    @Getter private final String[] customization;
+    @Getter private final HashMap<String, Method> customizationMethods;
+
+    @Getter private final int id;
+
     private final String newName;
-
-    private final int id;
-
-    private final double holoHeight;
-    private final String[] customization;
-    private final HashMap<String, Method> customizationMethods;
-
-    private Constructor<?> constructor = null;
-
-    private Object entityType;
 
     NPCType(final ClazzCache clazzCache, final String newName, final int id, final double holoHeight, final String... customization) {
         this.clazzCache = clazzCache;
@@ -172,30 +174,6 @@ public enum NPCType {
         if (this == NPCType.SHEEP && name.equalsIgnoreCase("setColor")) {
             method.invoke(entity, ClazzCache.ENUM_COLOR_CLASS.getCacheClass().getField(String.valueOf(values[0])).get(null));
         } else method.invoke(entity, values);
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public Constructor<?> getConstructor() {
-        return constructor;
-    }
-
-    public ClazzCache getClazzCache() {
-        return clazzCache;
-    }
-
-    public Object getEntityType() {
-        return entityType;
-    }
-
-    public double getHoloHeight() {
-        return holoHeight;
-    }
-
-    public HashMap<String, Method> getCustomizationMethods() {
-        return customizationMethods;
     }
 
     public static NPCType fromString(String text) {

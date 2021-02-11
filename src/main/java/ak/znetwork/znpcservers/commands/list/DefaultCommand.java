@@ -80,7 +80,7 @@ public class DefaultCommand {
             return;
         }
 
-        boolean foundNPC = serversNPC.getNpcManager().getNPCs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
 
         if (foundNPC) {
             sender.sendMessage(ChatColor.RED + "I have found an npc with this id, try putting a unique id..");
@@ -118,7 +118,7 @@ public class DefaultCommand {
             return;
         }
 
-        boolean foundNPC = serversNPC.getNpcManager().getNPCs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
 
         if (!foundNPC) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -136,10 +136,10 @@ public class DefaultCommand {
 
     @CMDInfo(aliases = {}, required = "list", permission = "znpcs.cmd.list")
     public void list(final CommandSender sender, Map<String, String> args) {
-        if (serversNPC.getNpcManager().getNPCs().isEmpty()) {
+        if (serversNPC.getNpcManager().getNpcs().isEmpty()) {
             sender.sendMessage(ChatColor.RED + "No NPC found.");
         } else
-            serversNPC.getNpcManager().getNPCs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
+            serversNPC.getNpcManager().getNpcs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
     }
 
     @CMDInfo(aliases = {"-id", "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
@@ -156,7 +156,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -212,7 +212,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -248,7 +248,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -286,7 +286,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -321,7 +321,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -366,7 +366,7 @@ public class DefaultCommand {
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -445,7 +445,7 @@ public class DefaultCommand {
             return;
         }
 
-        ZNPC foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -480,7 +480,7 @@ public class DefaultCommand {
             return;
         }
 
-        ZNPC foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -529,7 +529,7 @@ public class DefaultCommand {
 
         Player player = (Player) sender;
 
-        ZNPCUser znpcUser = this.serversNPC.getNPCUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(player.getUniqueId())).findFirst().orElse(null);
+        ZNPCUser znpcUser = this.serversNPC.getNpcUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(player.getUniqueId())).findFirst().orElse(null);
         if (znpcUser == null) return;
 
         if (args.containsKey("set")) {
@@ -545,7 +545,7 @@ public class DefaultCommand {
                 return;
             }
 
-            ZNPC foundNPC = serversNPC.getNpcManager().getNPCs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+            ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
 
             if (foundNPC == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -554,7 +554,7 @@ public class DefaultCommand {
 
             String pathName = args.get("path").trim();
 
-            ZNPCPathReader znpcPath = serversNPC.getNpcManager().getNPCPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
+            ZNPCPathReader znpcPath = serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
 
             foundNPC.setPath(znpcPath);
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
@@ -566,7 +566,7 @@ public class DefaultCommand {
                 return;
             }
 
-            boolean exists = serversNPC.getNpcManager().getNPCPaths().stream().anyMatch(znpcPath -> znpcPath.getName().equalsIgnoreCase(pathName));
+            boolean exists = serversNPC.getNpcManager().getNpcPaths().stream().anyMatch(znpcPath -> znpcPath.getName().equalsIgnoreCase(pathName));
 
             if (exists) {
                 player.sendMessage(ChatColor.RED + "There is already a path with this name.");
@@ -586,10 +586,10 @@ public class DefaultCommand {
 
             player.sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {
-            if (serversNPC.getNpcManager().getNPCPaths().isEmpty())
+            if (serversNPC.getNpcManager().getNpcPaths().isEmpty())
                 player.sendMessage(ChatColor.RED + "No PATH found!");
             else
-                serversNPC.getNpcManager().getNPCPaths().forEach(znpcPath -> player.sendMessage(ChatColor.GREEN + znpcPath.getName()));
+                serversNPC.getNpcManager().getNpcPaths().forEach(znpcPath -> player.sendMessage(ChatColor.GREEN + znpcPath.getName()));
         }
 
     }

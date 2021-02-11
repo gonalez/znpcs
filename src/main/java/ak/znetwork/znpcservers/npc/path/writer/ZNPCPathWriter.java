@@ -26,6 +26,7 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.user.ZNPCUser;
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -42,15 +43,13 @@ import java.util.logging.Level;
 
 public final class ZNPCPathWriter {
 
+    @Getter private final String name;
+
+    @Getter private final ZNPCUser npcUser;
+    @Getter private final File file;
+    @Getter private final List<Location> locationsCache;
+
     private final ServersNPC serversNPC;
-
-    private final String name;
-
-    private final ZNPCUser znpcUser;
-
-    private final File file;
-
-    private final List<Location> locationsCache;
 
     private final int MAX_LOCATIONS = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.MAX_PATH_LOCATIONS);
 
@@ -59,7 +58,7 @@ public final class ZNPCPathWriter {
 
         this.name = name;
 
-        this.znpcUser = znpcUser;
+        this.npcUser = znpcUser;
 
         this.file = new File(serversNPC.getDataFolder().getAbsolutePath() + "/paths", name + ".path");
 
@@ -78,15 +77,15 @@ public final class ZNPCPathWriter {
      */
     public void start() {
         // Set path
-        this.znpcUser.setHasPath(true);
+        this.getNpcUser().setHasPath(true);
 
         // Schedule npc path task
         ServersNPC.getExecutorService().execute(() -> {
             // This while loop will continue recording new locations for path & blocking the current thread,
             // As long the player is connected & the locations size hasn't reached the limit,
             // Once the loop is broken the thread will write the recorded locations to the path file.
-            while (this.znpcUser.toPlayer() != null && this.znpcUser.isHasPath() && this.MAX_LOCATIONS > locationsCache.size()) {
-                Location location = this.znpcUser.toPlayer().getLocation();
+            while (this.getNpcUser().toPlayer() != null && this.getNpcUser().isHasPath() && this.MAX_LOCATIONS > locationsCache.size()) {
+                Location location = this.getNpcUser().toPlayer().getLocation();
 
                 // Check if location is valid
                 if (checkEntry(location)) {
@@ -101,7 +100,7 @@ public final class ZNPCPathWriter {
             try {
                 write();
             } catch (IOException e) {
-                znpcUser.setHasPath(false);
+                getNpcUser().setHasPath(false);
 
                 serversNPC.getLogger().log(Level.WARNING, String.format("Path %s could not be created", this.name), e);
             }
@@ -135,10 +134,10 @@ public final class ZNPCPathWriter {
 
                 boolean last = !locationIterator.hasNext();
                 if (last) {
-                    znpcUser.setHasPath(false);
+                    getNpcUser().setHasPath(false);
 
                     // Add path
-                    serversNPC.getNpcManager().getNPCPaths().add(new ZNPCPathReader(file));
+                    serversNPC.getNpcManager().getNpcPaths().add(new ZNPCPathReader(file));
                 }
             }
         }
@@ -158,6 +157,6 @@ public final class ZNPCPathWriter {
     }
 
     public Player getPlayer() {
-        return this.znpcUser.toPlayer();
+        return this.getNpcUser().toPlayer();
     }
 }

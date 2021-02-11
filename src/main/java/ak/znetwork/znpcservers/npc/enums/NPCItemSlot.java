@@ -20,6 +20,8 @@
  */
 package ak.znetwork.znpcservers.npc.enums;
 
+import lombok.Getter;
+
 /**
  * NPC ITEM SLOT
  * <p>
@@ -28,14 +30,10 @@ package ak.znetwork.znpcservers.npc.enums;
 public enum NPCItemSlot {
     HAND(0), HELMET(4), CHESTPLATE(3), LEGGINGS(2), BOOTS(1);
 
-    private final int id;
+    @Getter private final int id;
 
     NPCItemSlot(int id) {
         this.id = id;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public static NPCItemSlot fromString(String text) {

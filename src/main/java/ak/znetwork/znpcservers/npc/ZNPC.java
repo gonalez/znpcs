@@ -33,6 +33,8 @@ import com.google.gson.annotations.Expose;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,59 +50,37 @@ import java.util.logging.Level;
 
 public class ZNPC {
 
-    // Serialize
-    @Expose
-    private final int id;
-    @Expose
-    private boolean hasGlow = false;
-    @Expose
-    private boolean hasToggleName = false;
-    @Expose
-    private boolean hasToggleHolo = true;
-    @Expose
-    private boolean hasLookAt = false;
-    @Expose
-    private boolean hasMirror = false;
-    @Expose
-    private boolean isReversePath = false;
+    // <-- Serialize = true -->
 
-    @Expose
-    private Location location;
+    @Expose @Getter private final int id;
 
-    @Expose
-    private List<String> actions;
+    @Expose @Getter @Setter private boolean hasGlow = false;
+    @Expose @Getter @Setter private boolean hasToggleName = false;
+    @Expose @Getter @Setter private boolean hasToggleHolo = true;
+    @Expose @Getter @Setter private boolean hasLookAt = false;
+    @Expose @Getter @Setter private boolean hasMirror = false;
+    @Expose @Getter @Setter private boolean isReversePath = false;
 
-    @Expose
-    private final EnumMap<NPCItemSlot, Material> npcEquipments;
+    @Expose @Getter @Setter private boolean save;
 
-    @Expose
-    private String skin, signature;
+    @Expose @Getter @Setter private String skin, signature;
+    @Expose @Getter private String glowName = "WHITE";
+    @Expose @Getter @Setter private String lines;
+    @Expose @Getter @Setter private String pathName;
 
-    @Expose
-    private String glowName = "WHITE";
+    @Expose @Getter @Setter private NPCType npcType;
+    @Expose private Location location;
 
-    @Expose
-    private final boolean save;
 
-    @Expose
-    private NPCType npcType;
+    @Expose @Getter @Setter private List<String> actions;
+    @Expose @Getter @Setter private EnumMap<NPCItemSlot, Material> npcEquipments;
+    @Expose @Getter private Map<String, List> customizationMap;
 
-    @Expose
-    private String lines;
+    // <-- Serialize = false -->
 
-    @Expose
-    public Map<String, List> customizationMap;
+    @Getter private final ServersNPC serversNPC;
 
-    @Expose
-    public String pathName;
-
-    /*
-    Serialize = false
-     */
-    private final ServersNPC serversNPC;
-
-    private String worldName;
-
+    // Cache
     private Object entityPlayerArray;
     private Object glowColor;
     private Object dataWatcherRegistryEnum;
@@ -116,21 +96,18 @@ public class ZNPC {
 
     private final GameProfile gameProfile;
 
-    private final Hologram hologram;
+    @Getter @Setter private String worldName;
 
-    private final HashSet<Player> viewers;
+    @Getter private final HashSet<Player> viewers;
 
-    private int entity_id;
+    @Getter @Setter private int entity_id;
+    @Getter @Setter private Hologram hologram;
 
-    /*
-    PATH
-     */
+    // Path
     private ZNPCPathReader npcPath;
-
-    private int currentEntryPath = 0;
-
     private Location currentPathLocation;
 
+    private int currentEntryPath = 0;
     private boolean reversePath = false;
 
     /**
@@ -551,182 +528,10 @@ public class ZNPC {
         }
     }
 
-    /**
-     * @return get skin value
-     */
-    public String getSkin() {
-        return skin;
-    }
-
-    /**
-     * @return get skin signature
-     */
-    public String getSignature() {
-        return signature;
-    }
-
-    /**
-     * @param skin
-     */
-    public void setSkin(String skin) {
-        this.skin = skin;
-    }
-
-    /**
-     * @param signature
-     */
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    /**
-     * @return get actions
-     */
-    public List<String> getActions() {
-        return actions;
-    }
-
-    /**
-     * Set actions
-     *
-     * @param actions set
-     */
-    public void setActions(List<String> actions) {
-        this.actions = actions;
-    }
-
-    /**
-     * Set lines
-     *
-     * @param lines set
-     */
-    public void setLines(String lines) {
-        this.lines = lines;
-    }
-
-    /**
-     * @return has holo
-     */
-    public boolean isHasToggleHolo() {
-        return hasToggleHolo;
-    }
-
-    /**
-     * @return has glow visible
-     */
-    public boolean isHasGlow() {
-        return hasGlow;
-    }
-
-    /**
-     * @return has bukkit name visibile
-     */
-    public boolean isHasToggleName() {
-        return hasToggleName;
-    }
-
-    /**
-     * @return has same skin of players
-     */
-    public boolean isHasMirror() {
-        return hasMirror;
-    }
-
-    /**
-     * @param hasMirror set mirror mode
-     */
-    public void setHasMirror(boolean hasMirror) {
-        this.hasMirror = hasMirror;
-    }
-
-    /**
-     * Set glow visibility
-     *
-     * @param hasGlow set
-     */
-    public void setHasGlow(boolean hasGlow) {
-        this.hasGlow = hasGlow;
-    }
-
-
-    /**
-     * Set glow color
-     *
-     * @param glowColor set
-     */
-    public void setGlowColor(Object glowColor) {
-        this.glowColor = glowColor;
-    }
-
-    /**
-     * Set glow color name
-     *
-     * @param glowName set
-     */
-    public void setGlowName(String glowName) {
-        this.glowName = glowName;
-    }
-
-    /**
-     * Set holo visibility
-     *
-     * @param hasToggleHolo set
-     */
-    public void setHasToggleHolo(boolean hasToggleHolo) {
-        this.hasToggleHolo = hasToggleHolo;
-    }
-
-    /**
-     * Npc look at location toggle
-     *
-     * @param hasLookAt set
-     */
-    public void setHasLookAt(boolean hasLookAt) {
-        this.hasLookAt = hasLookAt;
-    }
-
-    /**
-     * Toggle name for npc
-     *
-     * @param hasToggleName set
-     */
-    public void setHasToggleName(boolean hasToggleName) {
-        this.hasToggleName = hasToggleName;
-    }
-
-    /**
-     * Get color for glow
-     *
-     * @return glow color
-     */
-    public String getGlowName() {
-        return glowName;
-    }
-
-    /**
-     * @return bukkit entity id
-     */
-    public int getEntity_id() {
-        return entity_id;
-    }
-
-    /**
-     * @return
-     */
-    public boolean isSave() {
-        return save;
-    }
-
-    /**
-     * Toggle (hide / show) look
-     */
     public void toggleLookAt() {
         hasLookAt = !hasLookAt;
     }
 
-    /**
-     * Toggle npc holo
-     */
     public void toggleHolo() {
         hasToggleHolo = !hasToggleHolo;
 
@@ -738,91 +543,12 @@ public class ZNPC {
         hasMirror = !hasMirror;
     }
 
-    /**
-     * Obtain the id of the npc
-     *
-     * @return npc id
-     */
-    public int getId() {
-        return id;
-    }
-
-    /**
-     * Obtain the entity type of the npc
-     *
-     * @return npc type
-     */
-    public NPCType getNpcType() {
-        return npcType;
-    }
-
-    /**
-     * Obtain the location of the npc
-     *
-     * @return npc location
-     */
     public Location getLocation() {
         return (hasPath() && currentPathLocation != null ? currentPathLocation : location);
     }
 
-    /**
-     * @return npc item slots with mat name
-     */
-    public EnumMap<NPCItemSlot, Material> getNpcItemSlotMaterialHashMap() {
-        return npcEquipments;
-    }
-
-    /**
-     * @return entity
-     */
     public Object getZnEntity() {
         return znEntity;
-    }
-
-    /**
-     * Get hologram for npc
-     *
-     * @return holo
-     */
-    public Hologram getHologram() {
-        return hologram;
-    }
-
-    /**
-     * Obtain current viewers list
-     *
-     * @return viewers list
-     */
-    public HashSet<Player> getViewers() {
-        return viewers;
-    }
-
-    public boolean isHasLookAt() {
-        return hasLookAt;
-    }
-
-    public String getWorldName() {
-        return worldName;
-    }
-
-    public void setWorldName(String worldName) {
-        this.worldName = worldName;
-    }
-
-    public String getPathName() {
-        return pathName;
-    }
-
-    public void setPathName(String pathName) {
-        this.pathName = pathName;
-    }
-
-    public boolean isReversePath() {
-        return isReversePath;
-    }
-
-    public void setReversePath(boolean reversePath) {
-        isReversePath = reversePath;
     }
 
     public void setPath(ZNPCPathReader znpcPathReader) {
@@ -835,10 +561,6 @@ public class ZNPC {
 
     public ZNPCPathReader getPathReader() {
         return npcPath;
-    }
-
-    public Map<String, List> getCustomizationMap() {
-        return customizationMap;
     }
 
     public boolean hasPath() {
@@ -864,9 +586,8 @@ public class ZNPC {
         }
     }
 
-    public Object getGlowColor(final String string) throws Exception {
+    public Object getGlowColor(String string) throws Exception {
         Class<?> clazzCache = ClazzCache.ENUM_CHAT_FORMAT_CLASS.getCacheClass();
-
         try {
             return clazzCache.getField(string.trim().toUpperCase()).get(null);
         } catch (NoSuchFieldException e) {

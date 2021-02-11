@@ -37,13 +37,10 @@ import java.util.Optional;
 
 public class CommandsManager implements CommandExecutor {
 
-    private final ServersNPC serversNPC;
-
-    private LinkedHashSet<ZNCommand> znCommands;
+    private final LinkedHashSet<ZNCommand> znCommands;
 
     public CommandsManager(final String cmd, final ServersNPC serversNPC) {
-        this.serversNPC = serversNPC;
-        this.serversNPC.getCommand(cmd).setExecutor(this);
+        serversNPC.getCommand(cmd).setExecutor(this);
 
         this.znCommands = new LinkedHashSet<>();
     }

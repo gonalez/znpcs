@@ -63,30 +63,29 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
 public class ServersNPC extends JavaPlugin {
 
-    private CommandsManager commandsManager;
-    private NPCManager npcManager;
+    @Getter private CommandsManager commandsManager;
+    @Getter private NPCManager npcManager;
 
-    private LinkedHashSet<ZNPCUser> znpcUsers;
+    @Getter private LinkedHashSet<ZNPCUser> npcUsers;
 
-    private File data, npcPaths;
+    @Getter private int viewDistance;
+    @Getter private long startTimer;
 
-    private int viewDistance;
+    @Getter private static String replaceSymbol;
+    @Getter private static boolean placeHolderSupport;
 
-    public long startTimer;
+    @Getter private static Executor executor;
+    @Getter private static ExecutorService executorService;
 
-    private static File dataFolder;
+    @Getter private static Gson gson;
 
-    private static boolean placeHolderSupport;
+    @Getter private File data, npcPaths;
 
-    private static String replaceSymbol;
-
-    private static Executor executor;
-
-    private static ExecutorService executorService;
-
-    private static Gson gson;
+    @Getter private static File pluginFolder;
 
     public static final int MILLI_SECOND = 20;
 
@@ -96,12 +95,12 @@ public class ServersNPC extends JavaPlugin {
 
         if (!getDataFolder().exists()) getDataFolder().mkdirs();
 
-        dataFolder = getDataFolder();
+        pluginFolder = getDataFolder();
 
-        npcPaths = dataFolder.toPath().resolve("paths").toFile();
+        npcPaths = pluginFolder.toPath().resolve("paths").toFile();
         if (!npcPaths.exists()) npcPaths.mkdirs();
 
-        data = new File(dataFolder, "data.json");
+        data = new File(pluginFolder, "data.json");
         try {
             data.createNewFile();
         } catch (IOException e) {
@@ -122,7 +121,7 @@ public class ServersNPC extends JavaPlugin {
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        znpcUsers = new LinkedHashSet<>();
+        npcUsers = new LinkedHashSet<>();
 
         npcManager = new NPCManager();
 
@@ -156,18 +155,14 @@ public class ServersNPC extends JavaPlugin {
 
             long startMs = System.currentTimeMillis();
             try {
-                /*
-                LOAD PATHS
-                 */
+                // Load all paths...
                 loadAllPaths();
 
-                /*
-                LOAD NPCS
-                 */
+                // Load all NPCs...
                 String zNPCdata = Files.toString(data, Charsets.UTF_8);
                 List<ZNPC> npcList = gson.fromJson(zNPCdata, new TypeToken<List<ZNPC>>(){}.getType());
                 if (npcList != null) {
-                    this.npcManager.getNPCs().addAll(npcList);
+                    this.npcManager.getNpcs().addAll(npcList);
 
                     System.out.println("(Loaded " + npcList.size() + " znpcs in " + NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
                 }
@@ -196,62 +191,20 @@ public class ServersNPC extends JavaPlugin {
     public void onDisable() {
         removeAllViewers();
 
-        Bukkit.getOnlinePlayers().forEach(o -> getNPCUsers().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(ZNPCUser::ejectNetty));
+        Bukkit.getOnlinePlayers().forEach(o -> getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(ZNPCUser::ejectNetty));
 
         // Save values on config (???)
         saveAllNPC();
     }
-
-    public CommandsManager getCommandsManager() {
-        return commandsManager;
-    }
-
-    public NPCManager getNpcManager() {
-        return npcManager;
-    }
-
-    public LinkedHashSet<ZNPCUser> getNPCUsers() {
-        return znpcUsers;
-    }
-
-    public int getViewDistance() {
-        return viewDistance;
-    }
-
-    // Default Utils
-    public static File getPluginFolder() {
-        return dataFolder;
-    }
-
-    public static ExecutorService getExecutorService() {
-        return executorService;
-    }
-
-    public static Executor getExecutor() {
-        return executor;
-    }
-
-    public static boolean isPlaceHolderSupport() {
-        return placeHolderSupport;
-    }
-
-    public static Gson getGson() {
-        return gson;
-    }
-
-    public static String getReplaceSymbol() {
-        return replaceSymbol;
-    }
-    // End
 
     public void loadAllPaths() {
         File[] listFiles = this.npcPaths.listFiles();
         if (listFiles == null) return;
 
         for (File file : listFiles) {
-            if (file.getName().endsWith(".path")) { // Is path
+            if (file.getName().endsWith(".path")) { // Check if file is path
                 try {
-                    this.getNpcManager().getNPCPaths().add(new ZNPCPathReader(file));
+                    this.getNpcManager().getNpcPaths().add(new ZNPCPathReader(file));
                 } catch (IOException e) {
                     Bukkit.getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
                 }
@@ -260,7 +213,7 @@ public class ServersNPC extends JavaPlugin {
     }
 
     public void removeAllViewers() {
-        for (ZNPC npc : getNpcManager().getNPCs()) {
+        for (ZNPC npc : getNpcManager().getNpcs()) {
             final Iterator<Player> it = npc.getViewers().iterator();
             while (it.hasNext()) {
                 final Player player = it.next();
@@ -280,7 +233,7 @@ public class ServersNPC extends JavaPlugin {
         if (System.currentTimeMillis() - startTimer <= (1000) * 5) return;
 
         try (FileWriter writer = new FileWriter(data)) {
-            gson.toJson(getNpcManager().getNPCs().stream().filter(ZNPC::isSave).collect(Collectors.toList()), writer);
+            gson.toJson(getNpcManager().getNpcs().stream().filter(ZNPC::isSave).collect(Collectors.toList()), writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -296,7 +249,7 @@ public class ServersNPC extends JavaPlugin {
             final ZNPCUser playerNetty = new ZNPCUser(this, player);
             playerNetty.injectNetty(player);
 
-            this.getNPCUsers().add(playerNetty);
+            this.getNpcUsers().add(playerNetty);
         } catch (Exception exception) {
             throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
         }
@@ -312,10 +265,10 @@ public class ServersNPC extends JavaPlugin {
     public final boolean createNPC(int id, final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
         final SkinFetch skinFetch = JSONUtils.getDefaultSkin(skin);
 
-        boolean found = this.getNpcManager().getNPCs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
 
-        this.getNpcManager().getNPCs().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
+        this.getNpcManager().getNpcs().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
 
         commandSender.ifPresent(sender -> ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
         return true;
@@ -328,14 +281,14 @@ public class ServersNPC extends JavaPlugin {
      * @return val
      */
     public final boolean deleteNPC(int id) throws Exception {
-        final ZNPC npc = this.npcManager.getNPCs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
+        final ZNPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
 
         // Try find
         if (npc == null) {
             return false;
         }
 
-        getNpcManager().getNPCs().remove(npc);
+        getNpcManager().getNpcs().remove(npc);
 
         final Iterator<Player> it = npc.getViewers().iterator();
         while (it.hasNext()) {

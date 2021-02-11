@@ -65,7 +65,7 @@ public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
             if (pathObject != null) {
                String pathName = pathObject.getAsString();
 
-               serversNPC.getNpcManager().getNPCPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().ifPresent(npc::setPath);
+               serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().ifPresent(npc::setPath);
             }
 
             npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..

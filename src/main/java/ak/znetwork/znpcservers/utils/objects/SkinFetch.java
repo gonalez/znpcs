@@ -20,31 +20,21 @@
  */
 package ak.znetwork.znpcservers.utils.objects;
 
+import lombok.Getter;
+
 import java.util.UUID;
 
 public final class SkinFetch {
 
-    private final UUID uuid;
+    @Getter private final UUID uuid;
 
-    private final String value;
-    private final String signature;
+    @Getter private final String value;
+    @Getter private final String signature;
 
     public SkinFetch(UUID uuid, String value, String signature) {
         this.uuid = uuid;
 
         this.value = value;
         this.signature = signature;
-    }
-
-    public UUID getUUID() {
-        return uuid;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String getSignature() {
-        return signature;
     }
 }

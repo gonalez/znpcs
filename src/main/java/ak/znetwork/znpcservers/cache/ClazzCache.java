@@ -24,6 +24,7 @@ import ak.znetwork.znpcservers.cache.exception.ClassLoadException;
 import ak.znetwork.znpcservers.cache.type.ClazzType;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -211,17 +212,16 @@ public enum ClazzCache {
     private final ClazzType clazzType;
 
     private final String name;
-
     private final int minVersion, maxVersion;
 
     private final Class<?> clazz;
+    private Class<?> cacheClass;
 
     private final Class<?>[] classes;
 
-    private Class<?> cacheClass;
-    private Constructor<?> cacheConstructor;
-    private Method cacheMethod;
-    private Field cacheField;
+    @Getter private Constructor<?> cacheConstructor;
+    @Getter private Method cacheMethod;
+    @Getter private Field cacheField;
 
     ClazzCache(ClazzType clazzType, int minVersion, int maxVersion, String name, Class<?> clazz, Class<?>... classes) {
         this.clazzType = clazzType;
@@ -281,18 +281,6 @@ public enum ClazzCache {
                 }
             }
         }
-    }
-
-    public Constructor<?> getCacheConstructor() {
-        return cacheConstructor;
-    }
-
-    public Field getCacheField() {
-        return cacheField;
-    }
-
-    public Method getCacheMethod() {
-        return cacheMethod;
     }
 
     public Class<?> getCacheClass() {

@@ -26,6 +26,7 @@ import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.invoker.CommandInvoker;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
@@ -46,7 +47,7 @@ public class ZNCommand {
 
     private final Object object;
 
-    private final HashMap<CMDInfo, CommandInvoker<? extends CommandSender>> consumerSet;
+    @Getter private final HashMap<CMDInfo, CommandInvoker<? extends CommandSender>> consumerSet;
 
     public ZNCommand(final Object object) {
         this.object = object;
@@ -97,9 +98,5 @@ public class ZNCommand {
                 this.consumerSet.put(cmdInfo, new CommandInvoker<>(this.object, method, cmdInfo.permission()));
             }
         }
-    }
-
-    public HashMap<CMDInfo, CommandInvoker<? extends CommandSender>> getConsumerSet() {
-        return consumerSet;
     }
 }

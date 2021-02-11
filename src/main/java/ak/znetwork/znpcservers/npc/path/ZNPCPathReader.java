@@ -20,6 +20,7 @@
  */
 package ak.znetwork.znpcservers.npc.path;
 
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -30,9 +31,8 @@ import java.util.List;
 
 public class ZNPCPathReader {
 
-    private final File file;
-
-    private final List<Location> locationList;
+    @Getter private final File file;
+    @Getter private final List<Location> locationList;
 
     public ZNPCPathReader(File file) throws IOException {
         this.file = file;
@@ -62,9 +62,5 @@ public class ZNPCPathReader {
 
     public String getName() {
         return file.getName().substring(0, file.getName().lastIndexOf('.'));
-    }
-
-    public List<Location> getLocationList() {
-        return locationList;
     }
 }

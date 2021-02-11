@@ -21,6 +21,7 @@
 package ak.znetwork.znpcservers.configuration.enums;
 
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import lombok.Getter;
 
 public enum ZNConfigValue {
 
@@ -43,29 +44,15 @@ public enum ZNConfigValue {
     INVALID_NUMBER(ZNConfigType.MESSAGES, "&cHey!, The inserted number/id does not look like a number..", String.class),
     NPC_NOT_FOUND(ZNConfigType.MESSAGES, "&cHey!, I couldnt find a npc with this id.", String.class);
 
-    private final ZNConfigType znConfigType;
-
-    private final Object value;
-
-    private final Class<?> clazz;
+    @Getter private final ZNConfigType configType;
+    @Getter private final Object value;
+    @Getter private final Class<?> clazz;
 
     ZNConfigValue(ZNConfigType znConfigType, Object value, Class<?> clazz) {
-        this.znConfigType = znConfigType;
+        this.configType = znConfigType;
 
         this.clazz = clazz;
 
         this.value = value;
-    }
-
-    public ZNConfigType getConfigType() {
-        return znConfigType;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public Class<?> getClazz() {
-        return clazz;
     }
 }

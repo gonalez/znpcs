@@ -25,6 +25,8 @@ import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.utils.PlaceholderUtils;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -47,16 +49,13 @@ import java.util.List;
 public class Hologram {
 
     private final List<Object> entityArmorStands;
-
     private final HashSet<Player> viewers;
 
     private final Object nmsWorld;
-
     private final Method IChatBaseComponentMethod;
 
-    private String[] lines;
-
-    private Location location;
+    @Getter @Setter private String[] lines;
+    @Getter @Setter private Location location;
 
     public Hologram(final Location location, final String... lines) throws Exception {
         this.viewers = new HashSet<>();
@@ -168,7 +167,7 @@ public class Hologram {
     /**
      * Get real string for newer versions
      *
-     * @return formated string
+     * @return formatted string
      */
     public Object getStringNewestVersion(final Player player, String text) {
         text = Utils.color(text);
@@ -180,7 +179,7 @@ public class Hologram {
     }
 
     /**
-     * Update new loc
+     * Update new location
      */
     public void updateLoc() {
         entityArmorStands.forEach(o -> {
@@ -196,7 +195,7 @@ public class Hologram {
     }
 
     /**
-     * @param location
+     * @param location the new location
      */
     public void setLocation(Location location, double height) throws Exception {
         this.location = location.add(0, height, 0);
@@ -212,25 +211,7 @@ public class Hologram {
         updateLoc();
     }
 
-    public void setLines(String[] lines) {
-        this.lines = lines;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public String[] getLines() {
-        return lines;
-    }
-
     public String getLinesFormatted() {
         return String.join(":", lines);
     }
-
-
 }

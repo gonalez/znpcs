@@ -28,8 +28,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +52,8 @@ public final class ConfigManager {
             try {
                 builder.put(name, new ZNConfig(ZNConfigType.valueOf(name), ServersNPC.getPluginFolder().toPath().resolve(String.format("%s.yml", name.toLowerCase()))));
             } catch (IOException e) {
-                Logger.getGlobal().log(Level.WARNING, "Could not initialize config for " + name, e);
+                // Should not happen.
+                throw new RuntimeException(e);
             }
         }
         CONFIG_IMMUTABLE_MAP = builder.build();
@@ -64,7 +63,7 @@ public final class ConfigManager {
      * Get configuration by type (ZNConfigType)
      *
      * @param type the config type
-     * @return configuration
+     * @return the configuration
      */
     public static ZNConfig getByType(ZNConfigType type) {
         return CONFIG_IMMUTABLE_MAP.get(type.name());
