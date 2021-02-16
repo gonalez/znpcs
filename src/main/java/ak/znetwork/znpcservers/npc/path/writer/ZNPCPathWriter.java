@@ -153,7 +153,6 @@ public final class ZNPCPathWriter {
         double zDiff = Math.abs(last.getZ() - location.getZ());
 
         return (xDiff + yDiff + zDiff) > 0;
-
     }
 
     public Player getPlayer() {

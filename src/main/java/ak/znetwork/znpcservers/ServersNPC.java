@@ -39,7 +39,7 @@ import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.user.ZNPCUser;
-import ak.znetwork.znpcservers.utils.JSONUtils;
+import ak.znetwork.znpcservers.utils.SkinFetcher;
 import ak.znetwork.znpcservers.utils.LocationSerialize;
 import ak.znetwork.znpcservers.utils.MetricsLite;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
@@ -258,19 +258,16 @@ public class ServersNPC extends JavaPlugin {
     /**
      * Creation of a new npc
      *
-     * @param id            the npc id
-     * @param commandSender the creator of the npc
-     * @return val
+     * @param id the npc id
+     * @return   val
      */
-    public final boolean createNPC(int id, final Optional<CommandSender> commandSender, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
-        final SkinFetch skinFetch = JSONUtils.getDefaultSkin(skin);
+    public final boolean createNPC(int id, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
+        final SkinFetch skinFetch = SkinFetcher.getDefaultSkin(skin);
 
         boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
         if (found) return false;
 
         this.getNpcManager().getNpcs().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
-
-        commandSender.ifPresent(sender -> ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(commandSender.get(), ZNConfigValue.SUCCESS));
         return true;
     }
 

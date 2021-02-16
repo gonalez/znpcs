@@ -33,7 +33,7 @@ import ak.znetwork.znpcservers.npc.enums.types.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.user.ZNPCUser;
-import ak.znetwork.znpcservers.utils.JSONUtils;
+import ak.znetwork.znpcservers.utils.SkinFetcher;
 import ak.znetwork.znpcservers.utils.Utils;
 import ak.znetwork.znpcservers.utils.objects.SkinFetch;
 import com.google.common.primitives.Ints;
@@ -98,7 +98,9 @@ public class DefaultCommand {
 
         try {
             // All success!
-            serversNPC.createNPC(id, Optional.of(sender), ((Player) sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+            serversNPC.createNPC(id, ((Player) sender).getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception e) {
             throw new CommandExecuteException("An error occurred while creating npc", e);
         }
@@ -169,7 +171,7 @@ public class DefaultCommand {
         try {
             URL url = new URL(skin);
             try {
-                skinFetch = JSONUtils.getByURL(skin).get();
+                skinFetch = SkinFetcher.getByURL(skin).get();
             } catch (Exception exception) {
                 throw new CommandExecuteException("Could not connect to url", exception);
             }
@@ -181,7 +183,7 @@ public class DefaultCommand {
             }
 
             try {
-                skinFetch = JSONUtils.getDefaultSkin(skin);
+                skinFetch = SkinFetcher.getDefaultSkin(skin);
             } catch (Exception exception) {
                 throw new RuntimeException("An error occurred while changing skin for npc " + foundNPC.get().getId(), exception);
             }
