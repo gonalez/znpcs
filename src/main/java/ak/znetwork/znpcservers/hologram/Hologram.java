@@ -31,8 +31,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -51,25 +50,17 @@ public class Hologram {
     private final List<Object> entityArmorStands;
     private final HashSet<Player> viewers;
 
-    private final Object nmsWorld;
-    private final Method IChatBaseComponentMethod;
-
     @Getter @Setter private String[] lines;
     @Getter @Setter private Location location;
 
-    public Hologram(final Location location, final String... lines) throws Exception {
+    public Hologram(final Location location, final String... lines) {
         this.viewers = new HashSet<>();
-
         this.entityArmorStands = new ArrayList<>();
 
         this.location = location;
         this.lines = lines;
 
-        IChatBaseComponentMethod = ClazzCache.ICHAT_BASE_COMPONENT_A_METHOD.getCacheMethod();
-
-        nmsWorld = ClazzCache.GET_HANDLE_METHOD.getCacheMethod().invoke(location.getWorld());
-
-        createHolos();
+        this.createHologram();
     }
 
     /**
@@ -84,8 +75,10 @@ public class Hologram {
             try {
                 Object entityPlayerPacketSpawn = ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
-            } catch (Exception e) {
-                throw new RuntimeException("An exception occurred while trying to create hologram", e);
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+                viewers.remove(player);
+
+                throw new AssertionError(operationException);
             }
         });
     }
@@ -100,12 +93,11 @@ public class Hologram {
 
         entityArmorStands.forEach(entityArmorStand -> {
             try {
-                Object entityArmorArray = Array.newInstance(int.class, 1);
-                Array.set(entityArmorArray, 0, ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(entityArmorStand));
+                int armorStandId = (int) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(entityArmorStand);
 
-                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getCacheConstructor().newInstance(entityArmorArray));
-            } catch (Exception e) {
-                throw new RuntimeException("An exception occurred while trying to delete hologram", e);
+                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getCacheConstructor().newInstance(new int[]{armorStandId}));
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+                throw new AssertionError(operationException);
             }
         });
     }
@@ -113,54 +105,58 @@ public class Hologram {
     /**
      *
      */
-    public void createHolos() throws Exception {
+    public void createHologram() {
         viewers.forEach(player -> delete(player, false));
 
-        double y = 0;
+        try {
+            this.entityArmorStands.clear();
 
-        this.entityArmorStands.clear();
+            double y = 0;
+            for (String line : this.lines) {
+                Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(ClazzCache.GET_HANDLE_METHOD.getCacheMethod().invoke(location.getWorld()), location.getX() + 0.5, (location.getY() - 0.15) + (y), location.getZ() + 0.5);
 
-        for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-            Object armorStand = ClazzCache.ARMOR_STAND_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(nmsWorld, location.getX() + 0.5, (location.getY() - 0.15) + (y), location.getZ() + 0.5);
+                ClazzCache.SET_CUSTOM_NAME_VISIBLE_METHOD.getCacheMethod().invoke(armorStand, line.length() >= 1);
+                if (Utils.isVersionNewestThan(13))
+                    ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(null, line));
+                else
+                    ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', line));
 
-            ClazzCache.SET_CUSTOM_NAME_VISIBLE_METHOD.getCacheMethod().invoke(armorStand, (lines[i]).length() >= 1);
-            if (Utils.isVersionNewestThan(13))
-                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(null, lines[i]));
-            else
-                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', lines[i]));
+                ClazzCache.SET_INVISIBLE_METHOD.getCacheMethod().invoke(armorStand, true);
 
-            ClazzCache.SET_INVISIBLE_METHOD.getCacheMethod().invoke(armorStand, true);
+                entityArmorStands.add(armorStand);
 
-            entityArmorStands.add(armorStand);
-
-            y += 0.3;
+                y += 0.3;
+            }
+            viewers.forEach(player -> spawn(player, false));
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
         }
-
-        viewers.forEach(player -> spawn(player, false));
     }
 
     /**
      *
      */
-    public void updateNames(final Player player) throws Exception {
-        for (int i = 0; i < Math.max(this.lines.length, this.lines.length); i++) {
-            if (i >= entityArmorStands.size())
-                continue;
+    public void updateNames(final Player player) {
+        for (int i = 0; i < this.lines.length; i++) {
+            if (i >= entityArmorStands.size()) break;
 
             Object armorStand = entityArmorStands.get(i);
+            try {
+                String line = lines[i].replace(ServersNPC.getReplaceSymbol(), " ");
 
-            final String line = lines[i].replace(ServersNPC.getReplaceSymbol(), " ");
+                if (Utils.isVersionNewestThan(13))
+                    ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(player, lines[i]));
+                else
+                    ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, lines[i]) : line)));
 
-            if (Utils.isVersionNewestThan(13))
-                ClazzCache.SET_CUSTOM_NAME_NEW_METHOD.getCacheMethod().invoke(armorStand, getStringNewestVersion(player, lines[i]));
-            else
-                ClazzCache.SET_CUSTOM_NAME_OLD_METHOD.getCacheMethod().invoke(armorStand, ChatColor.translateAlternateColorCodes('&', (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, lines[i]) : line)));
+                int entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(armorStand);
 
-            int entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(armorStand);
+                Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(armorStand);
 
-            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(armorStand);
-
-            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true));
+                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true));
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+                throw new AssertionError(operationException);
+            }
         }
     }
 
@@ -172,7 +168,7 @@ public class Hologram {
     public Object getStringNewestVersion(final Player player, String text) {
         text = Utils.color(text);
         try {
-            return IChatBaseComponentMethod.invoke(null, "{\"text\": \"" + (ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ServersNPC.getReplaceSymbol(), " ")) + "\"}");
+            return ClazzCache.ICHAT_BASE_COMPONENT_A_METHOD.getCacheMethod().invoke(null, "{\"text\": \"" + (ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ServersNPC.getReplaceSymbol(), " ")) + "\"}");
         } catch (Exception e) {
             throw new RuntimeException("An exception occurred while trying to get new line for hologram", e);
         }
@@ -181,7 +177,7 @@ public class Hologram {
     /**
      * Update new location
      */
-    public void updateLoc() {
+    public void updateLocation() {
         entityArmorStands.forEach(o -> {
             try {
                 Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.getCacheConstructor().newInstance(o);
@@ -191,24 +187,25 @@ public class Hologram {
                 throw new RuntimeException("An exception occurred while trying to update location for hologram", e);
             }
         });
-
     }
 
     /**
      * @param location the new location
      */
-    public void setLocation(Location location, double height) throws Exception {
-        this.location = location.add(0, height, 0);
+    public void setLocation(Location location, double height)  {
+        try {
+            double y = 0;
+            for (Object o : entityArmorStands) {
+                ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(o, location.getX() + 0.5, (location.getY() - 0.15) + y,
+                        location.getZ() + 0.5, location.getYaw(), location.getPitch());
 
-        double y = 0;
-        for (Object o : entityArmorStands) {
-            ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(o, location.getX() + 0.5, (location.getY() - 0.15) + y,
-                    location.getZ() + 0.5, location.getYaw(), location.getPitch());
-
-            y += 0.3;
+                this.location = location.add(0, height, 0);
+                y += 0.3;
+            }
+            updateLocation();
+        } catch (IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
         }
-
-        updateLoc();
     }
 
     public String getLinesFormatted() {

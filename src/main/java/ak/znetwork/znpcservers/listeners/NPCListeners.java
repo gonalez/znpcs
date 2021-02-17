@@ -21,11 +21,15 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.WorldLoadEvent;
 
+/**
+ * TEST CLASS
+ */
 public class NPCListeners implements Listener {
 
     private final ServersNPC serversNPC;
@@ -35,6 +39,8 @@ public class NPCListeners implements Listener {
 
         this.serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
     }
+
+    /*
 
     @EventHandler
     public void onWorldLoad(WorldLoadEvent event) {
@@ -46,4 +52,11 @@ public class NPCListeners implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onClickNPC(NPCInteractEvent event) {
+        event.getPlayer().sendMessage("Hello!");
+    }
+
+     */
 }

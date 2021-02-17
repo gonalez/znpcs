@@ -29,7 +29,7 @@ import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.user.ZNPCUser;
@@ -263,7 +263,7 @@ public class DefaultCommand {
             Collections.reverse(stringList);
 
             foundNPC.get().getHologram().setLines(stringList.toArray(new String[0]));
-            foundNPC.get().getHologram().createHolos();
+            foundNPC.get().getHologram().createHologram();
 
             // Update lines
             foundNPC.get().setLines(foundNPC.get().getHologram().getLinesFormatted());

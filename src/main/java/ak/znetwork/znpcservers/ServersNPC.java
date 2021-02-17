@@ -35,7 +35,7 @@ import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.manager.tasks.NPCTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.user.ZNPCUser;
@@ -50,7 +50,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -126,13 +125,13 @@ public class ServersNPC extends JavaPlugin {
         npcManager = new NPCManager();
 
         commandsManager = new CommandsManager("znpcs", this);
-        commandsManager.getZnCommands().add(new ZNCommand(new DefaultCommand(this)));
+        commandsManager.addCommands(new ZNCommand(new DefaultCommand(this)));
 
         int pluginId = 8054;
         new MetricsLite(this, pluginId);
 
         // Load reflection cache
-        for (ClazzCache clazzCache : ClazzCache.values())  {
+        for (ClazzCache clazzCache : ClazzCache.values()) {
             try {
                 clazzCache.load();
             } catch (ClassLoadException e) {
@@ -189,12 +188,10 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        removeAllViewers();
-
-        Bukkit.getOnlinePlayers().forEach(o -> getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid().equals(o.getUniqueId())).findFirst().ifPresent(ZNPCUser::ejectNetty));
-
-        // Save values on config (???)
+        // Save NPCs on configuration
         saveAllNPC();
+
+        removeAllViewers();
     }
 
     public void loadAllPaths() {
@@ -206,7 +203,7 @@ public class ServersNPC extends JavaPlugin {
                 try {
                     this.getNpcManager().getNpcPaths().add(new ZNPCPathReader(file));
                 } catch (IOException e) {
-                    Bukkit.getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
+                    getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
                 }
             }
         }
@@ -218,11 +215,7 @@ public class ServersNPC extends JavaPlugin {
             while (it.hasNext()) {
                 final Player player = it.next();
 
-                try {
-                    npc.delete(player, false);
-                } catch (Exception ignored) {
-                    getLogger().log(Level.WARNING, String.format("Cannot remove npc for player %s", player.getName()));
-                }
+                npc.delete(player, false);
 
                 it.remove();
             }
@@ -247,7 +240,6 @@ public class ServersNPC extends JavaPlugin {
     public void setupNetty(final Player player) {
         try {
             final ZNPCUser playerNetty = new ZNPCUser(this, player);
-            playerNetty.injectNetty(player);
 
             this.getNpcUsers().add(playerNetty);
         } catch (Exception exception) {
@@ -262,10 +254,9 @@ public class ServersNPC extends JavaPlugin {
      * @return   val
      */
     public final boolean createNPC(int id, final Location location, final String skin, final String holo_lines, boolean save) throws Exception {
-        final SkinFetch skinFetch = SkinFetcher.getDefaultSkin(skin);
+        if (this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id)) return false;
 
-        boolean found = this.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
-        if (found) return false;
+        final SkinFetch skinFetch = SkinFetcher.getDefaultSkin(skin);
 
         this.getNpcManager().getNpcs().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
         return true;
@@ -277,7 +268,7 @@ public class ServersNPC extends JavaPlugin {
      * @param id the npc id
      * @return val
      */
-    public final boolean deleteNPC(int id) throws Exception {
+    public final boolean deleteNPC(int id) {
         final ZNPC npc = this.npcManager.getNpcs().stream().filter(npc1 -> npc1.getId() == id).findFirst().orElse(null);
 
         // Try find

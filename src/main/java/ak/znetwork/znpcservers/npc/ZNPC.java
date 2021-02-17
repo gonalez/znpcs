@@ -24,7 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.utils.ReflectionUtils;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -43,10 +43,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.logging.Level;
 
 public class ZNPC {
 
@@ -88,12 +86,6 @@ public class ZNPC {
     private Object znEntity;
     private Object packetPlayOutScoreboardTeam;
 
-    private final Object nmsWorld;
-    private final Object nmsServer;
-
-    private final Object ADD_PLAYER;
-    private final Object REMOVE_PLAYER;
-
     private final GameProfile gameProfile;
 
     @Getter @Setter private String worldName;
@@ -101,6 +93,7 @@ public class ZNPC {
     @Getter private final HashSet<Player> viewers;
 
     @Getter @Setter private int entity_id;
+
     @Getter @Setter private Hologram hologram;
 
     // Path
@@ -118,7 +111,7 @@ public class ZNPC {
      * @param signature the skin signature
      * @param location  the location for the npc
      */
-    public ZNPC(final ServersNPC serversNPC, final int id, final String lines, final String skin, final String signature, final Location location, NPCType npcType, EnumMap<NPCItemSlot, Material> npcEquipments, boolean save) throws Exception {
+    public ZNPC(final ServersNPC serversNPC, final int id, final String lines, final String skin, final String signature, final Location location, NPCType npcType, EnumMap<NPCItemSlot, Material> npcEquipments, boolean save) {
         this.serversNPC = serversNPC;
 
         this.npcEquipments = npcEquipments;
@@ -142,68 +135,66 @@ public class ZNPC {
 
         this.pathName = "none";
 
-        nmsServer = ClazzCache.GET_SERVER_METHOD.getCacheMethod().invoke(Bukkit.getServer());
-        nmsWorld = ClazzCache.GET_HANDLE_METHOD.getCacheMethod().invoke(location.getWorld());
-
-        gameProfile = new GameProfile(UUID.randomUUID(), "znpc_" + getId());
-        gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
-
-        ADD_PLAYER = ClazzCache.ADD_PLAYER_FIELD.getCacheField().get(null);
-        REMOVE_PLAYER = ClazzCache.REMOVE_PLAYER_FIELD.getCacheField().get(null);
+        this.gameProfile = new GameProfile(UUID.randomUUID(), "znpc_" + getId());
+        this.gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
         changeType(npcType);
-
         toggleName(true);
     }
 
     /**
      * Toggle the npc glow
      */
-    public void toggleGlow(final Optional<Player> playerOptional, final String color, boolean fix) throws Exception {
+    public void toggleGlow(final Optional<Player> playerOptional, final String color, boolean fix) {
         if (!Utils.isVersionNewestThan(9)) throw new UnsupportedOperationException("Version not supported");
         if (fix) hasGlow = !hasGlow;
 
-        Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
+        try {
+            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
 
-        ClazzCache.SET_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.getCacheConstructor().newInstance(0, dataWatcherRegistryEnum), (hasGlow ? (byte) 0x40 : (byte) 0x0));
+            ClazzCache.SET_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.getCacheConstructor().newInstance(0, dataWatcherRegistryEnum), (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
-        Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true);
+            Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true);
 
-        this.glowColor = getGlowColor(color);
-        this.glowName = color;
+            this.glowColor = getGlowColor(color);
+            this.glowName = color;
 
-        playerOptional.ifPresent(player -> ReflectionUtils.sendPacket(player, packet));
-        // Update glow color
-        toggleName(false);
+            playerOptional.ifPresent(player -> ReflectionUtils.sendPacket(player, packet));
+
+            // Update glow color
+            toggleName(false);
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     public void handlePath() {
         if (npcPath == null) return;
 
-        try {
-            if (isReversePath) {
-                if (currentEntryPath <= 0) reversePath = false;
-                else if (currentEntryPath >= npcPath.getLocationList().size() - 1) reversePath = true;
-            }
-
-            currentPathLocation = npcPath.getLocationList().get(Math.min(npcPath.getLocationList().size() - 1, currentEntryPath));
-
-            if (!reversePath) currentEntryPath++;
-            else currentEntryPath--;
-
-            updatePathLocation(npcPath, currentPathLocation);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (isReversePath) {
+            if (currentEntryPath <= 0) reversePath = false;
+            else if (currentEntryPath >= npcPath.getLocationList().size() - 1) reversePath = true;
         }
+
+        currentPathLocation = npcPath.getLocationList().get(Math.min(npcPath.getLocationList().size() - 1, currentEntryPath));
+
+        if (!reversePath) currentEntryPath++;
+        else currentEntryPath--;
+
+        updatePathLocation(npcPath, currentPathLocation);
     }
 
     /**
      * Update new location
      */
-    public void updateLoc() throws Exception {
-        Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity);
+    public void updateLoc() {
+        try {
+            Object packet = ClazzCache.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity);
 
-        viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
+            viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -211,17 +202,21 @@ public class ZNPC {
      *
      * @param location new
      */
-    public void setLocation(Location location) throws Exception {
-        this.location = new Location(location.getWorld(), location.getBlockX() + 0.5D, location.getY(), location.getBlockZ() + 0.5D, location.getYaw(), location.getPitch());
+    public void setLocation(Location location) {
+        try {
+            ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(znEntity, this.location.getX(), this.location.getY(), this.location.getZ(), location.getYaw(), location.getPitch());
 
-        ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(znEntity, this.location.getX(), this.location.getY(), this.location.getZ(), location.getYaw(), location.getPitch());
+            this.location = new Location(location.getWorld(), location.getBlockX() + 0.5D, location.getY(), location.getBlockZ() + 0.5D, location.getYaw(), location.getPitch());
 
-        if (hologram != null)
-            hologram.setLocation(this.location.clone().subtract(0.5, 0, 0.5), this.npcType.getHoloHeight());
+            if (hologram != null)
+                hologram.setLocation(this.location.clone().subtract(0.5, 0, 0.5), this.npcType.getHoloHeight());
 
-        lookAt(Optional.empty(), location, true);
+            lookAt(Optional.empty(), location, true);
 
-        updateLoc();
+            updateLoc();
+        } catch (IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -231,26 +226,31 @@ public class ZNPC {
      * @param slot     item slot
      * @param material material
      */
-    public void equip(final Player player, NPCItemSlot slot, Material material) throws Exception {
-        Object item = ClazzCache.AS_NMS_COPY_METHOD.getCacheMethod().invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.getCacheClass(), new ItemStack(material));
+    public void equip(final Player player, NPCItemSlot slot, Material material) {
+        try {
+            Object item = ClazzCache.AS_NMS_COPY_METHOD.getCacheMethod().invoke(ClazzCache.CRAFT_ITEM_STACK_CLASS.getCacheClass(), new ItemStack(material));
 
-        Object equipPacket;
-        if (!Utils.isVersionNewestThan(9)) {
-            equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.getCacheConstructor().newInstance(entity_id, slot.getId(), item);
-        } else {
-            if (Utils.isVersionNewestThan(16)) {
-                List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.getCacheClass().newInstance(), "b");
-                pairs.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.getCacheClass().getEnumConstants()[slot.getId() + 1], item));
-
-                equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.getCacheConstructor().newInstance(entity_id, pairs);
+            Object equipPacket;
+            if (!Utils.isVersionNewestThan(9)) {
+                equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.getCacheConstructor().newInstance(entity_id, slot.getId(), item);
             } else {
-                equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.getCacheConstructor().newInstance(entity_id, ClazzCache.ENUM_ITEM_SLOT_CLASS.getCacheClass().getEnumConstants()[slot.getId() + 1], item);
-            }
-        }
-        npcEquipments.put(slot, material);
+                if (Utils.isVersionNewestThan(16)) {
+                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CLASS.getCacheClass().newInstance(), "b");
+                    pairs.add(new Pair<>(ClazzCache.ENUM_ITEM_SLOT_CLASS.getCacheClass().getEnumConstants()[slot.getId() + 1], item));
 
-        if (player != null) ReflectionUtils.sendPacket(player, equipPacket);
-        else viewers.forEach(player1 -> ReflectionUtils.sendPacket(player1, equipPacket));
+                    equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.getCacheConstructor().newInstance(entity_id, pairs);
+                } else {
+                    equipPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.getCacheConstructor().newInstance(entity_id, ClazzCache.ENUM_ITEM_SLOT_CLASS.getCacheClass().getEnumConstants()[slot.getId() + 1], item);
+                }
+            }
+
+            npcEquipments.put(slot, material);
+
+            if (player != null) ReflectionUtils.sendPacket(player, equipPacket);
+            else viewers.forEach(player1 -> ReflectionUtils.sendPacket(player1, equipPacket));
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -258,71 +258,84 @@ public class ZNPC {
      *
      * @param skinFetch value
      */
-    public void changeSkin(final SkinFetch skinFetch) throws Exception {
+    public void changeSkin(final SkinFetch skinFetch) {
         setSkin(skinFetch.getValue());
         setSignature(skinFetch.getSignature());
 
         GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "znpc_" + getId());
         gameProfile.getProperties().put("textures", new Property("textures", skin, signature));
 
-        Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(znEntity);
+        try {
+            Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(znEntity);
 
-        ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
-        ReflectionUtils.setValue(gameProfileObj, "properties", gameProfile.getProperties());
+            ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
+            ReflectionUtils.setValue(gameProfileObj, "properties", gameProfile.getProperties());
 
-        final Iterator<Player> it = this.getViewers().iterator();
-        while (it.hasNext()) {
-            final Player player = it.next();
+            final Iterator<Player> it = this.getViewers().iterator();
+            while (it.hasNext()) {
+                final Player player = it.next();
 
-            delete(player, false);
+                delete(player, false);
 
-            it.remove();
+                it.remove();
+            }
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException operationException) {
+            throw new AssertionError(operationException);
         }
     }
 
-    public void fixSkin() throws Exception {
-        Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
-        if (Utils.isVersionNewestThan(9)) {
-            dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.getCacheField().get(null);
+    public void fixSkin() {
+        try {
+            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
 
-            int version = Utils.getVersion();
+            if (Utils.isVersionNewestThan(9)) {
+                dataWatcherRegistryEnum = ClazzCache.DATA_WATCHER_REGISTER_ENUM_FIELD.getCacheField().get(null);
 
-            ClazzCache.SET_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.getCacheConstructor().newInstance(version < 11 ? 10 : (version == 11 || version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum), (byte) 127);
-        } else ClazzCache.WATCH_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, 10, (byte) 127);
+                int version = Utils.getVersion();
+
+                ClazzCache.SET_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, ClazzCache.DATA_WATCHER_OBJECT_CONSTRUCTOR.getCacheConstructor().newInstance(version < 11 ? 10 : (version == 11 || version == 12 || version == 13 ? 13 : (version == 14) ? 15 : 16), dataWatcherRegistryEnum), (byte) 127);
+            } else ClazzCache.WATCH_DATA_WATCHER_METHOD.getCacheMethod().invoke(dataWatcherObject, 10, (byte) 127);
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
-    public void changeType(final NPCType npcType) throws Exception {
-        Constructor<?> constructor = (npcType != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? npcType.getClazzCache().getCacheClass().getConstructor(npcType.getEntityType().getClass(), ClazzCache.WORLD_CLASS.getCacheClass()) : npcType.getClazzCache().getCacheClass().getConstructor(ClazzCache.WORLD_CLASS.getCacheClass())) : null);
+    public void changeType(final NPCType npcType) {
+        try {
+            Object nmsWorld = ClazzCache.GET_HANDLE_METHOD.getCacheMethod().invoke(location.getWorld());
 
-        znEntity = (npcType == NPCType.PLAYER ? ClazzCache.PLAYER_CONSTRUCTOR.getCacheConstructor().newInstance(nmsServer, nmsWorld, gameProfile, ClazzCache.PLAYER_INTERACT_MANAGER_CONSTRUCTOR.getCacheConstructor().newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? constructor.newInstance(npcType.getEntityType(), nmsWorld) : constructor.newInstance(nmsWorld)));
+            znEntity = (npcType == NPCType.PLAYER ? ClazzCache.PLAYER_CONSTRUCTOR.getCacheConstructor().newInstance(ClazzCache.GET_SERVER_METHOD.getCacheMethod().invoke(Bukkit.getServer()), nmsWorld, gameProfile, ClazzCache.PLAYER_INTERACT_MANAGER_CONSTRUCTOR.getCacheConstructor().newInstance(nmsWorld)) : (Utils.isVersionNewestThan(13) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
 
-        if (npcType == NPCType.PLAYER) {
-            entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.getCacheClass(), 1);
-            Array.set(entityPlayerArray, 0, znEntity);
+            if (npcType == NPCType.PLAYER) {
+                entityPlayerArray = Array.newInstance(ClazzCache.ENTITY_PLAYER_CLASS.getCacheClass(), 1);
+                Array.set(entityPlayerArray, 0, znEntity);
 
-            packetPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(ADD_PLAYER, entityPlayerArray);
+                packetPlayOutPlayerInfoConstructor = ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(ClazzCache.ADD_PLAYER_FIELD.getCacheField().get(null), entityPlayerArray);
 
-            // Fix second layer skin for entity player
-            fixSkin();
+                // Fix second layer skin for entity player
+                fixSkin();
+            }
+
+            this.npcType = npcType;
+
+            setLocation(this.location);
+
+            // Update new type for viewers
+            final Iterator<Player> it = this.getViewers().iterator();
+
+            while (it.hasNext()) {
+                final Player player = it.next();
+
+                this.delete(player, false);
+
+                it.remove();
+            }
+
+            // Update new id
+            entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(znEntity);
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+            throw new AssertionError(operationException);
         }
-
-        this.npcType = npcType;
-
-        setLocation(this.location);
-
-        // Update new type for viewers
-        final Iterator<Player> it = this.getViewers().iterator();
-
-        while (it.hasNext()) {
-            final Player player = it.next();
-
-            this.delete(player, false);
-
-            it.remove();
-        }
-
-        // Update new id
-        entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(znEntity);
     }
 
     /**
@@ -330,72 +343,76 @@ public class ZNPC {
      *
      * @param player to show npc
      */
-    public void spawn(final Player player) throws Exception {
+    public void spawn(final Player player) {
         toggleName(false);
 
-        if (npcType == NPCType.PLAYER && isHasMirror()) {
-            final GameProfile gameProfile = getGameProfileForPlayer(player);
+        try {
+            boolean isPlayer = (npcType == NPCType.PLAYER);
 
-            Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(znEntity);
+            if (isPlayer && isHasMirror()) {
+                GameProfile gameProfile = getGameProfileForPlayer(player);
 
-            ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
-            ReflectionUtils.setValue(gameProfileObj, "properties", gameProfile.getProperties());
-        }
+                Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(znEntity);
 
-        // Update location
-        setLocation(this.location);
+                ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
+                ReflectionUtils.setValue(gameProfileObj, "properties", gameProfile.getProperties());
+            }
 
-        if (npcType == NPCType.PLAYER) ReflectionUtils.sendPacket(player, packetPlayOutPlayerInfoConstructor);
+            // Update location
+            setLocation(this.location);
 
-        ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity) : ((npcType.getId() < 0 ? npcType.getConstructor().newInstance(znEntity) : npcType.getConstructor().newInstance(znEntity, npcType.getId())))));
+            if (npcType == NPCType.PLAYER) ReflectionUtils.sendPacket(player, packetPlayOutPlayerInfoConstructor);
 
-        if (npcType == NPCType.PLAYER) {
-            Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
+            ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClazzCache.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity) : ((npcType.getId() < 0 ? npcType.getConstructor().newInstance(znEntity) : npcType.getConstructor().newInstance(znEntity, npcType.getId())))));
 
-            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true));
-        }
+            if (npcType == NPCType.PLAYER) {
+                Object dataWatcherObject = ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(znEntity);
 
-        viewers.add(player);
+                ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, dataWatcherObject, true));
+            }
 
-        if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
-        if (hasToggleHolo) hologram.spawn(player, true);
-        if (hasGlow) toggleGlow(Optional.of(player), glowName, false);
+            if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
+            if (hasToggleHolo) hologram.spawn(player, true);
+            if (hasGlow) toggleGlow(Optional.of(player), glowName, false);
 
-        // Update entity id
-        entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(znEntity);
+            // Update entity id
+            entity_id = (Integer) ClazzCache.GET_ID_METHOD.getCacheMethod().invoke(znEntity);
 
-        // Fix rotation
-        lookAt(Optional.of(player), location.clone(), true);
+            // Fix rotation
+            lookAt(Optional.of(player), location.clone(), true);
 
-        for (final Map.Entry<NPCItemSlot, Material> test : npcEquipments.entrySet())
-            equip(player, test.getKey(), test.getValue());
+            for (final Map.Entry<NPCItemSlot, Material> test : npcEquipments.entrySet())
+                equip(player, test.getKey(), test.getValue());
 
-        ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(this.getEntity_id(), ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(this.getZnEntity()), true));
+            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.getCacheConstructor().newInstance(this.getEntity_id(), ClazzCache.GET_DATA_WATCHER_METHOD.getCacheMethod().invoke(this.getZnEntity()), true));
 
-        if (npcType == NPCType.PLAYER) {
-            ServersNPC.getExecutor().execute(() -> {
-                try {
-                    hideFromTab(player);
-                } catch (Exception e) {
-                    try {
-                        delete(player, true);
-                    } catch (Exception exception) {
-                        // Should not happen
-                        Bukkit.getLogger().log(Level.WARNING, "Could not remove npc for player -> " + player.getName(), e);
-                    }
-                }
-            });
+            if (isPlayer) ServersNPC.getExecutor().execute(() -> hideFromTab(player));
+
+            viewers.add(player);
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
         }
     }
 
-    public void hideFromTab(final Player player) throws Exception {
-        ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(REMOVE_PLAYER, entityPlayerArray));
+    public void hideFromTab(final Player player) {
+        try {
+            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(ClazzCache.REMOVE_PLAYER_FIELD.getCacheField().get(null), entityPlayerArray));
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
-    public void showTab(final Player player) throws Exception {
-        if (!getViewers().contains(player)) throw new UnsupportedOperationException(String.format("Player %s is not a viewer", player.getName()));
+    public void showTab(final Player player) {
+        if (!getViewers().contains(player))
+            throw new UnsupportedOperationException(String.format("Player %s is not a viewer", player.getName()));
 
-        ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(ADD_PLAYER, entityPlayerArray));
+        try {
+            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.getCacheConstructor().newInstance(ClazzCache.ADD_PLAYER_FIELD.getCacheField().get(null), entityPlayerArray));
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -403,37 +420,38 @@ public class ZNPC {
      *
      * @param player to delete npc
      */
-    public void delete(final Player player, boolean removeViewer) throws Exception {
-        Object entityPlayerArray = Array.newInstance(int.class, 1);
-        Array.set(entityPlayerArray, 0, entity_id);
+    public void delete(final Player player, boolean removeViewer) {
+        try {
+            ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getCacheConstructor().newInstance(new int[]{entity_id}));
 
-        ReflectionUtils.sendPacket(player, ClazzCache.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getCacheConstructor().newInstance(entityPlayerArray));
-
-        if (removeViewer) {
             hideFromTab(player);
 
-            viewers.remove(player);
-        }
+            if (removeViewer)
+                viewers.remove(player);
 
-        hologram.delete(player, removeViewer);
+            hologram.delete(player, removeViewer);
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
-    public void updatePathLocation(ZNPCPathReader znpcPathReader, Location location) throws Exception {
-        ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(znEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-        updateLoc();
-
-        if (hologram != null)
-            hologram.setLocation(location.clone().subtract(0.5, 0, 0.5), this.npcType.getHoloHeight());
-
-        int index = znpcPathReader.getLocationList().indexOf(this.currentPathLocation);
-        Vector vector = (reversePath ? znpcPathReader.getLocationList().get(Math.max(0, Math.min(znpcPathReader.getLocationList().size() - 1, index + 1))) : znpcPathReader.getLocationList().get(Math.min(znpcPathReader.getLocationList().size() - 1, (Math.max(0, index - 1))))).toVector();
-
-        double yDiff = (location.getY() - vector.getY());
-        Location direction = currentPathLocation.clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).clone().toVector());
+    public void updatePathLocation(ZNPCPathReader znpcPathReader, Location location) {
         try {
+            ClazzCache.SET_LOCATION_METHOD.getCacheMethod().invoke(znEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+            updateLoc();
+
+            if (hologram != null)
+                hologram.setLocation(location.clone().subtract(0.5, 0, 0.5), this.npcType.getHoloHeight());
+
+            int index = znpcPathReader.getLocationList().indexOf(this.currentPathLocation);
+            Vector vector = (reversePath ? znpcPathReader.getLocationList().get(Math.max(0, Math.min(znpcPathReader.getLocationList().size() - 1, index + 1))) : znpcPathReader.getLocationList().get(Math.min(znpcPathReader.getLocationList().size() - 1, (Math.max(0, index - 1))))).toVector();
+
+            double yDiff = (location.getY() - vector.getY());
+            Location direction = currentPathLocation.clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).clone().toVector());
+
             lookAt(Optional.empty(), direction, true);
-        } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
-            e.printStackTrace();
+        } catch (IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
         }
     }
 
@@ -442,38 +460,42 @@ public class ZNPC {
      *
      * @param location the location to look
      */
-    public void lookAt(final Optional<Player> playerOptional, final Location location, final boolean rotation) throws Exception {
+    public void lookAt(final Optional<Player> playerOptional, final Location location, final boolean rotation) {
         Location direction = (rotation ? location : this.location.clone().setDirection(location.subtract(this.location.clone()).toVector()));
-
         boolean rotate = (rotation || hasLookAt);
 
-        Object lookPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, (byte) (direction.getYaw() % (rotate ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (rotate ? 360. : 0) * 256 / 360), false);
-        Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
+        try {
+            Object lookPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.getCacheConstructor().newInstance(entity_id, (byte) (direction.getYaw() % (rotate ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (rotate ? 360. : 0) * 256 / 360), false);
+            Object headRotationPacket = ClazzCache.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.getCacheConstructor().newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
 
-        for (Player player : getViewers()) {
-            if (playerOptional.isPresent() && playerOptional.get() != player) continue;
+            for (Player player : getViewers()) {
+                if (playerOptional.isPresent() && playerOptional.get() != player) continue;
 
-            ReflectionUtils.sendPacket(player, lookPacket);
-            ReflectionUtils.sendPacket(player, headRotationPacket);
+                ReflectionUtils.sendPacket(player, lookPacket);
+                ReflectionUtils.sendPacket(player, headRotationPacket);
+            }
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
         }
     }
 
     /**
-     * Get clone of gameprofile for player
+     * Get clone of game-profile for player
      *
      * @param player object
      * @return game profile for player
      */
-    public GameProfile getGameProfileForPlayer(final Player player) throws Exception {
-        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player);
-        Object gameProfileObj = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(craftPlayer);
+    public GameProfile getGameProfileForPlayer(final Player player) {
+        try {
+            Object playerProfile = ClazzCache.GET_PROFILE_METHOD.getCacheMethod().invoke(ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player));
 
-        GameProfile gameProfileClone = (GameProfile) gameProfileObj;
+            GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
+            newProfile.getProperties().putAll(((GameProfile) playerProfile).getProperties());
 
-        GameProfile newProfile = new GameProfile(UUID.randomUUID(), "znpcs_" + getId());
-        newProfile.getProperties().putAll(gameProfileClone.getProperties());
-
-        return newProfile;
+            return newProfile;
+        } catch (IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -481,34 +503,37 @@ public class ZNPC {
      * <p>
      * Hide/Show
      */
-    @SuppressWarnings("unchecked")
-    public void toggleName(boolean fix) throws Exception {
-        if (fix) hasToggleName = !hasToggleName;
+    public void toggleName(boolean toggle) {
+        if (toggle) hasToggleName = !hasToggleName;
 
-        Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.getCacheConstructor().newInstance();
+        try {
+            Object packetPlayOutScoreboardTeam = ClazzCache.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.getCacheConstructor().newInstance();
 
-        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "i" : "h"), (hasToggleName ? 0 : 1));
-        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
-        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
-        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-        ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "j" : "i"), 0);
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "i" : "h"), (hasToggleName ? 0 : 1));
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", (Utils.isVersionNewestThan(13)) ? getHologram().getStringNewestVersion(null, gameProfile.getName()) : gameProfile.getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "a", Utils.generateRandom());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, (Utils.isVersionNewestThan(9) ? "j" : "i"), 0);
 
-        if (Utils.isVersionNewestThan(9) && hasGlow && glowColor != null) {
-            int id = (int) ClazzCache.GET_ENUM_CHAT_ID.getCacheMethod().invoke(glowColor);
+            if (Utils.isVersionNewestThan(9) && hasGlow && glowColor != null) {
+                int id = (int) ClazzCache.GET_ENUM_CHAT_ID.getCacheMethod().invoke(glowColor);
 
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", id);
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", id);
 
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", ClazzCache.GET_ENUM_CHAT_TO_STRING.getCacheMethod().invoke(glowColor));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", ClazzCache.GET_ENUM_CHAT_TO_STRING.getCacheMethod().invoke(glowColor));
+            }
+
+            Collection<String> collection = Collections.singletonList(gameProfile.getName());
+
+            if (Utils.isVersionNewestThan(9)) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
+            else ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", collection);
+
+            this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
+
+            viewers.forEach(player -> ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam));
+        } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchFieldException operationException) {
+            throw new AssertionError(operationException);
         }
-
-        Collection<String> collection = Collections.singletonList(gameProfile.getName());
-
-        if (Utils.isVersionNewestThan(9)) ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "h", collection);
-        else ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", collection);
-
-        this.packetPlayOutScoreboardTeam = packetPlayOutScoreboardTeam;
-
-        viewers.forEach(player -> ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam));
     }
 
     /**
@@ -524,7 +549,7 @@ public class ZNPC {
 
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            //e.printStackTrace();
+            throw new AssertionError(e);
         }
     }
 
@@ -559,12 +584,8 @@ public class ZNPC {
         this.pathName = name;
     }
 
-    public ZNPCPathReader getPathReader() {
-        return npcPath;
-    }
-
     public boolean hasPath() {
-       return (getPathName() == null || getPathName().equalsIgnoreCase("none"));
+        return (getPathName() == null || getPathName().equalsIgnoreCase("none"));
     }
 
     /**
@@ -586,12 +607,14 @@ public class ZNPC {
         }
     }
 
-    public Object getGlowColor(String string) throws Exception {
-        Class<?> clazzCache = ClazzCache.ENUM_CHAT_FORMAT_CLASS.getCacheClass();
+    public Object getGlowColor(String string) {
         try {
-            return clazzCache.getField(string.trim().toUpperCase()).get(null);
+            return ClazzCache.ENUM_CHAT_FORMAT_CLASS.getCacheClass().getField(string.trim().toUpperCase()).get(null);
         } catch (NoSuchFieldException e) {
-            return clazzCache.getField("WHITE").get(null);
+            // Get Default Glow-Color
+            return getGlowColor("WHITE");
+        } catch (IllegalAccessException accessException) {
+            throw new AssertionError(accessException);
         }
     }
 }

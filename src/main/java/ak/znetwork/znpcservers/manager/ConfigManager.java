@@ -25,7 +25,6 @@ import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import com.google.common.collect.ImmutableMap;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -49,12 +48,7 @@ public final class ConfigManager {
         final ImmutableMap.Builder<String, ZNConfig> builder = ImmutableMap.builder();
 
         for (String name : configNames) {
-            try {
-                builder.put(name, new ZNConfig(ZNConfigType.valueOf(name), ServersNPC.getPluginFolder().toPath().resolve(String.format("%s.yml", name.toLowerCase()))));
-            } catch (IOException e) {
-                // Should not happen.
-                throw new RuntimeException(e);
-            }
+            builder.put(name, new ZNConfig(ZNConfigType.valueOf(name), ServersNPC.getPluginFolder().toPath().resolve(String.format("%s.yml", name.toLowerCase()))));
         }
         CONFIG_IMMUTABLE_MAP = builder.build();
     }

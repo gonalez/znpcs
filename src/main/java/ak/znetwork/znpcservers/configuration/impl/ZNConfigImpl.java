@@ -27,7 +27,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.util.Map;
 
-public interface ZNConfigInterface {
+public interface ZNConfigImpl {
 
     void load() throws IOException;
 

@@ -48,12 +48,12 @@ public class FileHttp {
         // Send data
         try (DataOutputStream outputStream = new DataOutputStream(httpURLConnection.getOutputStream())) {
             outputStream.writeBytes("url=" + URLEncoder.encode(skin, "UTF-8"));
-        }
-
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
-                // Read
-                this.result = CharStreams.toString(bufferedReader);
+        } finally {
+            if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
+                    // Read
+                    this.result = CharStreams.toString(bufferedReader);
+                }
             }
         }
     }

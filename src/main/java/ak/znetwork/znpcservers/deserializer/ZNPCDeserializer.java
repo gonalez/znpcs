@@ -23,7 +23,7 @@ package ak.znetwork.znpcservers.deserializer;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.types.NPCType;
+import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.utils.Utils;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
@@ -47,48 +47,41 @@ public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
     public ZNPC deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         final JsonObject jsonObject = json.getAsJsonObject();
 
-        try {
-            // Get equipment values
-            HashMap<String, String> configMap = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
+        HashMap<String, String> configMap = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
 
-            // Load npc equipment
-            EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
-            configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
+        // Load npc equipment
+        EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
+        configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
 
-            ZNPC npc = new ZNPC(this.serversNPC, jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
+        ZNPC npc = new ZNPC(this.serversNPC, jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
 
-            // Fix NPC disappearing after world load/unload update
-            npc.setWorldName(jsonObject.get("location").getAsJsonObject().get("world").getAsString());
-            //
+        // Fix NPC disappearing after world load/unload update
+        npc.setWorldName(jsonObject.get("location").getAsJsonObject().get("world").getAsString());
 
-            JsonElement pathObject = jsonObject.get("pathName");
-            if (pathObject != null) {
-               String pathName = pathObject.getAsString();
+        JsonElement pathObject = jsonObject.get("pathName");
+        if (pathObject != null) {
+            String pathName = pathObject.getAsString();
 
-               serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().ifPresent(npc::setPath);
-            }
-
-            npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
-
-            npc.setHasLookAt(jsonObject.get("hasLookAt").getAsBoolean());
-            npc.setHasGlow(jsonObject.get("hasGlow").getAsBoolean());
-            npc.setHasMirror(jsonObject.get("hasMirror").getAsBoolean());
-            npc.setHasToggleHolo(jsonObject.get("hasToggleHolo").getAsBoolean());
-            npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
-            npc.setReversePath(jsonObject.get("isReversePath").getAsBoolean());
-
-            if (Utils.isVersionNewestThan(9))
-                npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
-
-            // Customization
-            if (jsonObject.get("customizationMap") != null) {
-                npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>() {
-                }.getType())); // Load actions..
-            }
-
-            return npc;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not deserialize npc", e);
+            serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().ifPresent(npc::setPath);
         }
+
+        npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
+
+        npc.setHasLookAt(jsonObject.get("hasLookAt").getAsBoolean());
+        npc.setHasGlow(jsonObject.get("hasGlow").getAsBoolean());
+        npc.setHasMirror(jsonObject.get("hasMirror").getAsBoolean());
+        npc.setHasToggleHolo(jsonObject.get("hasToggleHolo").getAsBoolean());
+        npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
+        npc.setReversePath(jsonObject.get("isReversePath").getAsBoolean());
+
+        if (Utils.isVersionNewestThan(9))
+            npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
+
+        // Customization
+        if (jsonObject.get("customizationMap") != null) {
+            npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>() {
+            }.getType())); // Load actions..
+        }
+        return npc;
     }
 }

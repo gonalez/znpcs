@@ -35,11 +35,10 @@ public class ZNPCPathReader {
     @Getter private final List<Location> locationList;
 
     public ZNPCPathReader(File file) throws IOException {
-        this.file = file;
-
         locationList = new ArrayList<>();
 
-        read();
+        this.file = file;
+        this.read();
     }
 
     public void read() throws IOException {

@@ -30,13 +30,13 @@ import java.lang.reflect.Method;
 
 public class ReflectionUtils {
 
-    public static void setValue(Object instance, String field, Object value) throws Exception {
+    public static void setValue(Object instance, String field, Object value) throws IllegalAccessException, NoSuchFieldException {
         Field f = instance.getClass().getDeclaredField(field);
         f.setAccessible(true);
         f.set(instance, value);
     }
 
-    public static Object getValue(Object instance, String field) throws Exception {
+    public static Object getValue(Object instance, String field) throws NoSuchFieldException, IllegalAccessException {
         Field f = instance.getClass().getDeclaredField(field);
         f.setAccessible(true);
         return f.get(instance);

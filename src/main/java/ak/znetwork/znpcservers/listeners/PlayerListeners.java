@@ -49,12 +49,6 @@ public final class PlayerListeners implements Listener {
             this.serversNPC.getNpcUsers().remove(playerNetty);
         });
 
-        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> {
-            try {
-                npc.delete(event.getPlayer(), true);
-            } catch (Exception exception) {
-                // Ignore
-            }
-        });
+        this.serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));
     }
 }

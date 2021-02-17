@@ -197,7 +197,7 @@ public enum ClazzCache {
     PACKET_PLAY_OUT_SPAWN_ENTITY_ID_CONSTRUCTOR(ClazzType.CONSTRUCTOR, 8, 20, "", PACKET_PLAY_OUT_SPAWN_ENTITY_CLASS.getCacheClass(), int.class),
 
     //FIELDS
-    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, 20, "a", DATA_WATCHER_REGISTRY_CLASS.getCacheClass(), null),
+    DATA_WATCHER_REGISTER_ENUM_FIELD(ClazzType.FIELD, 9, 20, "a", DATA_WATCHER_REGISTRY_CLASS.getCacheClass()),
     PLAYER_CONNECTION_FIELD(ClazzType.FIELD, 8, 20, "playerConnection", ENTITY_PLAYER_CLASS.getCacheClass()),
 
     NETWORK_MANAGER_FIELD(ClazzType.FIELD, 8, 20, "networkManager", PLAYER_CONNECTION_CLASS.getCacheClass()),
@@ -207,7 +207,9 @@ public enum ClazzCache {
 
     ADD_PLAYER_FIELD(ClazzType.FIELD, 8, 20, "ADD_PLAYER", ENUM_PLAYER_INFO_ACTION_CLASS.getCacheClass()),
 
-    REMOVE_PLAYER_FIELD(ClazzType.FIELD, 8, 20, "REMOVE_PLAYER", ENUM_PLAYER_INFO_ACTION_CLASS.getCacheClass());
+    REMOVE_PLAYER_FIELD(ClazzType.FIELD, 8, 20, "REMOVE_PLAYER", ENUM_PLAYER_INFO_ACTION_CLASS.getCacheClass()),
+
+    GLOW_DEFAULT_COLOR(ClazzType.FIELD, 9, 20, "WHITE", ENUM_CHAT_FORMAT_CLASS.getCacheClass());
 
     private final ClazzType clazzType;
 

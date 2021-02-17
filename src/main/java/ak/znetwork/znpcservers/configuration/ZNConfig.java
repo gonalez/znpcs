@@ -22,16 +22,13 @@ package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
-import ak.znetwork.znpcservers.configuration.impl.ZNConfigInterface;
+import ak.znetwork.znpcservers.configuration.impl.ZNConfigImpl;
 import ak.znetwork.znpcservers.utils.Utils;
 import org.bukkit.command.CommandSender;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,7 +45,7 @@ import java.util.stream.Collectors;
  * TODO
  * - -
  */
-public final class ZNConfig implements ZNConfigInterface {
+public final class ZNConfig implements ZNConfigImpl {
 
     private final Path path;
 
@@ -58,21 +55,23 @@ public final class ZNConfig implements ZNConfigInterface {
 
     private final Yaml yaml = getYaml();
 
-    public ZNConfig(final ZNConfigType znConfigType, final Path path) throws IOException {
+    public ZNConfig(final ZNConfigType znConfigType, final Path path) {
         this.znConfigType = znConfigType;
-
         this.path = path;
 
         this.configValueStringEnumMap = new EnumMap<>(ZNConfigValue.class);
 
-        final File file = new File(path.toUri());
-        if (!file.exists()) file.createNewFile();
+        try {
+            if (!path.toFile().exists()) Files.createFile(path);
 
-        this.load();
+            this.load();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
-    public void load() throws IOException {
+    public void load() {
         this.configValueStringEnumMap.clear();
 
         try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)) {
@@ -82,12 +81,10 @@ public final class ZNConfig implements ZNConfigInterface {
                 for (Map.Entry<String, Object> entry : data.entrySet()) {
                     if (entry.getKey() == null || entry.getKey().isEmpty()) continue;
 
-                    try {
-                        ZNConfigValue znConfigValue = ZNConfigValue.valueOf(entry.getKey());
+                    ZNConfigValue znConfigValue = ZNConfigValue.valueOf(entry.getKey());
+                    if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getClazz())) continue;
 
-                        if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getClazz())) continue;
-                        configValueStringEnumMap.put(znConfigValue, entry.getValue());
-                    } catch (IllegalArgumentException exception) {} // It is not a Config Value (@ZNConfigValue)
+                    configValueStringEnumMap.put(znConfigValue, entry.getValue());
                 }
             }
 
@@ -98,13 +95,17 @@ public final class ZNConfig implements ZNConfigInterface {
 
             // Save to file
             save(configValueStringEnumMap.entrySet().stream().collect(Collectors.toMap(key -> key.getKey().name(), Map.Entry::getValue)));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
     @Override
-    public void save(Map<Object, Object> hashMap) throws IOException {
+    public void save(Map<Object, Object> hashMap) {
         try (FileWriter writer = new FileWriter(new File(path.toUri()))) {
             yaml.dump(hashMap, writer);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -123,8 +124,6 @@ public final class ZNConfig implements ZNConfigInterface {
 
     @Override
     public <T> T getValue(ZNConfigValue znConfigValue) {
-        Object object = this.configValueStringEnumMap.get(znConfigValue);
-
-        return (T) object;
+        return (T) this.configValueStringEnumMap.get(znConfigValue);
     }
 }

@@ -18,7 +18,7 @@
  *
  *
  */
-package ak.znetwork.znpcservers.npc.enums.types;
+package ak.znetwork.znpcservers.npc.enums;
 
 import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.utils.Utils;
@@ -110,18 +110,22 @@ public enum NPCType {
      * Load npc type
      */
     public void load() {
-        this.constructor = (id < 0 ? ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_NO_ID_CONSTRUCTOR.getCacheConstructor() : ClazzCache.PACKET_PLAY_OUT_SPAWN_ENTITY_ID_CONSTRUCTOR.getCacheConstructor());
-
-        if (!Utils.isVersionNewestThan(13)) return;
-
         try {
-            entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(name()).get(null);
-        } catch (IllegalAccessException | NoSuchFieldException e) {
+            this.constructor = (this != NPCType.PLAYER ? (Utils.isVersionNewestThan(13) ? this.getClazzCache().getCacheClass().getConstructor(this.getEntityType().getClass(), ClazzCache.WORLD_CLASS.getCacheClass()) : this.getClazzCache().getCacheClass().getConstructor(ClazzCache.WORLD_CLASS.getCacheClass())) : null);
+
+            if (!Utils.isVersionNewestThan(13)) return;
+
             try {
-                entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(newName).get(null);
-            } catch (IllegalAccessException | NoSuchFieldException exception) {
-                throw new RuntimeException(String.format("Entity %s could not be loaded", name()), exception);
+                entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(name()).get(null);
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                try {
+                    entityType = ClazzCache.ENTITY_TYPES_CLASS.getCacheClass().getField(newName).get(null);
+                } catch (IllegalAccessException | NoSuchFieldException operationException) {
+                    throw new AssertionError(operationException);
+                }
             }
+        } catch (NoSuchMethodException noSuchMethodException) {
+            throw new AssertionError(noSuchMethodException);
         }
     }
 
@@ -129,13 +133,13 @@ public enum NPCType {
      * For the customization command a is necessary convert each value to
      * its primitive data type of the method
      * <p>
-     * Example if the class parameter types of the method are
+     * Example if the method parameter types are
      * boolean.class & double.class, and the input values are >
      * new String[]{"true", "10"} it will convert to its correct primitive data type
      * > (boolean.class) true, (double.class) 10.00
      *
      * @param strings array of strings to convert
-     * @param method  npc customization method
+     * @param method  customization method
      * @return converted array of primitive types
      */
     public static Object[] arrayToPrimitive(String[] strings, Method method) {

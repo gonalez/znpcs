@@ -73,15 +73,14 @@ public class ZNPCUser {
 
         this.actionCooldown = Maps.newHashMap();
 
-        Object craftPlayer = ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player);
-        Object playerConnection = ClazzCache.PLAYER_CONNECTION_FIELD.getCacheField().get(craftPlayer);
+        this.networkManager = ClazzCache.NETWORK_MANAGER_FIELD.getCacheField().get(ClazzCache.PLAYER_CONNECTION_FIELD.getCacheField().get(ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player)));
+        this.channel = (Channel) ClazzCache.CHANNEL_FIELD.getCacheField().get(networkManager);
 
-        networkManager = ClazzCache.NETWORK_MANAGER_FIELD.getCacheField().get(playerConnection);
-        channel = (Channel) ClazzCache.CHANNEL_FIELD.getCacheField().get(networkManager);
+        this.idField = ClazzCache.ID_FIELD.getCacheField();
 
-        idField = ClazzCache.ID_FIELD.getCacheField();
+        this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
 
-        executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
+        this.injectNetty(player);
     }
 
     /**
@@ -90,6 +89,8 @@ public class ZNPCUser {
      * @param player to inject channel
      */
     public void injectNetty(final Player player) {
+        this.ejectNetty();
+
         synchronized (networkManager) {
             if (channel == null) throw new IllegalStateException("Channel is NULL!");
 
@@ -151,7 +152,6 @@ public class ZNPCUser {
                                 }
                             });
                         });
-
                     }
                 }
             });
