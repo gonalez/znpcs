@@ -389,10 +389,8 @@ public class ZNPC {
             if (isPlayer) ServersNPC.getExecutor().execute(() -> hideFromTab(player));
 
             viewers.add(player);
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
         }
     }
 

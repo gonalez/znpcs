@@ -109,12 +109,12 @@ public class ZNPCUser {
                         serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
                             last_interact = System.currentTimeMillis();
 
-                            // Call NPC interact event
-                            Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(player, npc));
-
-                            if (npc.getActions() == null || npc.getActions().isEmpty()) return;
-
                             executor.execute(() -> {
+                                // Call NPC interact event
+                                Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(player, npc));
+
+                                if (npc.getActions() == null || npc.getActions().isEmpty()) return;
+
                                 for (String string : npc.getActions()) {
                                     String[] actions = string.split(":");
 
