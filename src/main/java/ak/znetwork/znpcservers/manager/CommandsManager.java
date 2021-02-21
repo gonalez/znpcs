@@ -1,23 +1,3 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.ServersNPC;
@@ -27,6 +7,7 @@ import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -34,26 +15,48 @@ import org.bukkit.command.CommandSender;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.logging.Level;
 
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
 public class CommandsManager implements CommandExecutor {
 
+    /**
+     * A set of commands.
+     */
     private final LinkedHashSet<ZNCommand> znCommands;
 
-    public CommandsManager(final String cmd, final ServersNPC serversNPC) {
-        serversNPC.getCommand(cmd).setExecutor(this);
-
+    /**
+     * Initializes commands.
+     *
+     * @param serversNPC The plugin instance.
+     * @param command The command name.
+     */
+    public CommandsManager(ServersNPC serversNPC,
+                           String command) {
         this.znCommands = new LinkedHashSet<>();
+
+        serversNPC.getCommand(command).setExecutor(this);
     }
 
     /**
-     * Create a new command
+     * Adds a new command.
      *
-     * @param znCommand add command
+     * @param commands Commands to add.
      */
-    public final void addCommands(final ZNCommand... znCommand) {
-        znCommands.addAll(Arrays.asList(znCommand));
+    public final void addCommand(final ZNCommand... commands) {
+        znCommands.addAll(Arrays.asList(commands));
     }
 
+    /**
+     * Get commands.
+     *
+     * @return command list
+     */
     public LinkedHashSet<ZNCommand> getZnCommands() {
         return znCommands;
     }
@@ -61,14 +64,14 @@ public class CommandsManager implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String arg, String[] args) {
         try {
-            final Optional<ZNCommand> znCommand = this.getZnCommands().stream().findFirst();
+            final Optional<ZNCommand> znCommand = znCommands.stream().findFirst();
 
             if (znCommand.isPresent()) znCommand.get().execute(sender, args);
         } catch (CommandExecuteException e) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
 
-            // if logs enabled
-            e.printStackTrace();
+            // Logs enabled.
+            Bukkit.getLogger().log(Level.WARNING, "", e);
         } catch (CommandPermissionException e) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NO_PERMISSION);
         } catch (CommandNotFoundException e) {

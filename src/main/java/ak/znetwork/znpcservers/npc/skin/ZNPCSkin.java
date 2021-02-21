@@ -1,0 +1,55 @@
+package ak.znetwork.znpcservers.npc.skin;
+
+import java.net.URL;
+import lombok.Getter;
+
+import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
+
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
+@Getter
+public final class ZNPCSkin {
+
+    /**
+     * The skin value.
+     */
+    private final String value;
+
+    /**
+     * The skin signature.
+     */
+    private final String signature;
+
+    /**
+     * Creates a new skin cache.
+     *
+     * @param values The skin values.
+     */
+    protected ZNPCSkin(String... values) {
+        this.value = values[0];
+        this.signature = values[1];
+    }
+
+    /**
+     * Creates a new skin cache.
+     *
+     * @param skin The skin name or url.
+     * @return     A skin class with the fetched values.
+     */
+    public static ZNPCSkin forName(String skin) {
+        try {
+            // Check if skin value is a url
+            new URL(skin).toURI();
+
+            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.GENERATE_API, skin).toSkinFetcher().getProfile());
+        } catch (Exception e) {
+            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.PROFILE_API,
+                    SkinBuilder.withData(SkinAPI.UUID_API, skin).toSkinFetcher().getUUID()).
+                    toSkinFetcher().getProfile());
+        }
+    }
+}

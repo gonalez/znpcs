@@ -1,36 +1,34 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class NPCSaveTask extends BukkitRunnable {
+/**
+ * A Task to save NPCs.
+ *
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
+public final class NPCSaveTask extends BukkitRunnable {
 
+    /**
+     * The plugin instance.
+     */
     private final ServersNPC serversNPC;
 
-    public NPCSaveTask(final ServersNPC serversNPC, final int seconds) {
+    /**
+     * Initialization of the task to save NPCs.
+     *
+     * @param serversNPC The plugin instance.
+     * @param seconds How often the npc will be saved (in seconds).
+     */
+    public NPCSaveTask(ServersNPC serversNPC,
+                       int seconds) {
         this.serversNPC = serversNPC;
 
-        runTaskTimer(serversNPC, 100L, seconds);
+        this.runTaskTimer(serversNPC, 100L, seconds);
     }
 
     @Override

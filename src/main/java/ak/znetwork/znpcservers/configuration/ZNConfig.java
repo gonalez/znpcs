@@ -1,29 +1,9 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.configuration.impl.ZNConfigImpl;
-import ak.znetwork.znpcservers.utils.Utils;
+import ak.znetwork.znpcservers.utility.Utils;
 import org.bukkit.command.CommandSender;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -37,25 +17,48 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Configuration
+ * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
- * <p>
- * <p>
- * TODO
- * - -
+ * @since 07/02/2020
  */
 public final class ZNConfig implements ZNConfigImpl {
 
-    private final Path path;
+    /**
+     * The yaml instance.
+     */
+    private static final Yaml yaml;
 
+    // Creates Yaml instance.
+    static {
+        DumperOptions options = new DumperOptions();
+        options.setPrettyFlow(true);
+        yaml = new Yaml(options);
+    }
+
+    /**
+     * The configuration type.
+     */
     private final ZNConfigType znConfigType;
 
+    /**
+     * The configuration path.
+     */
+    private final Path path;
+
+    /**
+     * A map that contains the configuration values.
+     */
     private final EnumMap<ZNConfigValue, Object> configValueStringEnumMap;
 
-    private final Yaml yaml = getYaml();
-
-    public ZNConfig(final ZNConfigType znConfigType, final Path path) {
+    /**
+     * Creates a new configuration.
+     *
+     * @param znConfigType The configuration type.
+     * @param path The configuration path.
+     */
+    public ZNConfig(ZNConfigType znConfigType,
+                    Path path) {
         this.znConfigType = znConfigType;
         this.path = path;
 
@@ -74,7 +77,7 @@ public final class ZNConfig implements ZNConfigImpl {
     public void load() {
         this.configValueStringEnumMap.clear();
 
-        try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)) {
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             Map<String, Object> data = yaml.load(reader);
 
             if (data != null && !data.isEmpty()) {
@@ -82,18 +85,18 @@ public final class ZNConfig implements ZNConfigImpl {
                     if (entry.getKey() == null || entry.getKey().isEmpty()) continue;
 
                     ZNConfigValue znConfigValue = ZNConfigValue.valueOf(entry.getKey());
-                    if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getClazz())) continue;
+                    if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getPrimitiveType())) continue;
 
                     configValueStringEnumMap.put(znConfigValue, entry.getValue());
                 }
             }
 
-            // Default values check
+            // Default values.
             for (ZNConfigValue znConfigValue : ZNConfigValue.values())
-                if (!configValueStringEnumMap.containsKey(znConfigValue) && znConfigValue.getConfigType() == this.znConfigType)
-                    configValueStringEnumMap.put(znConfigValue, znConfigValue.getValue()); // Default
+                if (!configValueStringEnumMap.containsKey(znConfigValue) && znConfigValue.getConfigType() == znConfigType)
+                    configValueStringEnumMap.put(znConfigValue, znConfigValue.getValue());
 
-            // Save to file
+            // Save to file.
             save(configValueStringEnumMap.entrySet().stream().collect(Collectors.toMap(key -> key.getKey().name(), Map.Entry::getValue)));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -110,20 +113,12 @@ public final class ZNConfig implements ZNConfigImpl {
     }
 
     @Override
-    public Yaml getYaml() {
-        DumperOptions options = new DumperOptions();
-        options.setPrettyFlow(true);
-        return new Yaml(options);
-    }
-
-
-    @Override
     public void sendMessage(CommandSender player, ZNConfigValue znConfigValue) {
-        player.sendMessage(Utils.color(this.getValue(znConfigValue)));
+        player.sendMessage(Utils.color(getValue(znConfigValue)));
     }
 
     @Override
     public <T> T getValue(ZNConfigValue znConfigValue) {
-        return (T) this.configValueStringEnumMap.get(znConfigValue);
+        return (T) configValueStringEnumMap.get(znConfigValue);
     }
 }

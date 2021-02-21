@@ -1,41 +1,63 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.npc.enums;
 
 import lombok.Getter;
 
 /**
- * NPC ITEM SLOT
- * <p>
- * Get slot by id
+ * Determines a npc equipment place by the slot id.
+ *
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
  */
+@Getter
 public enum NPCItemSlot {
-    HAND(0), HELMET(4), CHESTPLATE(3), LEGGINGS(2), BOOTS(1);
 
-    @Getter private final int id;
+    /**
+     * Represents the helmet of the npc.
+     */
+    HELMET(4),
 
-    NPCItemSlot(int id) {
-        this.id = id;
+    /**
+     * Represents the chestplate of the npc.
+     */
+    CHEST_PLATE(3),
+
+    /**
+     * Represents the leggings of the npc.
+     */
+    LEGGINGS(2),
+
+    /**
+     * Represents the boots of the npc.
+     */
+    BOOTS(1),
+
+    /**
+     * Represents the hand of the npc.
+     */
+    HAND(0);
+
+    /**
+     * The equipment slot.
+     */
+    private final int equipmentSlot;
+
+    /**
+     * Creates a new equipment identifier.
+     *
+     * @param slot The equipment slot.
+     */
+    NPCItemSlot(int slot) {
+        this.equipmentSlot = slot;
     }
 
+    /**
+     * Gets NPCItemSlot by name.
+     *
+     * @param text The item slot name.
+     * @return Corresponding enum or null if not found.
+     */
     public static NPCItemSlot fromString(String text) {
         for (NPCItemSlot b : NPCItemSlot.values()) {
             if (b.name().equalsIgnoreCase(text)) {

@@ -1,41 +1,37 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
-import com.google.common.collect.Lists;
-import lombok.Getter;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
+@Getter
 public final class NPCManager {
 
-    @Getter private final LinkedHashSet<ZNPC> npcs;
-    @Getter private final List<ZNPCPathReader> npcPaths;
+    /**
+     * A list of NPC.
+     */
+    private final List<ZNPC> npcList;
 
+    /**
+     * A list of paths that are provided to NPCs.
+     */
+    private final List<ZNPCPathReader> npcPaths;
+
+    /**
+     * Initializes manager for NPCs.
+     */
     public NPCManager() {
-        this.npcs = new LinkedHashSet<>();
-
-        this.npcPaths = Lists.newArrayList();
+        this.npcList = new ArrayList<>();
+        this.npcPaths = new ArrayList<>();
     }
 }

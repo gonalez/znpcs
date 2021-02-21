@@ -24,7 +24,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
-import ak.znetwork.znpcservers.utils.Utils;
+import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import org.bukkit.Location;
@@ -34,7 +34,6 @@ import java.lang.reflect.Type;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
 
@@ -45,27 +44,24 @@ public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
     }
 
     public ZNPC deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        final JsonObject jsonObject = json.getAsJsonObject();
+        JsonObject jsonObject = json.getAsJsonObject();
 
-        HashMap<String, String> configMap = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
+        HashMap<String, String> npcEquipments = ServersNPC.getGson().fromJson(jsonObject.get("npcEquipments"), HashMap.class);
 
-        // Load npc equipment
+        // Load npc equipment.
         EnumMap<NPCItemSlot, Material> loadMap = new EnumMap<>(NPCItemSlot.class);
-        configMap.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
+        npcEquipments.forEach((s, s2) -> loadMap.put(NPCItemSlot.fromString(s), Material.getMaterial(s2)));
 
         ZNPC npc = new ZNPC(this.serversNPC, jsonObject.get("id").getAsInt(), jsonObject.get("lines").getAsString(), jsonObject.get("skin").getAsString(), jsonObject.get("signature").getAsString(), ServersNPC.getGson().fromJson(jsonObject.get("location"), Location.class), NPCType.fromString(jsonObject.get("npcType").getAsString()), loadMap, jsonObject.get("save").getAsBoolean());
 
-        // Fix NPC disappearing after world load/unload update
+        // Set world name.
         npc.setWorldName(jsonObject.get("location").getAsJsonObject().get("world").getAsString());
 
         JsonElement pathObject = jsonObject.get("pathName");
-        if (pathObject != null) {
-            String pathName = pathObject.getAsString();
+        JsonElement actionsObject = jsonObject.get("actions");
 
-            serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().ifPresent(npc::setPath);
-        }
-
-        npc.setActions(ServersNPC.getGson().fromJson(jsonObject.get("actions"), List.class)); // Load actions..
+        if (pathObject != null) serversNPC.getNpcManager().getNpcPaths().stream().filter(pathReader -> pathReader.getName().equalsIgnoreCase(pathObject.getAsString())).findFirst().ifPresent(npc::setPath);
+        if (actionsObject != null) npc.setActions(ServersNPC.getGson().fromJson(actionsObject, List.class)); // Load actions..
 
         npc.setHasLookAt(jsonObject.get("hasLookAt").getAsBoolean());
         npc.setHasGlow(jsonObject.get("hasGlow").getAsBoolean());
@@ -74,12 +70,13 @@ public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
         npc.setHasToggleName(jsonObject.get("hasToggleName").getAsBoolean());
         npc.setReversePath(jsonObject.get("isReversePath").getAsBoolean());
 
-        if (Utils.isVersionNewestThan(9))
-            npc.toggleGlow(Optional.empty(), jsonObject.get("glowName").getAsString(), false);
+        if (Utils.versionNewer(9))
+            npc.toggleGlow(jsonObject.get("glowName").getAsString(), false);
 
-        // Customization
-        if (jsonObject.get("customizationMap") != null) {
-            npc.setCustomizationMap(ServersNPC.getGson().fromJson(jsonObject.get("customizationMap"), new TypeToken<HashMap<String, List>>() {
+        // Load Customization.
+        JsonElement customizationObject = jsonObject.get("customizationMap");
+        if (customizationObject != null) {
+            npc.setCustomizationMap(ServersNPC.getGson().fromJson(customizationObject, new TypeToken<HashMap<String, List>>() {
             }.getType())); // Load actions..
         }
         return npc;

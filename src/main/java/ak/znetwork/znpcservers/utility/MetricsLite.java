@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.utils;
+package ak.znetwork.znpcservers.utility;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

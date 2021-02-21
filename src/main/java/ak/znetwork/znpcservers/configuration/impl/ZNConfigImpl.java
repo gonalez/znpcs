@@ -1,23 +1,3 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.configuration.impl;
 
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
@@ -27,15 +7,37 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
 public interface ZNConfigImpl {
 
-    void load() throws IOException;
+    /**
+     * Responsible of loading the configuration.
+     */
+    void load();
 
-    void sendMessage(final CommandSender player, ZNConfigValue znConfigValue);
+    /**
+     * Sends an configuration message to a player.
+     *
+     * @param player The player to send the message to.
+     * @param znConfigValue The configuration message value.
+     */
+    void sendMessage(CommandSender player, ZNConfigValue znConfigValue);
 
+    /**
+     * Saves configuration into database.
+     *
+     * @param hashMap The configuration values to save.
+     * @throws IOException If configuration could not be saved.
+     */
     void save(Map<Object, Object> hashMap) throws IOException;
 
-    Yaml getYaml();
-
+    /**
+     * Gets the value from the configuration.
+     */
     <T> T getValue(ZNConfigValue znConfigValue);
 }

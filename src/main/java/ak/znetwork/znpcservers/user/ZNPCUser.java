@@ -1,117 +1,136 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.cache.ClazzCache;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
-import ak.znetwork.znpcservers.utils.PlaceholderUtils;
-import ak.znetwork.znpcservers.utils.ReflectionUtils;
-import ak.znetwork.znpcservers.utils.Utils;
-import com.google.common.collect.Maps;
+import ak.znetwork.znpcservers.types.ClassTypes;
+import ak.znetwork.znpcservers.utility.PlaceholderUtils;
+import ak.znetwork.znpcservers.utility.ReflectionUtils;
+import ak.znetwork.znpcservers.utility.Utils;
+import com.google.common.collect.HashBasedTable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * Netty API
+ * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
- * <p>
- * <p>
- * TODO
- * -
+ * @since 07/02/2020
  */
+@Getter @Setter
 public class ZNPCUser {
 
+    /**
+     * The name of the NPC Interact channel.
+     */
+    private static final String CHANNEL_NAME = "npc_interact";
+
+    /**
+     * An empty string.
+     */
+    private static final String EMPTY_STRING = "";
+
+    /**
+     * The default wait time between each npc interact.
+     */
+    private static int DEFAULT_DELAY = 2;
+
+    /**
+     * The player network manager.
+     */
     private final Object networkManager;
+
+    /**
+     * The player channel.
+     */
     private final Channel channel;
-    private final Field idField;
 
-    private final String channel_name = "npc_interact";
-    private long last_interact = 0;
-
-    private final ServersNPC serversNPC;
+    /**
+     * The executor to delegate interaction work of a npc.
+     */
     private final Executor executor;
 
-    private final HashMap<Integer, Map<Long, Integer>> actionCooldown;
+    /**
+     * A collection of cooldowns for each interacted NPC.
+     */
+    private final HashBasedTable<Integer, Long, Integer> actionDelay;
 
-    @Getter private final UUID uuid;
-    @Getter @Setter private boolean hasPath = false;
+    /**
+     * The player uuid.
+     */
+    private final UUID uuid;
 
-    public ZNPCUser(final ServersNPC serversNPC, final Player player) throws Exception {
+    /**
+     * Checks if player is creating a npc path.
+     */
+    private boolean hasPath = false;
+
+    /**
+     * Used to compare the interaction time when a npc is clicked.
+     */
+    private long last_interact = 0;
+
+    /**
+     * The plugin instance.
+     */
+    private final ServersNPC serversNPC;
+
+    /**
+     * Creates a new USER Player.
+     *
+     * @param serversNPC The plugin instance.
+     * @param player The user player.
+     * @throws Exception If the classes cannot be loaded.
+     */
+    public ZNPCUser(ServersNPC serversNPC,
+                    Player player) throws Exception {
         this.serversNPC = serversNPC;
-
         this.uuid = player.getUniqueId();
 
-        this.actionCooldown = Maps.newHashMap();
-
-        this.networkManager = ClazzCache.NETWORK_MANAGER_FIELD.getCacheField().get(ClazzCache.PLAYER_CONNECTION_FIELD.getCacheField().get(ClazzCache.GET_HANDLE_PLAYER_METHOD.getCacheMethod().invoke(player)));
-        this.channel = (Channel) ClazzCache.CHANNEL_FIELD.getCacheField().get(networkManager);
-
-        this.idField = ClazzCache.ID_FIELD.getCacheField();
+        this.actionDelay = HashBasedTable.create();
+        this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
 
         this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
 
-        this.injectNetty(player);
+        this.injectNetty();
     }
 
     /**
-     * Add channel to player network
-     *
-     * @param player to inject channel
+     * Inject NPC channel to player channel.
      */
-    public void injectNetty(final Player player) {
-        this.ejectNetty();
+    public void injectNetty() {
+        ejectNetty();
 
         synchronized (networkManager) {
             if (channel == null) throw new IllegalStateException("Channel is NULL!");
 
-            channel.pipeline().addAfter("decoder", channel_name, new MessageToMessageDecoder<Object>() {
+            channel.pipeline().addAfter("decoder", CHANNEL_NAME, new MessageToMessageDecoder<Object>() {
                 @Override
                 protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) throws Exception {
                     out.add(packet);
 
-                    if (packet.getClass() == ClazzCache.PACKET_PLAY_IN_USE_ENTITY_CLASS.getCacheClass()) {
+                    if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
                         Object actionName = ReflectionUtils.getValue(packet, "action");
 
                         if (!actionName.toString().equalsIgnoreCase("INTERACT")) return;
-                        if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000 * 2)) return;
+                        if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000L * DEFAULT_DELAY)) return;
 
-                        int entityId = (int) idField.get(packet);
-                        serversNPC.getNpcManager().getNpcs().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
+                        int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
+                        serversNPC.getNpcManager().getNpcList().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
                             last_interact = System.currentTimeMillis();
 
                             executor.execute(() -> {
                                 // Call NPC interact event
-                                Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(player, npc));
+                                Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), npc));
 
                                 if (npc.getActions() == null || npc.getActions().isEmpty()) return;
 
@@ -125,25 +144,29 @@ public class ZNPCUser {
                                         int id = npc.getActions().indexOf(string);
 
                                         // Check for cooldown
-                                        if (actionCooldown.containsKey(id) && !(System.currentTimeMillis() - (long) actionCooldown.get(id).keySet().toArray()[0] >= 1000 * (int) actionCooldown.get(id).values().toArray()[0]))
-                                            return;
+                                        if (actionDelay.containsRow(id)) {
+                                            Map.Entry<Long, Integer> delay = actionDelay.row(id).entrySet().iterator().next();
+
+                                            if (System.currentTimeMillis() - delay.getKey() <= 1000L * delay.getValue())
+                                                return;
+                                        }
 
                                         if (actions.length > 2)
-                                            actionCooldown.put(id, Collections.singletonMap(System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1])));
+                                            actionDelay.put(id, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
 
-                                        String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(player, actions[1]) : actions[1]);
+                                        String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actions[1]) : actions[1]);
                                         switch (npcAction) {
                                             case CMD:
-                                                player.performCommand(action);
+                                                toPlayer().performCommand(action);
                                                 break;
                                             case CONSOLE:
                                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action);
                                                 break;
                                             case SERVER:
-                                                serversNPC.sendPlayerToServer(player, action);
+                                                serversNPC.sendPlayerToServer(toPlayer(), action);
                                                 break;
                                             case MESSAGE:
-                                                player.sendMessage(Utils.color(action));
+                                                toPlayer().sendMessage(Utils.color(action));
                                                 break;
                                             default:
                                                 break;
@@ -159,19 +182,19 @@ public class ZNPCUser {
     }
 
     /**
-     * Unregister channel
+     * Unregister NPC channel for player.
      */
     public void ejectNetty() {
-        if (!channel.pipeline().names().contains(channel_name)) return;
+        if (!channel.pipeline().names().contains(CHANNEL_NAME)) return;
 
-        // Remove channel
-        channel.eventLoop().execute(() -> channel.pipeline().remove(channel_name));
+        channel.eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
     }
 
-    /*
-    Other
+    /**
+     * Gets player by user uuid.
+     *
+     * @return The player.
      */
-
     public Player toPlayer() {
         return Bukkit.getPlayer(getUuid());
     }

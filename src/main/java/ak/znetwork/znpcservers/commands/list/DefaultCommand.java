@@ -1,27 +1,7 @@
-/*
- *
- * ZNServersNPC
- * Copyright (C) 2019 Gaston Gonzalez (ZNetwork)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- */
 package ak.znetwork.znpcservers.commands.list;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.commands.annotation.CMDInfo;
+import ak.znetwork.znpcservers.commands.annotation.SubCommand;
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
@@ -33,9 +13,7 @@ import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.user.ZNPCUser;
-import ak.znetwork.znpcservers.utils.SkinFetcher;
-import ak.znetwork.znpcservers.utils.Utils;
-import ak.znetwork.znpcservers.utils.objects.SkinFetch;
+import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.primitives.Ints;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -50,51 +28,68 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
+
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
 public class DefaultCommand {
 
-    private final ServersNPC serversNPC;
+    /**
+     * The plugin instance.
+     */
+    private ServersNPC serversNPC;
 
-    public DefaultCommand(final ServersNPC serversNPC) {
+
+    /**
+     * Creates a new command.
+     *
+     * @param serversNPC The plugin instance.
+     */
+    public DefaultCommand(ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
     }
 
-    @CMDInfo(aliases = {}, required = "", permission = "")
-    public void defaultCommand(final CommandSender sender, Map<String, String> args) {
+    @SubCommand(aliases = {}, required = "", permission = "")
+    public void defaultCommand(CommandSender sender, Map<String, String> args) {
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
         sender.sendMessage(Utils.color("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)"));
         serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> znCommand.getConsumerSet().forEach((cmdInfo, commandInvoker) -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + cmdInfo.required() + " " + String.join(" ", cmdInfo.aliases())))));
         sender.sendMessage(Utils.color("&6&m------------------------------------------"));
     }
 
-    @CMDInfo(aliases = {"-id", "-skin", "-name"}, required = "create", permission = "znpcs.cmd.create")
-    public void createNPC(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id", "-skin", "-name"}, required = "create", permission = "znpcs.cmd.create")
+    public void createNPC(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 3) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean foundNPC = serversNPC.getNpcManager().getNpcList().stream().anyMatch(npc -> npc.getId() == id);
 
         if (foundNPC) {
             sender.sendMessage(ChatColor.RED + "I have found an npc with this id, try putting a unique id..");
             return;
         }
 
-        final String skin = args.get("skin").trim();
+        String skin = args.get("skin").trim();
 
         if (skin.length() < 3 || skin.length() > 16) {
             sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
             return;
         }
 
-        final String name = args.get("name").trim();
+        String name = args.get("name").trim();
 
         try {
             // All success!
@@ -106,21 +101,21 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id"}, required = "delete", permission = "znpcs.cmd.delete")
-    public void deleteNPC(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id"}, required = "delete", permission = "znpcs.cmd.delete")
+    public void deleteNPC(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        boolean foundNPC = serversNPC.getNpcManager().getNpcs().stream().anyMatch(npc -> npc.getId() == id);
+        boolean foundNPC = serversNPC.getNpcManager().getNpcList().stream().anyMatch(npc -> npc.getId() == id);
 
         if (!foundNPC) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -136,85 +131,58 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {}, required = "list", permission = "znpcs.cmd.list")
-    public void list(final CommandSender sender, Map<String, String> args) {
-        if (serversNPC.getNpcManager().getNpcs().isEmpty()) {
+    @SubCommand(aliases = {}, required = "list", permission = "znpcs.cmd.list")
+    public void list(CommandSender sender, Map<String, String> args) {
+        if (serversNPC.getNpcManager().getNpcList().isEmpty()) {
             sender.sendMessage(ChatColor.RED + "No NPC found.");
         } else
-            serversNPC.getNpcManager().getNpcs().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
+            serversNPC.getNpcManager().getNpcList().forEach(npc -> sender.sendMessage(Utils.color("&f&l * &a" + npc.getId() + " " + npc.getHologram().getLinesFormatted() + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)")));
     }
 
-    @CMDInfo(aliases = {"-id", "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
-    public void setSkin(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id", "-skin"}, required = "skin", permission = "znpcs.cmd.skin")
+    public void setSkin(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
-        final String skin = args.get("skin").trim();
+        String skin = args.get("skin").trim();
 
-        SkinFetch skinFetch = null;
-        try {
-            URL url = new URL(skin);
-            try {
-                skinFetch = SkinFetcher.getByURL(skin).get();
-            } catch (Exception exception) {
-                throw new CommandExecuteException("Could not connect to url", exception);
-            }
-        } catch (MalformedURLException e) {
-            // It is not a url, set default skin method
-            if (skin.length() < 3 || skin.length() > 16) {
-                sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
-                return;
-            }
+        ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
+        foundNPC.get().changeSkin(skinFetch);
 
-            try {
-                skinFetch = SkinFetcher.getDefaultSkin(skin);
-            } catch (Exception exception) {
-                throw new RuntimeException("An error occurred while changing skin for npc " + foundNPC.get().getId(), exception);
-            }
-        } finally {
-            if (skinFetch != null) { // All success
-                try {
-                    foundNPC.get().changeSkin(skinFetch);
-
-                    ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
     }
 
-    @CMDInfo(aliases = {"-id", "-hand", "-helmet", "-chestplate", "-leggings", "-boots"}, required = "equip", permission = "znpcs.cmd.equip")
-    public void equip(final CommandSender sender, Map<String, String> args) {
+    @SubCommand(aliases = {"-id", "-hand", "-helmet", "-chestplate", "-leggings", "-boots"}, required = "equip", permission = "znpcs.cmd.equip")
+    public void equip(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -222,8 +190,8 @@ public class DefaultCommand {
         }
 
         args.forEach((key, value) -> {
-            final NPCItemSlot npcItemSlot = NPCItemSlot.fromString(key.toUpperCase());
-            final Material material = Material.getMaterial(value.toUpperCase().trim());
+            NPCItemSlot npcItemSlot = NPCItemSlot.fromString(key.toUpperCase());
+            Material material = Material.getMaterial(value.toUpperCase().trim());
 
             if (npcItemSlot != null && material != null) {
                 try {
@@ -236,30 +204,30 @@ public class DefaultCommand {
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
     }
 
-    @CMDInfo(aliases = {"-id", "-lines"}, required = "lines", permission = "znpcs.cmd.lines")
-    public void changeLines(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id", "-lines"}, required = "lines", permission = "znpcs.cmd.lines")
+    public void changeLines(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
-        final String lines = args.get("lines");
+        String lines = args.get("lines");
         try {
-            final List<String> stringList = Arrays.asList(lines.split(" "));
+            List<String> stringList = Arrays.asList(lines.split(" "));
             Collections.reverse(stringList);
 
             foundNPC.get().getHologram().setLines(stringList.toArray(new String[0]));
@@ -274,21 +242,21 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id"}, required = "move", permission = "znpcs.cmd.move")
-    public void move(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id"}, required = "move", permission = "znpcs.cmd.move")
+    public void move(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -298,9 +266,8 @@ public class DefaultCommand {
         try {
             if (foundNPC.get().isHasLookAt()) foundNPC.get().toggleLookAt();
 
-            final Location location = ((Player) sender).getLocation();
-
-            foundNPC.get().setLocation((location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location));
+            Location location = ((Player) sender).getLocation().clone();
+            foundNPC.get().setLocation(location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location);
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
@@ -309,28 +276,28 @@ public class DefaultCommand {
     }
 
 
-    @CMDInfo(aliases = {"-id", "-type"}, required = "type", permission = "znpcs.cmd.type")
-    public void changeType(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id", "-type"}, required = "type", permission = "znpcs.cmd.type")
+    public void changeType(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
-        final NPCType npcType = NPCType.fromString(args.get("type").trim().toUpperCase());
+        NPCType npcType = NPCType.fromString(args.get("type").trim().toUpperCase());
 
         if (npcType == null) {
             sender.sendMessage(ChatColor.RED + "NPC type not found");
@@ -340,7 +307,7 @@ public class DefaultCommand {
             return;
         }
 
-        if (npcType.getConstructor() == null) {
+        if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
             sender.sendMessage(ChatColor.RED + "NPC type not available for your current version.");
             return;
         }
@@ -354,21 +321,21 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id", "-add", "-remove", "-cooldown", "-list"}, required = "action", permission = "znpcs.cmd.action")
-    public void action(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    @SubCommand(aliases = {"-id", "-add", "-remove", "-cooldown", "-list"}, required = "action", permission = "znpcs.cmd.action")
+    public void action(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        final Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id").trim());
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             return;
         }
 
-        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst();
+        Optional<ZNPC> foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst();
 
         if (!foundNPC.isPresent()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -390,7 +357,7 @@ public class DefaultCommand {
             foundNPC.get().getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
         } else if (args.containsKey("remove")) {
-            final Integer actionId = Ints.tryParse(args.get("remove").trim());
+            Integer actionId = Ints.tryParse(args.get("remove").trim());
 
             if (actionId == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
@@ -411,7 +378,7 @@ public class DefaultCommand {
                 return;
             }
 
-            final Integer actionId = Ints.tryParse(split[0]);
+            Integer actionId = Ints.tryParse(split[0]);
             if (actionId == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
             } else {
@@ -433,43 +400,8 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-id", "-holo", "-name", "-glow", "-mirror", "-look", "-pathreverse"}, required = "toggle", permission = "znpcs.cmd.toggle")
-    public void toggle(final CommandSender sender, Map<String, String> args) throws CommandExecuteException {
-        if (args.size() < 2) {
-            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
-            return;
-        }
-
-        final Integer id = Ints.tryParse(args.get("id").trim());
-
-        if (id == null) {
-            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
-            return;
-        }
-
-        ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
-
-        if (foundNPC == null) {
-            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
-            return;
-        }
-
-        try {
-            if (args.containsKey("holo")) foundNPC.toggleHolo();
-            else if (args.containsKey("name")) foundNPC.toggleName(true);
-            else if (args.containsKey("glow")) foundNPC.toggleGlow(Optional.ofNullable((Player) sender), args.get("glow"), true);
-            else if (args.containsKey("mirror")) foundNPC.toggleMirror();
-            else if (args.containsKey("look")) foundNPC.toggleLookAt();
-            else if (args.containsKey("pathreverse")) foundNPC.setReversePath(!foundNPC.isReversePath());
-
-            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing toggle command", exception);
-        }
-    }
-
-    @CMDInfo(aliases = {"-id", "-customize"}, required = "customize", permission = "znpcs.cmd.customize")
-    public void customize(final CommandSender sender, Map<String, String> args) throws Exception {
+    @SubCommand(aliases = {"-id", "-holo", "-name", "-glow", "-mirror", "-look", "-pathreverse"}, required = "toggle", permission = "znpcs.cmd.toggle")
+    public void toggle(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
@@ -482,7 +414,42 @@ public class DefaultCommand {
             return;
         }
 
-        ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+
+        if (foundNPC == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
+            return;
+        }
+
+        try {
+            if (args.containsKey("holo")) foundNPC.toggleHolo();
+            else if (args.containsKey("name")) foundNPC.toggleName(true);
+            else if (args.containsKey("glow")) foundNPC.toggleGlow(args.get("glow"), true);
+            else if (args.containsKey("mirror")) foundNPC.toggleMirror();
+            else if (args.containsKey("look")) foundNPC.toggleLookAt();
+            else if (args.containsKey("pathreverse")) foundNPC.setReversePath(!foundNPC.isReversePath());
+
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
+        } catch (Exception exception) {
+            throw new CommandExecuteException("An error occurred while changing toggle command", exception);
+        }
+    }
+
+    @SubCommand(aliases = {"-id", "-customize"}, required = "customize", permission = "znpcs.cmd.customize")
+    public void customize(CommandSender sender, Map<String, String> args) throws Exception {
+        if (args.size() < 2) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
+            return;
+        }
+
+        Integer id = Ints.tryParse(args.get("id").trim());
+
+        if (id == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INVALID_NUMBER);
+            return;
+        }
+
+        ZNPC foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -522,8 +489,8 @@ public class DefaultCommand {
         }
     }
 
-    @CMDInfo(aliases = {"-set", "-create", "-exit", "-id", "-path", "-list"}, required = "path", permission = "znpcs.cmd.path")
-    public void path(final CommandSender sender, Map<String, String> args) throws Exception {
+    @SubCommand(aliases = {"-set", "-create", "-exit", "-id", "-path", "-list"}, required = "path", permission = "znpcs.cmd.path")
+    public void path(CommandSender sender, Map<String, String> args) throws Exception {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.INCORRECT_USAGE);
             return;
@@ -547,7 +514,7 @@ public class DefaultCommand {
                 return;
             }
 
-            ZNPC foundNPC = serversNPC.getNpcManager().getNpcs().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+            ZNPC foundNPC = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
 
             if (foundNPC == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NPC_NOT_FOUND);
@@ -556,9 +523,8 @@ public class DefaultCommand {
 
             String pathName = args.get("path").trim();
 
-            ZNPCPathReader znpcPath = serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPath1 -> znpcPath1.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
-
-            foundNPC.setPath(znpcPath);
+            ZNPCPathReader pathReader = serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
+            foundNPC.setPath(pathReader);
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.SUCCESS);
         } else if (args.containsKey("create")) {
             String pathName = args.get("create").trim();
@@ -590,9 +556,7 @@ public class DefaultCommand {
         } else if (args.containsKey("list")) {
             if (serversNPC.getNpcManager().getNpcPaths().isEmpty())
                 player.sendMessage(ChatColor.RED + "No PATH found!");
-            else
-                serversNPC.getNpcManager().getNpcPaths().forEach(znpcPath -> player.sendMessage(ChatColor.GREEN + znpcPath.getName()));
+            else serversNPC.getNpcManager().getNpcPaths().forEach(znpcPath -> player.sendMessage(ChatColor.GREEN + znpcPath.getName()));
         }
-
     }
 }
