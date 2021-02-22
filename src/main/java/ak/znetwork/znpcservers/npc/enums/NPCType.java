@@ -3,12 +3,16 @@ package ak.znetwork.znpcservers.npc.enums;
 import ak.znetwork.znpcservers.types.ClassTypes;
 
 import ak.znetwork.znpcservers.utility.Utils;
-import lombok.Getter;
 import org.apache.commons.lang.math.NumberUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -80,7 +84,7 @@ public enum NPCType {
     /**
      * The customization method names;
      */
-    private final String[] customization;
+    private final List<String> customization;
 
     /**
      * The bukkit entity type.
@@ -100,10 +104,10 @@ public enum NPCType {
     /**
      * Creates a new Entity type.
      *
-     * @param entityClass The entity class.
-     * @param newName The entity name for newer versions.
-     * @param id The bukkit entity ID;
-     * @param holoHeight The hologram height for the entity.
+     * @param entityClass   The entity class.
+     * @param newName       The entity name for newer versions.
+     * @param id            The bukkit entity ID;
+     * @param holoHeight    The hologram height for the entity.
      * @param customization The customization methods for the entity.
      */
     NPCType(Class<?> entityClass,
@@ -115,46 +119,43 @@ public enum NPCType {
         this.newName = newName;
         this.id = id;
         this.holoHeight = holoHeight;
-        this.customization = customization;
+        this.customization = Arrays.asList(customization);
 
-        // Load customization.
         this.customizationMethods = new HashMap<>();
-
-        for (String value : this.customization) {
-            for (Method method : this.getEntityClass().getMethods()) {
-                if (customizationMethods.containsKey(method.getName())) continue;
-
-                if (method.getName().equalsIgnoreCase(value)) {
-                    customizationMethods.put(method.getName(), method);
-                }
-            }
-        }
     }
 
     /**
      * Loads the npc type.
      */
     public void load() {
-        boolean isNpcPlayer = this == NPCType.PLAYER;
+        if (getEntityClass() == null) return;
+
+        // Load npc customization
+        for (Method method : getEntityClass().getMethods()) {
+            if (!getCustomizationMethods().containsKey(method.getName()) && getCustomization().contains(method.getName())) {
+                getCustomizationMethods().put(method.getName(), method);
+            }
+        }
 
         try {
-            if (!Utils.versionNewer(13)) {
-                if (!isNpcPlayer) constructor = getEntityClass().getConstructor(ClassTypes.WORLD_CLASS);
+            boolean isNpcPlayer = this == NPCType.PLAYER;
 
-                return;
-            }
-
-            try {
-                entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(name()).get(null);
-            } catch (IllegalAccessException | NoSuchFieldException e) {
+            if (Utils.versionNewer(14)) {
                 try {
-                    entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(newName).get(null);
-                } catch (IllegalAccessException | NoSuchFieldException operationException) {
-                    throw new AssertionError(operationException);
+                    entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(name()).get(null);
+                } catch (IllegalAccessException | NoSuchFieldException e) {
+                    try {
+                        entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(newName).get(null);
+                    } catch (IllegalAccessException | NoSuchFieldException operationException) {
+                        throw new AssertionError(operationException);
+                    }
+                } finally {
+                    if (entityType != null && !isNpcPlayer)
+                        constructor = getEntityClass().getConstructor(getEntityType().getClass(), ClassTypes.WORLD_CLASS);
                 }
-            } finally {
-                if (entityType != null && !isNpcPlayer)
-                    constructor = getEntityClass().getConstructor(getEntityType().getClass(), ClassTypes.WORLD_CLASS);
+            } else {
+                if (!isNpcPlayer)
+                    constructor = getEntityClass().getConstructor(ClassTypes.WORLD_CLASS);
             }
         } catch (NoSuchMethodException noSuchMethodException) {
             throw new AssertionError(noSuchMethodException);
@@ -216,7 +217,7 @@ public enum NPCType {
      * Gets NPCType by name.
      *
      * @param text The npc type name.
-     * @return Corresponding enum or null if not found.
+     * @return     Corresponding enum or null if not found.
      */
     public static NPCType fromString(String text) {
         for (NPCType b : NPCType.values()) {

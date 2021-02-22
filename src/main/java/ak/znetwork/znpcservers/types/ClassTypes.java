@@ -827,7 +827,7 @@ public class ClassTypes {
     public static final Field REMOVE_PLAYER_FIELD = new ClassCache(new ClassCacheBuilder<>().builderType(BuilderType.FIELD).
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutPlayerInfo$EnumPlayerInfoAction").
-            fieldName("ADD_PLAYER")).
+            fieldName("REMOVE_PLAYER")).
     typeOf();
 
     /**

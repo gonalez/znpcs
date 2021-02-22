@@ -400,11 +400,10 @@ public class ZNPC {
             if (npcIsPlayer) ReflectionUtils.sendPacket(player, packetPlayOutPlayerInfoConstructor);
             ReflectionUtils.sendPacket(player, (npcType == NPCType.PLAYER ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(znEntity) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(znEntity)));
 
-            if (npcIsPlayer) {
-                Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(znEntity);
+            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(znEntity);
 
+            if (npcIsPlayer)
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entity_id, npcDataWatcher, true));
-            }
 
             if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
             if (hasToggleHolo) hologram.spawn(player, true);
@@ -415,7 +414,7 @@ public class ZNPC {
 
             npcEquipments.forEach((itemSlot, material) -> equip(player, itemSlot, material));
 
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntity_id(), ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity()), false));
+            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntity_id(), npcDataWatcher, false));
 
             viewers.add(player);
 

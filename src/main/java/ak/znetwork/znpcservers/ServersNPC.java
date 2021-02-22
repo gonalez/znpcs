@@ -118,7 +118,7 @@ public class ServersNPC extends JavaPlugin {
             npcType.load();
         }
 
-        executor = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, MILLI_SECOND * (2));
+        executor = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, MILLI_SECOND * 2);
         executorService = Executors.newSingleThreadExecutor();
 
         // Load all NPC from data.

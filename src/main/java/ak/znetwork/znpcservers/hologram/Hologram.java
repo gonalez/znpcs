@@ -54,11 +54,11 @@ public class Hologram {
      */
     public Hologram(Location location,
                     String... lines) {
+        this.lines = lines;
+        this.location = location.add(0.5, 0, 0.5);
+
         this.entityArmorStands = new ArrayList<>();
         this.viewers = new HashSet<>();
-
-        this.location = location;
-        this.lines = lines;
 
         this.createHologram();
     }
@@ -74,7 +74,7 @@ public class Hologram {
 
             double y = 0;
             for (String line : lines) {
-                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX() + 0.5, (location.getY() - 0.15) + (y), location.getZ() + 0.5);
+                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
 
                 ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() >= 1);
                 if (Utils.versionNewer(13))
@@ -206,7 +206,7 @@ public class Hologram {
         try {
             text = Utils.color(text);
 
-            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance((ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ServersNPC.getReplaceSymbol(), " ")));
+            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(ServersNPC.isPlaceHolderSupport() && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ServersNPC.getReplaceSymbol(), " "));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
