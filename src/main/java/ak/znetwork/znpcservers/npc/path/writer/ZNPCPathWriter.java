@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 
@@ -28,6 +29,11 @@ import lombok.Getter;
  */
 @Getter
 public final class ZNPCPathWriter {
+
+    /**
+     * The logger.
+     */
+    private static final Logger logger = Bukkit.getLogger();
 
     /**
      * The maximum elements that the npc path can have.
@@ -114,13 +120,13 @@ public final class ZNPCPathWriter {
                 LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(ServersNPC.MILLI_SECOND));
             }
 
-            // Write locations to file.
             try {
+                // Write locations to file
                 write();
             } catch (IOException e) {
                 getNpcUser().setHasPath(false);
 
-                Bukkit.getLogger().log(Level.WARNING, String.format("Path %s could not be created", name), e);
+                logger.log(Level.WARNING, String.format("Path %s could not be created", name), e);
             }
         });
     }

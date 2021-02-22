@@ -12,9 +12,18 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SubCommand {
 
+    /**
+     * The possible command arguments.
+     */
     String[] aliases();
 
+    /**
+     * The subcommand name.
+     */
     String required();
 
+    /**
+     * The command permission.
+     */
     String permission();
 }

@@ -2,11 +2,11 @@ package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
+import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
-import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.collect.HashBasedTable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -14,7 +14,8 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import lombok.Getter;
@@ -77,7 +78,7 @@ public class ZNPCUser {
     /**
      * Used to compare the interaction time when a npc is clicked.
      */
-    private long last_interact = 0;
+    private long lastInteract = 0;
 
     /**
      * The plugin instance.
@@ -88,7 +89,7 @@ public class ZNPCUser {
      * Creates a new USER Player.
      *
      * @param serversNPC The plugin instance.
-     * @param player The user player.
+     * @param player     The user player.
      * @throws Exception If the classes cannot be loaded.
      */
     public ZNPCUser(ServersNPC serversNPC,
@@ -96,98 +97,32 @@ public class ZNPCUser {
         this.serversNPC = serversNPC;
         this.uuid = player.getUniqueId();
 
-        this.actionDelay = HashBasedTable.create();
-        this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
+        this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));
+        this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
 
+        this.actionDelay = HashBasedTable.create();
         this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
 
         this.injectNetty();
     }
 
     /**
-     * Inject NPC channel to player channel.
+     * Injects NPC channel to player channel.
      */
     public void injectNetty() {
         ejectNetty();
 
-        synchronized (networkManager) {
-            if (channel == null) throw new IllegalStateException("Channel is NULL!");
-
-            channel.pipeline().addAfter("decoder", CHANNEL_NAME, new MessageToMessageDecoder<Object>() {
-                @Override
-                protected void decode(ChannelHandlerContext chc, Object packet, List<Object> out) throws Exception {
-                    out.add(packet);
-
-                    if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
-                        Object actionName = ReflectionUtils.getValue(packet, "action");
-
-                        if (!actionName.toString().equalsIgnoreCase("INTERACT")) return;
-                        if (last_interact > 0 && !(System.currentTimeMillis() - last_interact >= 1000L * DEFAULT_DELAY)) return;
-
-                        int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
-                        serversNPC.getNpcManager().getNpcList().stream().filter(npc1 -> npc1.getEntity_id() == entityId).findFirst().ifPresent(npc -> {
-                            last_interact = System.currentTimeMillis();
-
-                            executor.execute(() -> {
-                                // Call NPC interact event
-                                Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), npc));
-
-                                if (npc.getActions() == null || npc.getActions().isEmpty()) return;
-
-                                for (String string : npc.getActions()) {
-                                    String[] actions = string.split(":");
-
-                                    NPCAction npcAction = NPCAction.fromString(actions[0]);
-                                    if (npcAction == null) return;
-
-                                    if (actions.length > 1) {
-                                        int id = npc.getActions().indexOf(string);
-
-                                        // Check for cooldown
-                                        if (actionDelay.containsRow(id)) {
-                                            Map.Entry<Long, Integer> delay = actionDelay.row(id).entrySet().iterator().next();
-
-                                            if (System.currentTimeMillis() - delay.getKey() <= 1000L * delay.getValue())
-                                                return;
-                                        }
-
-                                        if (actions.length > 2)
-                                            actionDelay.put(id, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
-
-                                        String action = (ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actions[1]) : actions[1]);
-                                        switch (npcAction) {
-                                            case CMD:
-                                                toPlayer().performCommand(action);
-                                                break;
-                                            case CONSOLE:
-                                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), action);
-                                                break;
-                                            case SERVER:
-                                                serversNPC.sendPlayerToServer(toPlayer(), action);
-                                                break;
-                                            case MESSAGE:
-                                                toPlayer().sendMessage(Utils.color(action));
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                }
-                            });
-                        });
-                    }
-                }
-            });
-        }
+        getChannel().pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
     }
 
     /**
-     * Unregister NPC channel for player.
+     * Unregisters the NPC channel for player.
      */
     public void ejectNetty() {
-        if (!channel.pipeline().names().contains(CHANNEL_NAME)) return;
+        if (!getChannel().pipeline().names().contains(CHANNEL_NAME))
+            return;
 
-        channel.eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
+        getChannel().eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
     }
 
     /**
@@ -197,6 +132,67 @@ public class ZNPCUser {
      */
     public Player toPlayer() {
         return Bukkit.getPlayer(getUuid());
+    }
+
+    /**
+     * Listens when a player interact with an npc.
+     *
+     * A {@link MessageToMessageDecoder} which tracks when a user interacts with an npc.
+     */
+    class ZNPCSocketDecoder extends MessageToMessageDecoder<Object> {
+
+        @Override
+        protected void decode(ChannelHandlerContext channelHandlerContext, Object packet, List<Object> out) throws Exception {
+            if (channel == null) throw new IllegalStateException("Channel is NULL!");
+
+            out.add(packet);
+
+            if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
+                String useActionName = ReflectionUtils.getValue(packet, "action").toString();
+                // Only allow interact by right-click.
+                if (!useActionName.equalsIgnoreCase("INTERACT")) return;
+
+                // Check for interact wait time between npc
+                if (getLastInteract() > 0 && System.currentTimeMillis() - getLastInteract() <= 1000L * DEFAULT_DELAY)
+                    return;
+
+                // The clicked entity id
+                int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
+
+                // Try find npd
+                ZNPC znpc = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
+                if (znpc == null) return;
+
+                setLastInteract(System.currentTimeMillis());
+
+                executor.execute(() -> {
+                    // Call NPC interact event
+                    Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), znpc));
+
+                    if (znpc.getActions() == null || znpc.getActions().isEmpty()) return;
+
+                    for (String string : znpc.getActions()) {
+                        String[] actions = string.split(":");
+
+                        // Get npc action type
+                        NPCAction npcAction = NPCAction.fromString(actions[0]);
+                        if (npcAction == null) return;
+
+                        String actionValue = actions[1];
+                        // Run action for the provided actionValue
+                        npcAction.run(ZNPCUser.this, toPlayer(), ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
+
+                        // Check for action cooldown
+                        if (actions.length > 2) {
+                            int actionId = znpc.getActions().indexOf(string);
+
+                            // Set new action cooldown for user
+                            getActionDelay().put(actionId, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
+                        }
+                    }
+                });
+            }
+        }
     }
 }
 

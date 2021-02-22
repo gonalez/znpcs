@@ -1,5 +1,12 @@
 package ak.znetwork.znpcservers.npc.enums;
 
+import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.utility.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
@@ -27,6 +34,23 @@ public enum NPCAction {
      * Represents sending a player to another server (Bungee).
      */
     SERVER;
+
+    /**
+     * Executes the appropriate method for provided action type.
+     *
+     * @param npcUser     The player instance.
+     * @param player       The player
+     * @param actionValue  The method value.
+     */
+    public void run(ZNPCUser npcUser, Player player, String actionValue) {
+        if (this == CMD)
+            player.performCommand(actionValue);
+        else if (this == CONSOLE)
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), actionValue);
+        else if (this == MESSAGE)
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', actionValue));
+        else npcUser.getServersNPC().sendPlayerToServer(player, actionValue);
+    }
 
     /**
      * Gets NPCAction by name.

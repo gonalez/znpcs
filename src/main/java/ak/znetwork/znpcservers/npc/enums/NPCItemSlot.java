@@ -19,9 +19,9 @@ public enum NPCItemSlot {
     HELMET(4),
 
     /**
-     * Represents the chestplate of the npc.
+     * Represents the chest_plate of the npc.
      */
-    CHEST_PLATE(3),
+    CHESTPLATE(3),
 
     /**
      * Represents the leggings of the npc.

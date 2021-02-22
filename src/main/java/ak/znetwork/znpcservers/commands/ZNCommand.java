@@ -5,7 +5,6 @@ import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.invoker.CommandInvoker;
-import com.google.common.collect.Maps;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
@@ -54,7 +53,7 @@ public class ZNCommand {
         for (Method method : getCommandInstance().getClass().getMethods()) {
             if (method.isAnnotationPresent(SubCommand.class)) {
                 SubCommand cmdInfo = method.getAnnotation(SubCommand.class);
-                this.consumerSet.put(cmdInfo, new CommandInvoker<>(getCommandInstance(), method, cmdInfo.permission()));
+                getConsumerSet().put(cmdInfo, new CommandInvoker<>(getCommandInstance(), method, cmdInfo.permission()));
             }
         }
     }
@@ -76,13 +75,20 @@ public class ZNCommand {
         command.execute(commandSender, loadArgs(entryOptional.get().getKey(), args));
     }
 
+    /**
+     * Converts the provided subcommand arguments to a map.
+     *
+     * @param subCommand The subcommand.
+     * @param args       The subcommand arguments.
+     * @return           A map with the subcommand arguments for the provided values.
+     */
     public Map<String, String> loadArgs(SubCommand subCommand, String[] args) {
-        final Map<String, String> argsMap = Maps.newHashMap();
+        Map<String, String> argsMap = new HashMap<>();
         for (int i = 1; i <= args.length; i++) {
-            final String input = args[i - 1];
+            String input = args[i - 1];
 
             if (contains(subCommand, input)) {
-                final StringBuilder value = new StringBuilder();
+                StringBuilder value = new StringBuilder();
 
                 for (int text = (i); text < args.length; ) {
                     if (!contains(subCommand, args[text++])) value.append(args[i++]).append(" ");

@@ -20,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -101,7 +100,7 @@ public class ZNPC {
     /**
      * The npc entity id.
      */
-    @Setter private int entity_id;
+    @Setter private int entityId;
 
     /**
      * The current world for the npc.
@@ -224,7 +223,7 @@ public class ZNPC {
             Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(znEntity);
             ClassTypes.SET_DATA_WATCHER_METHOD.invoke(npcDataWatcher, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(0, dataWatcherRegistryEnum), (hasGlow ? (byte) 0x40 : (byte) 0x0));
 
-            Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entity_id, npcDataWatcher, true);
+            Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityId, npcDataWatcher, true);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
 
             glowColor = getGlowColor(color);
@@ -282,15 +281,15 @@ public class ZNPC {
 
             Object equipPacket;
             if (!Utils.versionNewer(9)) {
-                equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(entity_id, slot.getEquipmentSlot(), item);
+                equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(entityId, slot.getEquipmentSlot(), item);
             } else {
                 if (Utils.versionNewer(16)) {
                     List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), "b");
                     pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getEquipmentSlot() + 1], item));
 
-                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(entity_id, pairs);
+                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(entityId, pairs);
                 } else {
-                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.newInstance(entity_id, ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getEquipmentSlot() + 1], item);
+                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.newInstance(entityId, ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getEquipmentSlot() + 1], item);
                 }
             }
 
@@ -372,7 +371,7 @@ public class ZNPC {
             deleteViewers();
 
             // Update new entity id.
-            entity_id = (Integer) ClassTypes.GET_ENTITY_ID.invoke(znEntity);
+            entityId = (Integer) ClassTypes.GET_ENTITY_ID.invoke(znEntity);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
             throw new AssertionError(operationException);
         }
@@ -403,18 +402,18 @@ public class ZNPC {
             Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(znEntity);
 
             if (npcIsPlayer)
-                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entity_id, npcDataWatcher, true));
+                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityId, npcDataWatcher, true));
 
             if (packetPlayOutScoreboardTeam != null) ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
             if (hasToggleHolo) hologram.spawn(player, true);
             if (hasGlow) toggleGlow(glowName, false);
 
             // Update new npc id.
-            entity_id = (Integer) ClassTypes.GET_ENTITY_ID.invoke(znEntity);
+            entityId = (Integer) ClassTypes.GET_ENTITY_ID.invoke(znEntity);
 
             npcEquipments.forEach((itemSlot, material) -> equip(player, itemSlot, material));
 
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntity_id(), npcDataWatcher, false));
+            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, false));
 
             viewers.add(player);
 
@@ -450,7 +449,7 @@ public class ZNPC {
         try {
             if (npcType == NPCType.PLAYER) hideFromTab(player);
 
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{entity_id}));
+            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{entityId}));
 
             if (removeViewer) viewers.remove(player);
             hologram.delete(player, removeViewer);
@@ -469,7 +468,7 @@ public class ZNPC {
         boolean rotate = (rotation || hasLookAt);
 
         try {
-            Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(entity_id, (byte) (direction.getYaw() % (rotate ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (rotate ? 360. : 0) * 256 / 360), false);
+            Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(entityId, (byte) (direction.getYaw() % (rotate ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (rotate ? 360. : 0) * 256 / 360), false);
             Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(znEntity, (byte) ((direction.getYaw() % 360.) * 256 / 360));
 
             for (Player player : getViewers()) {
@@ -608,7 +607,7 @@ public class ZNPC {
         try {
             customizationMap.put(name, values);
 
-            Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntity_id(), ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity()), true);
+            Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity()), true);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, customizationPacket));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new AssertionError(e);

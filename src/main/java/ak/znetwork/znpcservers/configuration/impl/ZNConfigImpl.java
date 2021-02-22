@@ -2,7 +2,6 @@ package ak.znetwork.znpcservers.configuration.impl;
 
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import org.bukkit.command.CommandSender;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.util.Map;

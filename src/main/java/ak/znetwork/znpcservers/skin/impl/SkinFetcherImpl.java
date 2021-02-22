@@ -55,10 +55,6 @@ public interface SkinFetcherImpl {
             this.data = data;
         }
 
-        public SkinFetcher toSkinFetcher() {
-            return new SkinFetcher(this);
-        }
-
         /**
          * Creates a new builder for an API Server.
          *
@@ -78,6 +74,15 @@ public interface SkinFetcherImpl {
          */
         public static SkinBuilder withData(SkinAPI skinAPIURL, String data) {
             return new SkinBuilder(skinAPIURL, data);
+        }
+
+        /**
+         * Creates a new skin fetcher for the given builder.
+         *
+         * @return A skin fetcher definition for the given builder.
+         */
+        public SkinFetcher toSkinFetcher() {
+            return new SkinFetcher(this);
         }
     }
 
