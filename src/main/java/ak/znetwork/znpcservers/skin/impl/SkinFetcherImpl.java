@@ -12,6 +12,16 @@ import lombok.Getter;
 public interface SkinFetcherImpl {
 
     /**
+     * Used to fetch data from the server.
+     */
+    String GET_METHOD = "GET";
+
+    /**
+     * Used when sending data to the server.
+     */
+    String POST_METHOD = "POST";
+
+    /**
      * Represents the skin uuid.
      *
      * @return The skin uuid.
@@ -96,17 +106,17 @@ public interface SkinFetcherImpl {
         /**
          * Used for retrieving a UUID linked to a username.
          */
-        UUID_API("GET", "https://api.minetools.eu/uuid"),
+        UUID_API(GET_METHOD, "https://api.minetools.eu/uuid"),
 
         /**
          * Used for retrieving a Profile linked to a uuid.
          */
-        PROFILE_API("GET", "https://api.minetools.eu/profile"),
+        PROFILE_API(GET_METHOD, "https://api.minetools.eu/profile"),
 
         /**
          * Used to generate a texture from an image URL.
          */
-        GENERATE_API("POST", "https://api.mineskin.org/generate/url");
+        GENERATE_API(POST_METHOD, "https://api.mineskin.org/generate/url");
 
         /**
          * The HTTP request method.
@@ -124,7 +134,8 @@ public interface SkinFetcherImpl {
          * @param method The HTTP request method.
          * @param apiURL The url api server.
          */
-        SkinAPI(String method, String apiURL) {
+        SkinAPI(String method,
+                String apiURL) {
             this.apiURL = apiURL;
             this.method = method;
         }

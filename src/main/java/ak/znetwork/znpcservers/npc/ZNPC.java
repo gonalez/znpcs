@@ -259,7 +259,7 @@ public class ZNPC {
             this.location = new Location(location.getWorld(), location.getBlockX() + 0.5D, location.getY(), location.getBlockZ() + 0.5D, location.getYaw(), location.getPitch());
 
             if (hologram != null)
-                hologram.setLocation(location, npcType.getHoloHeight());
+                hologram.setLocation(this.location, npcType.getHoloHeight());
 
             lookAt(Optional.empty(), location, true);
             updateLocation();
@@ -281,15 +281,15 @@ public class ZNPC {
 
             Object equipPacket;
             if (!Utils.versionNewer(9)) {
-                equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(entityId, slot.getEquipmentSlot(), item);
+                equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(entityId, slot.getSlotOld(), item);
             } else {
                 if (Utils.versionNewer(16)) {
                     List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), "b");
-                    pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getEquipmentSlot() + 1], item));
+                    pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item));
 
                     equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(entityId, pairs);
                 } else {
-                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.newInstance(entityId, ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getEquipmentSlot() + 1], item);
+                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.newInstance(entityId, ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item);
                 }
             }
 
@@ -564,7 +564,7 @@ public class ZNPC {
             updateLocation();
 
             if (hologram != null)
-                hologram.setLocation(location.clone().subtract(0.5, 0, 0.5), npcType.getHoloHeight());
+                hologram.setLocation(location, npcType.getHoloHeight());
 
             int pathIndex = pathReader.getLocationList().indexOf(currentPathLocation);
 

@@ -35,10 +35,22 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * <p>Copyright (c) ZNetwork, 2020.</p>
+ *
+ * @author ZNetwork
+ * @since 07/02/2020
+ */
 public class ZNPCDeserializer implements JsonDeserializer<ZNPC> {
 
+    /**
+     * The plugin instance.
+     */
     private final ServersNPC serversNPC;
 
+    /**
+     * {@inheritDoc}
+     */
     public ZNPCDeserializer(ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
     }

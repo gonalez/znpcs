@@ -2,12 +2,14 @@ package ak.znetwork.znpcservers.commands.invoker;
 
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
-import org.bukkit.command.CommandSender;
+import ak.znetwork.znpcservers.commands.impl.ZNCommandImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import lombok.Getter;
+
+import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -16,7 +18,7 @@ import lombok.Getter;
  * @since 07/02/2020
  */
 @Getter
-public class CommandInvoker<T extends CommandSender> {
+public class ZNCommandInvoker<S extends ZNCommandSender> {
 
     /**
      * The command class instance.
@@ -40,9 +42,9 @@ public class CommandInvoker<T extends CommandSender> {
      * @param commandMethod   The command method.
      * @param permission      The command permission.
      */
-    public CommandInvoker(Object commandInstance,
-                          Method commandMethod,
-                          String permission) {
+    public ZNCommandInvoker(Object commandInstance,
+                            Method commandMethod,
+                            String permission) {
         this.commandInstance = commandInstance;
         this.commandMethod = commandMethod;
         this.permission = permission;
@@ -56,8 +58,8 @@ public class CommandInvoker<T extends CommandSender> {
      * @throws CommandPermissionException  If commandSender does not have permission to execute the subCommand.
      * @throws CommandExecuteException     If subCommand cannot be executed.
      */
-    public void execute(T sender, Object object) throws CommandPermissionException, CommandExecuteException {
-        if (!sender.hasPermission(getPermission())) throw new CommandPermissionException("Insufficient permission");
+    public void execute(S sender, Object object) throws CommandPermissionException, CommandExecuteException {
+        if (!sender.getCommandSender().hasPermission(getPermission())) throw new CommandPermissionException("Insufficient permission");
 
         try {
             this.getCommandMethod().invoke(getCommandInstance(), sender, object);

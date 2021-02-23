@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import lombok.Getter;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -12,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author ZNetwork
  * @since 07/02/2020
  */
+@Getter
 public final class PlayerListeners implements Listener {
 
     /**
@@ -32,17 +34,17 @@ public final class PlayerListeners implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        serversNPC.setupNetty(event.getPlayer());
+        getServersNPC().setupNetty(event.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        serversNPC.getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
+        getServersNPC().getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
             playerNetty.ejectNetty();
 
-            serversNPC.getNpcUsers().remove(playerNetty);
+            getServersNPC().getNpcUsers().remove(playerNetty);
         });
 
-        serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));
+        getServersNPC().getNpcManager().getNpcList().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));
     }
 }

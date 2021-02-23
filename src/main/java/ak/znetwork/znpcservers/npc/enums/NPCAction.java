@@ -26,6 +26,11 @@ public enum NPCAction {
     CONSOLE,
 
     /**
+     * Represents an action executed by a player.
+     */
+    CHAT,
+
+    /**
      * Represents sending a message to a player.
      */
     MESSAGE,
@@ -47,6 +52,8 @@ public enum NPCAction {
             player.performCommand(actionValue);
         else if (this == CONSOLE)
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), actionValue);
+        else if (this == CHAT)
+            player.chat(actionValue);
         else if (this == MESSAGE)
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', actionValue));
         else npcUser.getServersNPC().sendPlayerToServer(player, actionValue);

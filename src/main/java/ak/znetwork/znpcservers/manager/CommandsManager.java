@@ -7,7 +7,7 @@ import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
-import org.bukkit.Bukkit;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,7 +15,8 @@ import org.bukkit.command.CommandSender;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.logging.Level;
+
+import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -64,14 +65,15 @@ public class CommandsManager implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String arg, String[] args) {
         try {
-            final Optional<ZNCommand> znCommand = znCommands.stream().findFirst();
+            Optional<ZNCommand> znCommand = znCommands.stream().findFirst();
 
-            if (znCommand.isPresent()) znCommand.get().execute(sender, args);
+            if (znCommand.isPresent())
+                znCommand.get().execute(new ZNCommandSender(sender), args);
         } catch (CommandExecuteException e) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
 
             // Logs enabled.
-            Bukkit.getLogger().log(Level.WARNING, "", e);
+            e.printStackTrace();
         } catch (CommandPermissionException e) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NO_PERMISSION);
         } catch (CommandNotFoundException e) {

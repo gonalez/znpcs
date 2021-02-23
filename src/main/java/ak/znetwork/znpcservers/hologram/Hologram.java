@@ -185,8 +185,8 @@ public class Hologram {
         try {
             double y = 0;
             for (Object o : entityArmorStands) {
-                ClassTypes.SET_LOCATION_METHOD.invoke(o, location.getBlockX() + 0.5, (this.location.getY() - 0.15) + y,
-                       location.getBlockZ() + 0.5, location.getYaw(),location.getPitch());
+                ClassTypes.SET_LOCATION_METHOD.invoke(o, location.getX(), (this.location.getY() - 0.15) + y,
+                       location.getZ(), location.getYaw(), location.getPitch());
 
                 y += 0.3;
             }

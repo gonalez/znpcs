@@ -16,40 +16,53 @@ public enum NPCItemSlot {
     /**
      * Represents the helmet of the npc.
      */
-    HELMET(4),
+    HELMET(4, 5),
 
     /**
      * Represents the chest_plate of the npc.
      */
-    CHESTPLATE(3),
+    CHESTPLATE(3, 4),
 
     /**
      * Represents the leggings of the npc.
      */
-    LEGGINGS(2),
+    LEGGINGS(2, 3),
 
     /**
      * Represents the boots of the npc.
      */
-    BOOTS(1),
+    BOOTS(1, 2),
 
     /**
-     * Represents the hand of the npc.
+     * Represents the off hand of the npc.
      */
-    HAND(0);
+    OFFHAND(0, 1),
 
     /**
-     * The equipment slot.
+     * Represents the main hand of the npc.
      */
-    private final int equipmentSlot;
+    HAND(0, 0);
+
+    /**
+     * The equipment slot id for oldest versions.
+     */
+    private final int slotOld;
+
+    /**
+     * The equipment slot id for newer versions.
+     */
+    private final int slotNew;
 
     /**
      * Creates a new equipment identifier.
      *
-     * @param slot The equipment slot.
+     * @param slotOld The equipment id for oldest versions.
+     * @param slotNew The equipment id for newer versions.
      */
-    NPCItemSlot(int slot) {
-        this.equipmentSlot = slot;
+    NPCItemSlot(int slotOld,
+                int slotNew) {
+        this.slotOld = slotOld;
+        this.slotNew = slotNew;
     }
 
     /**

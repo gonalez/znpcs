@@ -101,6 +101,7 @@ public class ZNPCUser {
         this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
 
         this.actionDelay = HashBasedTable.create();
+
         this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
 
         this.injectNetty();
