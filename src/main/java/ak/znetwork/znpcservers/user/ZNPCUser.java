@@ -5,6 +5,7 @@ import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
+import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import com.google.common.collect.HashBasedTable;
@@ -181,7 +182,7 @@ public class ZNPCUser {
 
                         String actionValue = actions[1];
                         // Run action for the provided actionValue
-                        npcAction.run(ZNPCUser.this, toPlayer(), ServersNPC.isPlaceHolderSupport() ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
+                        npcAction.run(ZNPCUser.this, toPlayer(), ConfigTypes.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
 
                         // Check for action cooldown
                         if (actions.length > 2) {

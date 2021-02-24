@@ -1,11 +1,13 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import lombok.Getter;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -22,7 +24,7 @@ public final class PlayerListeners implements Listener {
     private final ServersNPC serversNPC;
 
     /**
-     * Create and register the necessary listeners for players.
+     * Creates and register the necessary listeners for players.
      *
      * @param serversNPC The plugin instance.
      */
@@ -39,10 +41,10 @@ public final class PlayerListeners implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        getServersNPC().getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
+        getServersNPC().getNpcManager().getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
             playerNetty.ejectNetty();
 
-            getServersNPC().getNpcUsers().remove(playerNetty);
+            getServersNPC().getNpcManager().getNpcUsers().remove(playerNetty);
         });
 
         getServersNPC().getNpcManager().getNpcList().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));

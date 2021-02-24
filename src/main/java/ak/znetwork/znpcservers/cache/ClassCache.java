@@ -31,15 +31,6 @@ public final class ClassCache implements ClassCacheImpl {
     private static final Logger logger = Bukkit.getLogger();
 
     /**
-     * A collection that serves as a cache for classes.
-     */
-    private static final Table<String, Class<?>, Object> classCache;
-
-    static {
-        classCache = HashBasedTable.create();
-    }
-
-    /**
      * The loaded types.
      */
     private final ClassCacheBuilder<?> cacheBuilder;

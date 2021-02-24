@@ -2,8 +2,7 @@ package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
-import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
-import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.deserializer.ZNPCDeserializer;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
 import ak.znetwork.znpcservers.manager.CommandsManager;
@@ -15,28 +14,24 @@ import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
+import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.LocationSerialize;
 import ak.znetwork.znpcservers.utility.MetricsLite;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 
@@ -49,107 +44,79 @@ import lombok.Getter;
 @Getter
 public class ServersNPC extends JavaPlugin {
 
-    public static final int MILLI_SECOND = 20;
+    /**
+     * The plugin name.
+     */
+    private static final String PLUGIN_NAME = "ServersNPC";
 
-    @Getter private static String replaceSymbol;
-    @Getter private static boolean placeHolderSupport;
+    /**
+     * The plugin folder.
+     */
+    public static final File PLUGIN_FOLDER = new File("plugins/" + PLUGIN_NAME);
 
-    @Getter private static Executor executor;
-    @Getter private static ExecutorService executorService;
+    static {
+        // Creates the plugin folder if it doesn't exist.
+        PLUGIN_FOLDER.mkdirs();
+    }
 
-    @Getter private static Gson gson;
+    /**
+     * The plugin metrics id.
+     */
+    private static final int PLUGIN_ID = 8054;
 
-    @Getter private static File pluginFolder;
+    /**
+     * Creates a new Gson instance with
+     * custom type adapters.
+     */
+    public final static Gson GSON = new GsonBuilder().
+            registerTypeAdapter(Location.class, new LocationSerialize()).
+            registerTypeAdapter(ZNPC.class, new ZNPCDeserializer())
+            .excludeFieldsWithoutExposeAnnotation().
+                    setPrettyPrinting().
+                    create();
 
+    /**
+     * A executor service.
+     */
+    public static Executor executor;
+
+    /**
+     * The commands manager.
+     */
     private CommandsManager commandsManager;
+
+    /**
+     * The NPCs manager.
+     */
     private NPCManager npcManager;
-
-    private LinkedHashSet<ZNPCUser> npcUsers;
-
-    private int viewDistance;
-    private long startTimer;
-
-    private File data, npcPaths;
 
     @Override
     public void onEnable() {
-        startTimer = System.currentTimeMillis();
+        // Load paths
+        loadAllPaths();
 
-        if (!getDataFolder().exists()) getDataFolder().mkdirs();
-
-        pluginFolder = getDataFolder();
-
-        npcPaths = pluginFolder.toPath().resolve("paths").toFile();
-        if (!npcPaths.exists()) npcPaths.mkdirs();
-
-        data = new File(pluginFolder, "data.json");
-        try {
-            data.createNewFile();
-        } catch (IOException e) {
-            getLogger().log(Level.WARNING, "An exception occurred while trying to create file", e);
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        viewDistance = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.VIEW_DISTANCE);
-        replaceSymbol = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.REPLACE_SYMBOL);
-
-        placeHolderSupport = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
-
-        gson = new GsonBuilder().
-                registerTypeAdapter(Location.class, new LocationSerialize()). // Add custom serializer since for Location class doesn't support
-                registerTypeAdapter(ZNPC.class, new ZNPCDeserializer(this))
-                .excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
-
-        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-
-        npcUsers = new LinkedHashSet<>();
-
+        // Load managers
         npcManager = new NPCManager();
 
         commandsManager = new CommandsManager(this, "znpcs");
         commandsManager.addCommand(new ZNCommand(new DefaultCommand(this)));
 
-        int pluginId = 8054;
-        new MetricsLite(this, pluginId);
+        // Setup metrics
+        new MetricsLite(this, PLUGIN_ID);
 
         // Load entity type cache
         for (NPCType npcType : NPCType.values()) {
             npcType.load();
         }
 
-        executor = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, MILLI_SECOND * 2);
-        executorService = Executors.newSingleThreadExecutor();
+        executor = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, 40L);
 
-        // Load all NPC from data.
-        executor.execute(() -> {
-            System.out.println("Loading npcs...");
-
-            long startMs = System.currentTimeMillis();
-            try {
-                // Load all paths...
-                loadAllPaths();
-
-                // Load all NPCs...
-                List<ZNPC> npcList = gson.fromJson(Files.toString(data, Charsets.UTF_8), new TypeToken<List<ZNPC>>(){}.getType());
-                if (npcList != null) {
-                    getNpcManager().getNpcList().addAll(npcList);
-
-                    System.out.println("(Loaded " + npcList.size() + " znpcs in " + NumberFormat.getInstance().format(System.currentTimeMillis() - startMs) + "ms)");
-                }
-            } catch (IOException e) {
-                getServer().getPluginManager().disablePlugin(this);
-                throw new RuntimeException("Data could not be loaded", e);
-            }
-
-            new NPCSaveTask(this, ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS));
-
-            // Setup netty again for online players
-            Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
-        });
+        // Setup netty again for online players
+        Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
 
         // Init NPC task
         new NPCManagerTask(this);
+        new NPCSaveTask(this, ConfigTypes.SAVE_DELAY);
 
         // Register listeners
         new PlayerListeners(this);
@@ -157,31 +124,21 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Save NPC on database
-        saveAllNPC();
+        // Save configurations
+        ConfigManager.getConfigurations().forEach(ZNConfig::save);
 
         // Delete all npc for viewers
         removeAllViewers();
     }
 
     /**
-     * Saves all NPC in database.
-     */
-    public void saveAllNPC() {
-        if (System.currentTimeMillis() - startTimer <= (1000) * 5) return;
-
-        try (FileWriter writer = new FileWriter(data)) {
-            gson.toJson(getNpcManager().getNpcList().stream().filter(ZNPC::isSave).collect(Collectors.toList()), writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Loads all paths.
      */
     public void loadAllPaths() {
-        File[] listFiles = getNpcPaths().listFiles();
+        File npcPaths = PLUGIN_FOLDER.toPath().resolve("paths").toFile();
+        if (!npcPaths.exists()) npcPaths.mkdirs();
+
+        File[] listFiles = npcPaths.listFiles();
         if (listFiles == null) return;
 
         for (File file : listFiles) {
@@ -210,7 +167,7 @@ public class ServersNPC extends JavaPlugin {
      */
     public void setupNetty(Player player) {
         try {
-            getNpcUsers().add(new ZNPCUser(this, player));
+            getNpcManager().getNpcUsers().add(new ZNPCUser(this, player));
         } catch (Exception exception) {
             throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
         }
@@ -226,7 +183,7 @@ public class ServersNPC extends JavaPlugin {
         if (getNpcManager().getNpcList().stream().anyMatch(npc -> npc.getId() == id)) return false;
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return getNpcManager().getNpcList().add(new ZNPC(this, id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
+        return getNpcManager().getNpcList().add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
     }
 
     /**

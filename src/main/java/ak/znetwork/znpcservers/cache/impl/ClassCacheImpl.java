@@ -10,6 +10,9 @@ import ak.znetwork.znpcservers.cache.enums.PackageType;
  */
 public interface ClassCacheImpl {
 
+    /**
+     * {@inheritDoc}
+     */
     <T> T typeOf();
 
     interface Builder<T> {
@@ -72,7 +75,7 @@ public interface ClassCacheImpl {
             /**
              * {@inheritDoc}
              */
-            FIELD;
+            FIELD
         }
     }
 }

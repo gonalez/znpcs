@@ -1,6 +1,8 @@
 package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.configuration.ZNConfig;
+import ak.znetwork.znpcservers.manager.ConfigManager;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -33,6 +35,6 @@ public final class NPCSaveTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        this.serversNPC.saveAllNPC();
+        ConfigManager.getConfigurations().forEach(ZNConfig::save);
     }
 }

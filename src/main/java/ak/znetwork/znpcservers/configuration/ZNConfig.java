@@ -1,20 +1,28 @@
 package ak.znetwork.znpcservers.configuration;
 
+import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.configuration.impl.ZNConfigImpl;
 import ak.znetwork.znpcservers.utility.Utils;
+
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonParser;
+
 import org.bukkit.command.CommandSender;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -22,24 +30,32 @@ import java.util.stream.Collectors;
  * @author ZNetwork
  * @since 07/02/2020
  */
+@Getter @Setter
 public final class ZNConfig implements ZNConfigImpl {
 
     /**
-     * The yaml instance.
+     * Creates a new parser.
      */
-    private static final Yaml yaml;
+    private static final JsonParser jsonParser;
 
-    // Creates Yaml instance.
     static {
-        DumperOptions options = new DumperOptions();
-        options.setPrettyFlow(true);
-        yaml = new Yaml(options);
+        jsonParser = new JsonParser();
     }
+
+    /**
+     * The class start time.
+     */
+    private static final long START_TIME = System.currentTimeMillis();
+
+    /**
+     * The charset.
+     */
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
      * The configuration type.
      */
-    private final ZNConfigType znConfigType;
+    private final ZNConfigType configType;
 
     /**
      * The configuration path.
@@ -49,7 +65,7 @@ public final class ZNConfig implements ZNConfigImpl {
     /**
      * A map that contains the configuration values.
      */
-    private final EnumMap<ZNConfigValue, Object> configValueStringEnumMap;
+    private Map<ZNConfigValue, Object> configValues;
 
     /**
      * Creates a new configuration.
@@ -59,13 +75,12 @@ public final class ZNConfig implements ZNConfigImpl {
      */
     public ZNConfig(ZNConfigType znConfigType,
                     Path path) {
-        this.znConfigType = znConfigType;
+        this.configType = znConfigType;
         this.path = path;
 
-        this.configValueStringEnumMap = new EnumMap<>(ZNConfigValue.class);
-
         try {
-            if (!path.toFile().exists()) Files.createFile(path);
+            if (!path.toFile().exists())
+                Files.createFile(path);
 
             this.load();
         } catch (IOException e) {
@@ -75,38 +90,35 @@ public final class ZNConfig implements ZNConfigImpl {
 
     @Override
     public void load() {
-        this.configValueStringEnumMap.clear();
+        // Set default configuration values
+        setConfigValues(Arrays.stream(ZNConfigValue.values()).filter(znConfigValue -> znConfigValue.getConfigType() == this.configType).collect(Collectors.toMap(key -> key, ZNConfigValue::getValue)));
 
-        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            Map<String, Object> data = yaml.load(reader);
+        try (BufferedReader reader = Files.newBufferedReader(path, CHARSET)) {
+            JsonElement data = jsonParser.parse(reader);
+            if (data == null) return;
 
-            if (data != null && !data.isEmpty()) {
-                for (Map.Entry<String, Object> entry : data.entrySet()) {
-                    if (entry.getKey() == null || entry.getKey().isEmpty()) continue;
+            for (ZNConfigValue znConfigValue : ZNConfigValue.values()) {
+                if (znConfigValue.getConfigType() != getConfigType()) continue;
 
-                    ZNConfigValue znConfigValue = ZNConfigValue.valueOf(entry.getKey());
-                    if (!entry.getValue().getClass().isAssignableFrom(znConfigValue.getPrimitiveType())) continue;
-
-                    configValueStringEnumMap.put(znConfigValue, entry.getValue());
-                }
+                JsonElement jsonElement = getConfigValues().size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
+                if (jsonElement != null && !jsonElement.isJsonNull())
+                    getConfigValues().put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, TypeToken.getParameterized(znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType()).getType()));
             }
-
-            // Default values.
-            for (ZNConfigValue znConfigValue : ZNConfigValue.values())
-                if (!configValueStringEnumMap.containsKey(znConfigValue) && znConfigValue.getConfigType() == znConfigType)
-                    configValueStringEnumMap.put(znConfigValue, znConfigValue.getValue());
-
-            // Save to file.
-            save(configValueStringEnumMap.entrySet().stream().collect(Collectors.toMap(key -> key.getKey().name(), Map.Entry::getValue)));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+
+        // Save to file
+        save();
     }
 
     @Override
-    public void save(Map<Object, Object> hashMap) {
-        try (FileWriter writer = new FileWriter(new File(path.toUri()))) {
-            yaml.dump(hashMap, writer);
+    public void save() {
+        if (System.currentTimeMillis() - START_TIME < 1000 * 10)
+            return;
+
+        try (BufferedWriter writer = Files.newBufferedWriter(getPath(), CHARSET)) {
+            ServersNPC.GSON.toJson(getConfigValues().size() == 1 ? getConfigValues().values().iterator().next() : getConfigValues(), writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -119,6 +131,6 @@ public final class ZNConfig implements ZNConfigImpl {
 
     @Override
     public <T> T getValue(ZNConfigValue znConfigValue) {
-        return (T) configValueStringEnumMap.get(znConfigValue);
+        return (T) getConfigValues().get(znConfigValue);
     }
 }

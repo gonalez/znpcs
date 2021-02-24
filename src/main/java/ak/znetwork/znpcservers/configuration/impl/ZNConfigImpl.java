@@ -4,7 +4,6 @@ import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -30,10 +29,9 @@ public interface ZNConfigImpl {
     /**
      * Saves configuration into database.
      *
-     * @param hashMap The configuration values to save.
      * @throws IOException If configuration could not be saved.
      */
-    void save(Map<Object, Object> hashMap) throws IOException;
+    void save() throws IOException;
 
     /**
      * Gets the value from the configuration.

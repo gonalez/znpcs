@@ -1,7 +1,12 @@
 package ak.znetwork.znpcservers.configuration.enums;
 
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.npc.ZNPC;
+
+import java.util.ArrayList;
+
 import lombok.Getter;
+
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -11,6 +16,9 @@ import lombok.Getter;
  */
 @Getter
 public enum ZNConfigValue {
+
+    // NPC
+    NPC_LIST(ZNConfigType.DATA, new ArrayList<>(), ZNPC.class),
 
     // Config
     VIEW_DISTANCE(ZNConfigType.CONFIG, 32, Integer.class), // by Block distance

@@ -3,6 +3,7 @@ package ak.znetwork.znpcservers.manager;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Arrays;
@@ -31,8 +32,9 @@ public final class ConfigManager {
         final ImmutableMap.Builder<String, ZNConfig> builder = ImmutableMap.builder();
 
         for (String name : configNames) {
-            builder.put(name, new ZNConfig(ZNConfigType.valueOf(name), ServersNPC.getPluginFolder().toPath().resolve(String.format("%s.yml", name.toLowerCase()))));
+            builder.put(name, new ZNConfig(ZNConfigType.valueOf(name), ServersNPC.PLUGIN_FOLDER.toPath().resolve(String.format("%s.json", name.toLowerCase()))));
         }
+
         CONFIG_IMMUTABLE_MAP = builder.build();
     }
 
@@ -44,5 +46,14 @@ public final class ConfigManager {
      */
     public static ZNConfig getByType(ZNConfigType type) {
         return CONFIG_IMMUTABLE_MAP.get(type.name());
+    }
+
+    /**
+     * The configuration values.
+     *
+     * @return The configurations in the map.
+     */
+    public static ImmutableCollection<ZNConfig> getConfigurations() {
+        return CONFIG_IMMUTABLE_MAP.values();
     }
 }

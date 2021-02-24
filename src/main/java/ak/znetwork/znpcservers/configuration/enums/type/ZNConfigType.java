@@ -16,5 +16,10 @@ public enum ZNConfigType {
     /**
      * {@inheritDoc}
      */
-    MESSAGES;
+    MESSAGES,
+
+    /**
+     * {@inheritDoc}
+     */
+    DATA
 }

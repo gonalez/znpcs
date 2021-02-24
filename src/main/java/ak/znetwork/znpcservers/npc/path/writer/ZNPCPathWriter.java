@@ -6,6 +6,7 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.user.ZNPCUser;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -14,6 +15,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
@@ -41,6 +44,15 @@ public final class ZNPCPathWriter {
     private static final int MAX_LOCATIONS = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.MAX_PATH_LOCATIONS);
 
     /**
+     * The executor service to delegate work.
+     */
+    private static final ExecutorService pathExecutorService;
+
+    static {
+        pathExecutorService = Executors.newCachedThreadPool();
+    }
+
+    /**
      * The user who creates the path.
      */
     private final ZNPCUser npcUser;
@@ -66,7 +78,6 @@ public final class ZNPCPathWriter {
      * The plugin instance.
      */
     private final ServersNPC serversNPC;
-
 
     /**
      * Creates a new path creator.
@@ -104,7 +115,7 @@ public final class ZNPCPathWriter {
         getNpcUser().setHasPath(true);
 
         // Schedule npc path task.
-        ServersNPC.getExecutorService().execute(() -> {
+        pathExecutorService.execute(() -> {
             // This while loop will continue recording new locations for path & blocking the current thread.
             // As long the player is connected & the locations size hasn't reached the limit.
             // Once the loop is broken the thread will write the recorded locations to the path file.
@@ -117,7 +128,7 @@ public final class ZNPCPathWriter {
                 }
 
                 // Lock current thread for 20 MILLISECONDS
-                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(ServersNPC.MILLI_SECOND));
+                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(20));
             }
 
             try {

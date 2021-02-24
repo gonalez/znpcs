@@ -25,6 +25,11 @@ import lombok.Getter;
 public class ZNCommand implements ZNCommandImpl {
 
     /**
+     * A string whitespace.
+     */
+    private static final String WHITESPACE = " ";
+
+    /**
      * The command class instance.
      */
     private final Object commandInstance;
@@ -82,11 +87,11 @@ public class ZNCommand implements ZNCommandImpl {
                 StringBuilder value = new StringBuilder();
 
                 for (int text = i; text < args.length;) {
-                    if (!contains(subCommand, args[text++])) value.append(args[i++]).append(" ");
+                    if (!contains(subCommand, args[text++])) value.append(args[i++]).append(WHITESPACE);
                     else break;
                 }
 
-                argsMap.put(input.replace("-", ""), value.toString());
+                argsMap.put(input.replace("-", ""), value.substring(0, value.length() - 1));
             }
         }
         return argsMap;

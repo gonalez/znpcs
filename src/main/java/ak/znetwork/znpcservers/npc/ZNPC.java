@@ -9,10 +9,13 @@ import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
+
 import com.google.gson.annotations.Expose;
+
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.datafixers.util.Pair;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -152,11 +155,6 @@ public class ZNPC {
     private boolean reversePath = false;
 
     /**
-     * The plugin instance.
-     */
-    private final ServersNPC serversNPC;
-
-    /**
      * Creates a new NPC.
      *
      * @param id            The npc id.
@@ -168,8 +166,7 @@ public class ZNPC {
      * @param npcEquipments The npc equipments.
      * @param save          Checks if npc will be saved on data.
      */
-    public ZNPC(ServersNPC serversNPC,
-                int id,
+    public ZNPC(int id,
                 String lines,
                 String skin,
                 String signature,
@@ -177,7 +174,6 @@ public class ZNPC {
                 NPCType npcType,
                 EnumMap<NPCItemSlot, Material> npcEquipments,
                 boolean save) {
-        this.serversNPC = serversNPC;
         this.id = id;
         this.lines = (this.hologram = new Hologram(location, lines.split(":"))).getLinesFormatted();
         this.skin = skin;
@@ -421,7 +417,7 @@ public class ZNPC {
             lookAt(Optional.of(player), location, true);
 
             if (npcIsPlayer)
-                ServersNPC.getExecutor().execute(() -> hideFromTab(player));
+                ServersNPC.executor.execute(() -> hideFromTab(player));
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
         }

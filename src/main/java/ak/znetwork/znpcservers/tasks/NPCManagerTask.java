@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.types.ConfigTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -39,7 +40,7 @@ public final class NPCManagerTask extends BukkitRunnable {
             npc.handlePath();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= serversNPC.getViewDistance();
+                boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
 
                 if (npc.getViewers().contains(player) && !canSeeNPC)
                     npc.delete(player, true);

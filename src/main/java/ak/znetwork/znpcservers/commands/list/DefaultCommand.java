@@ -12,6 +12,7 @@ import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.user.ZNPCUser;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -33,6 +34,11 @@ import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
  * @since 07/02/2020
  */
 public class DefaultCommand {
+
+    /**
+     * A string whitespace.
+     */
+    private static final String WHITESPACE = " ";
 
     /**
      * The plugin instance.
@@ -63,7 +69,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -77,14 +83,14 @@ public class DefaultCommand {
             return;
         }
 
-        String skin = args.get("skin").trim();
+        String skin = args.get("skin");
 
         if (skin.length() < 3 || skin.length() > 16) {
             sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
             return;
         }
 
-        String name = args.get("name").trim();
+        String name = args.get("name");
 
         try {
             // All success!
@@ -103,7 +109,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -137,7 +143,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -151,7 +157,7 @@ public class DefaultCommand {
             return;
         }
 
-        String skin = args.get("skin").trim();
+        String skin = args.get("skin");
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
         foundNPC.get().changeSkin(skinFetch);
@@ -166,7 +172,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -182,7 +188,7 @@ public class DefaultCommand {
 
         args.forEach((key, value) -> {
             NPCItemSlot npcItemSlot = NPCItemSlot.fromString(key.toUpperCase());
-            Material material = Material.getMaterial(value.toUpperCase().trim());
+            Material material = Material.getMaterial(value.toUpperCase());
 
             if (npcItemSlot != null && material != null) {
                 foundNPC.get().equip(null, npcItemSlot, material);
@@ -199,7 +205,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -215,8 +221,7 @@ public class DefaultCommand {
 
         String lines = args.get("lines");
         try {
-            List<String> stringList = Arrays.asList(lines.split(" "));
-            Collections.reverse(stringList);
+            List<String> stringList = Lists.reverse(Arrays.asList(lines.split(WHITESPACE)));
 
             foundNPC.get().getHologram().setLines(stringList.toArray(new String[0]));
             foundNPC.get().getHologram().createHologram();
@@ -237,7 +242,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -271,7 +276,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -285,7 +290,7 @@ public class DefaultCommand {
             return;
         }
 
-        NPCType npcType = NPCType.fromString(args.get("type").trim().toUpperCase());
+        NPCType npcType = NPCType.fromString(args.get("type").toUpperCase());
 
         if (npcType == null) {
             sender.sendMessage(ChatColor.RED + "NPC type not found");
@@ -316,7 +321,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -331,7 +336,7 @@ public class DefaultCommand {
         }
 
         if (args.containsKey("add")) {
-            String[] split = args.get("add").split(" ");
+            String[] split = args.get("add").split(WHITESPACE);
 
             if (split.length <= 1) {
                 sender.sendMessage(ChatColor.RED + "Correct usage -> <CMD:CONSOLE:SERVER> <action>");
@@ -345,7 +350,7 @@ public class DefaultCommand {
             foundNPC.get().getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("remove")) {
-            Integer actionId = Ints.tryParse(args.get("remove").trim());
+            Integer actionId = Ints.tryParse(args.get("remove"));
 
             if (actionId == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -359,7 +364,7 @@ public class DefaultCommand {
                 }
             }
         } else if (args.containsKey("cooldown")) {
-            String[] split = args.get("cooldown").split(" ");
+            String[] split = args.get("cooldown").split(WHITESPACE);
 
             if (split.length <= 1) {
                 sender.sendMessage(ChatColor.RED + "Correct usage -> <action_id> <seconds>");
@@ -395,7 +400,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -430,7 +435,7 @@ public class DefaultCommand {
             return;
         }
 
-        Integer id = Ints.tryParse(args.get("id").trim());
+        Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -444,7 +449,7 @@ public class DefaultCommand {
             return;
         }
 
-        String[] value = args.get("customize").trim().split(" ");
+        String[] value = args.get("customize").split(WHITESPACE);
 
         NPCType npcType = foundNPC.getNpcType();
 
@@ -484,7 +489,7 @@ public class DefaultCommand {
             return;
         }
 
-        ZNPCUser znpcUser = this.serversNPC.getNpcUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(sender.getPlayer().getUniqueId())).findFirst().orElse(null);
+        ZNPCUser znpcUser = serversNPC.getNpcManager().getNpcUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(sender.getPlayer().getUniqueId())).findFirst().orElse(null);
         if (znpcUser == null) return;
 
         if (args.containsKey("set")) {
@@ -493,7 +498,7 @@ public class DefaultCommand {
                 return;
             }
 
-            Integer id = Ints.tryParse(args.get("id").trim());
+            Integer id = Ints.tryParse(args.get("id"));
 
             if (id == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
@@ -507,13 +512,13 @@ public class DefaultCommand {
                 return;
             }
 
-            String pathName = args.get("path").trim();
+            String pathName = args.get("path");
 
             ZNPCPathReader pathReader = serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
             foundNPC.setPath(pathReader);
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("create")) {
-            String pathName = args.get("create").trim();
+            String pathName = args.get("create");
 
             if (pathName.length() < 3 || pathName.length() > 16) {
                 sender.sendMessage(ChatColor.RED + "The path name is too short or long, it must be in the range of (3 to 16) characters.");

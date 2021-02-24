@@ -1,6 +1,5 @@
 package ak.znetwork.znpcservers.npc.path;
 
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -8,6 +7,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -17,6 +20,11 @@ import java.util.List;
  */
 @Getter
 public class ZNPCPathReader {
+
+    /**
+     * A map for identifying a path by its name.
+     */
+    private static final ConcurrentMap<String, ZNPCPathReader> PATH_TYPES = new ConcurrentHashMap<String, ZNPCPathReader>();
 
     /**
      * The path file.
@@ -40,7 +48,7 @@ public class ZNPCPathReader {
         this.file = file;
         this.locationList = new ArrayList<>();
 
-        this.read();
+        register(this);
     }
 
     /**
@@ -75,5 +83,25 @@ public class ZNPCPathReader {
      */
     public String getName() {
         return file.getName().substring(0, file.getName().lastIndexOf('.'));
+    }
+
+    /**
+     * Registers a new path reader.
+     */
+    public static void register(ZNPCPathReader pathReader) {
+        PATH_TYPES.put(pathReader.getName(), pathReader);
+
+        // Load path
+        pathReader.read();
+    }
+
+    /**
+     * Gets a path by its name.
+     *
+     * @param name The path name.
+     * @return     The path reader or {@code null} if no path was found.
+     */
+    public static ZNPCPathReader find(String name) {
+        return PATH_TYPES.get(name);
     }
 }
