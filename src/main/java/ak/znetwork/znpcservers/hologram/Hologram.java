@@ -32,6 +32,11 @@ public class Hologram {
     private static final double HOLOGRAM_SPACE = 0.3;
 
     /**
+     * The line separator for hologram text.
+     */
+    private static final String HOLOGRAM_LINE_SEPARATOR = ":";
+
+    /**
      * A list of entities (Holograms).
      */
     private final List<Object> entityArmorStands;
@@ -58,8 +63,8 @@ public class Hologram {
      * @param lines    The hologram text.
      */
     public Hologram(Location location,
-                    String... lines) {
-        this.lines = lines;
+                    String lines) {
+        this.lines = lines.split(HOLOGRAM_LINE_SEPARATOR);
         this.location = location;
 
         this.entityArmorStands = new ArrayList<>();
@@ -216,14 +221,5 @@ public class Hologram {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
-    }
-
-    /**
-     * Used to properly save hologram text in database.
-     *
-     * @return The hologram lines formatted.
-     */
-    public String getLinesFormatted() {
-        return String.join(":", lines);
     }
 }

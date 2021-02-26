@@ -25,7 +25,7 @@ public class ZNPCPathReader {
     /**
      * A map for identifying a path by its name.
      */
-    private static final ConcurrentMap<String, ZNPCPathReader> PATH_TYPES = new ConcurrentHashMap<String, ZNPCPathReader>();
+    private static final ConcurrentMap<String, ZNPCPathReader> PATH_TYPES = new ConcurrentHashMap<>();
 
     /**
      * The path file.
@@ -43,9 +43,8 @@ public class ZNPCPathReader {
      * Creates a reader to read a path.
      *
      * @param file The path file.
-     * @throws IOException If the path cannot be loaded.
      */
-    protected ZNPCPathReader(File file) throws IOException {
+    protected ZNPCPathReader(File file) {
         this.file = file;
         this.locationList = new ArrayList<>();
 
@@ -57,21 +56,19 @@ public class ZNPCPathReader {
      * Reads path file.
      */
     public void read() {
-        try {
-            try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
-                DataInputStream dataOutputStream = new DataInputStream(byteArrayInputStream)) {
-                while (dataOutputStream.available() > 0) {
-                    String worldName = dataOutputStream.readUTF();
+        try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
+            DataInputStream dataOutputStream = new DataInputStream(byteArrayInputStream)) {
+            while (dataOutputStream.available() > 0) {
+                String worldName = dataOutputStream.readUTF();
 
-                    double x = dataOutputStream.readDouble();
-                    double y = dataOutputStream.readDouble();
-                    double z = dataOutputStream.readDouble();
+                double x = dataOutputStream.readDouble();
+                double y = dataOutputStream.readDouble();
+                double z = dataOutputStream.readDouble();
 
-                    float yaw = dataOutputStream.readFloat();
-                    float pitch = dataOutputStream.readFloat();
+                float yaw = dataOutputStream.readFloat();
+                float pitch = dataOutputStream.readFloat();
 
-                    locationList.add(new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch));
-                }
+                locationList.add(new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

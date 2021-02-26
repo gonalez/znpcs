@@ -2,7 +2,6 @@ package ak.znetwork.znpcservers.commands.invoker;
 
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
-import ak.znetwork.znpcservers.commands.impl.ZNCommandImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -62,7 +61,7 @@ public class ZNCommandInvoker<S extends ZNCommandSender> {
         if (!sender.getCommandSender().hasPermission(getPermission())) throw new CommandPermissionException("Insufficient permission");
 
         try {
-            this.getCommandMethod().invoke(getCommandInstance(), sender, object);
+            getCommandMethod().invoke(getCommandInstance(), sender, object);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new CommandExecuteException(e.getMessage(), e.getCause());
         }

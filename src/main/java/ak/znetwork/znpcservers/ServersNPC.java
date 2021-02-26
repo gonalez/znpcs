@@ -3,14 +3,12 @@ package ak.znetwork.znpcservers;
 import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
-import ak.znetwork.znpcservers.deserializer.ZNPCDeserializer;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
 import ak.znetwork.znpcservers.manager.CommandsManager;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
@@ -29,7 +27,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
@@ -71,8 +68,7 @@ public class ServersNPC extends JavaPlugin {
      */
     public final static Gson GSON = new GsonBuilder().
             registerTypeAdapter(Location.class, new LocationSerialize()).
-            registerTypeAdapter(ZNPC.class, new ZNPCDeserializer())
-            .excludeFieldsWithoutExposeAnnotation().
+            excludeFieldsWithoutExposeAnnotation().
                     setPrettyPrinting().
                     create();
 
@@ -187,7 +183,7 @@ public class ServersNPC extends JavaPlugin {
         if (getNpcManager().getNpcList().stream().anyMatch(npc -> npc.getId() == id)) return false;
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return getNpcManager().getNpcList().add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new EnumMap<>(NPCItemSlot.class), save));
+        return getNpcManager().getNpcList().add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new HashMap<>(), save));
     }
 
     /**

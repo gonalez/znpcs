@@ -103,6 +103,9 @@ public interface ZNCommandImpl {
         }
     }
 
+    /**
+     * An annotation for sub commands as described in {@link ak.znetwork.znpcservers.commands.ZNCommand}.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @interface ZNCommandSub {
 

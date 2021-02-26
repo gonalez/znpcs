@@ -114,9 +114,20 @@ public class ZNPC {
     private static final String TEAM_DEFAULT_VISIBILITY = "never";
 
     /**
+     * The list field of item-stacks for npc equipment.
+     */
+    private static final String EQUIPMENT_LIST = "b";
+
+    /**
+     * The line separator for text.
+     */
+    private static final String LINE_SEPARATOR = ":";
+
+
+    /**
      * The npc identifier.
      */
-    @Expose private final int id;
+    @Expose private int id;
 
     /**
      * Toggle variables.
@@ -167,7 +178,7 @@ public class ZNPC {
     /**
      * The npc equipment.
      */
-    @Expose private EnumMap<NPCItemSlot, Material> npcEquipments;
+    @Expose private HashMap<NPCItemSlot, Material> npcEquipments;
 
     /**
      * The npc customizations.
@@ -233,6 +244,11 @@ public class ZNPC {
     private boolean reversePath = false;
 
     /**
+     * Determines if the npc is created by first time.
+     */
+    private boolean setup = false;
+
+    /**
      * Creates a new NPC.
      *
      * @param id            The npc id.
@@ -250,10 +266,10 @@ public class ZNPC {
                 String signature,
                 Location location,
                 NPCType npcType,
-                EnumMap<NPCItemSlot, Material> npcEquipments,
+                HashMap<NPCItemSlot, Material> npcEquipments,
                 boolean save) {
         this.id = id;
-        this.lines = (this.hologram = new Hologram(location, lines.split(":"))).getLinesFormatted();
+        this.lines = lines;
         this.skin = skin;
         this.signature = signature;
         this.location = location;
@@ -262,6 +278,13 @@ public class ZNPC {
         this.save = save;
 
         this.init();
+    }
+
+    /**
+     * A default no-args constructor, this will be used by Gson.
+     */
+    protected ZNPC() {
+        init();
     }
 
     /**
@@ -278,8 +301,6 @@ public class ZNPC {
 
         this.gameProfile = new GameProfile(UUID.randomUUID(), getNpcName());
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, skin, signature));
-
-        this.changeType(npcType);
     }
 
     /**
@@ -331,7 +352,7 @@ public class ZNPC {
     public void setLocation(Location location) {
         try {
             if (!hasPath()) {
-                this.location = location;
+                this.location = location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch());
 
                 lookAt(null, location, true);
             }
@@ -361,7 +382,7 @@ public class ZNPC {
                 equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(getEntityId(), slot.getSlotOld(), item);
             } else {
                 if (Utils.versionNewer(16)) {
-                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), "b");
+                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), EQUIPMENT_LIST);
                     pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item));
 
                     equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(getEntityId(), pairs);
@@ -421,13 +442,14 @@ public class ZNPC {
         }
     }
 
-
     /**
      * Changes the entity type of the npc.
      *
      * @param npcType The new entity type.
      */
     public void changeType(NPCType npcType) {
+        if (isSetup() && getNpcType() == npcType) return;
+
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
             setZnEntity(npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, gameProfile, (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(13) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
@@ -446,8 +468,12 @@ public class ZNPC {
             // Update new type for viewers
             deleteViewers();
 
-            // Update new entity id.
+            // Update new entity id
             setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
+
+            // Checks if the npc is created by first time
+            if (!isSetup())
+                setSetup(true);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
             throw new AssertionError(operationException);
         }
@@ -459,9 +485,14 @@ public class ZNPC {
      * @param player The player to see the npc.
      */
     public void spawn(Player player) {
+        // Update the npc type if it has not been initialized
+        changeType(npcType);
+
+        // Update the npc scoreboard for player
         toggleName(player);
 
         try {
+            // Check if npc type is player
             boolean npcIsPlayer = getNpcType() == NPCType.PLAYER;
 
             if (npcIsPlayer && isHasMirror()) {
@@ -487,10 +518,13 @@ public class ZNPC {
             // Update new npc id
             setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
 
+            // Send npc equipment packets for player
             getNpcEquipments().forEach((itemSlot, material) -> equip(player, itemSlot, material));
 
+            // Update npc data
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, false));
 
+            // Add player to viewers list
             getViewers().add(player);
 
             // Fix npc rotation
@@ -541,12 +575,14 @@ public class ZNPC {
      */
     public void delete(Player player, boolean removeViewer) {
         try {
-            if (getNpcType() == NPCType.PLAYER) hideFromTab(player);
+            if (getNpcType() == NPCType.PLAYER)
+                hideFromTab(player);
 
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{getEntityId()}));
             getHologram().delete(player, removeViewer);
 
-            if (removeViewer) getViewers().remove(player);
+            if (removeViewer)
+                getViewers().remove(player);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
             throw new AssertionError(operationException);
         }
@@ -650,7 +686,7 @@ public class ZNPC {
         Vector vector = (isReversePath() ? pathReader.getLocationList().get(Math.max(0, Math.min(pathReader.getLocationList().size() - 1, pathIndex + 1))) : pathReader.getLocationList().get(Math.min(pathReader.getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toVector();
         double yDiff = (location.getY() - vector.getY());
 
-        Location direction = getCurrentPathLocation().clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).clone().toVector());
+        Location direction = getCurrentPathLocation().clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
         lookAt(null, direction, true);
     }
 
@@ -733,6 +769,10 @@ public class ZNPC {
         return hasPath() && getCurrentPathLocation() != null ? getCurrentPathLocation() : location;
     }
 
+    public Hologram getHologram() {
+        return hologram == null ? (hologram = new Hologram(location, lines = getTextFormatted(getLines()))) : hologram;
+    }
+
     /**
      * Checks if npc has a path.
      *
@@ -751,13 +791,22 @@ public class ZNPC {
      */
     public Object getGlowColor(String glowColorName) {
         try {
-            return ClassTypes.ENUM_CHAT_FORMAT.getField(glowColorName.trim().toUpperCase()).get(null);
+            return ClassTypes.ENUM_CHAT_FORMAT.getField(glowColorName.toUpperCase()).get(null);
         } catch (NoSuchFieldException e) {
             // Get Default Glow-Color
             return getGlowColor("WHITE");
         } catch (IllegalAccessException accessException) {
             throw new AssertionError(accessException);
         }
+    }
+
+    /**
+     * Used to properly save a text in database.
+     *
+     * @return The hologram lines formatted.
+     */
+    public String getTextFormatted(String... text) {
+        return String.join(LINE_SEPARATOR, text);
     }
 
     /**
