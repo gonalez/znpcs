@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
@@ -78,7 +79,7 @@ public class ServersNPC extends JavaPlugin {
     /**
      * A executor service.
      */
-    public static Executor executor;
+    public static Executor EXECUTOR;
 
     /**
      * The commands manager.
@@ -92,9 +93,16 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Load entity type cache
+        for (NPCType npcType : NPCType.values()) {
+            npcType.load();
+        }
+
         // Load paths
         loadAllPaths();
 
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        
         // Load managers
         npcManager = new NPCManager();
 
@@ -104,12 +112,8 @@ public class ServersNPC extends JavaPlugin {
         // Setup metrics
         new MetricsLite(this, PLUGIN_ID);
 
-        // Load entity type cache
-        for (NPCType npcType : NPCType.values()) {
-            npcType.load();
-        }
-
-        executor = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, 40L);
+        // Default executor
+        EXECUTOR = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, 40L);
 
         // Setup netty again for online players
         Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
@@ -132,7 +136,7 @@ public class ServersNPC extends JavaPlugin {
     }
 
     /**
-     * Loads all paths.
+     * Loads all npc paths.
      */
     public void loadAllPaths() {
         File npcPaths = PLUGIN_FOLDER.toPath().resolve("paths").toFile();
@@ -145,7 +149,7 @@ public class ServersNPC extends JavaPlugin {
             // Check if file is path
             if (file.getName().endsWith(".path")) {
                 try {
-                    getNpcManager().getNpcPaths().add(new ZNPCPathReader(file));
+                    ZNPCPathReader.register(file);
                 } catch (IOException e) {
                     getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
                 }
@@ -154,7 +158,7 @@ public class ServersNPC extends JavaPlugin {
     }
 
     /**
-     * Deletes all NPC for npc viewers.
+     * Deletes all NPC for viewers.
      */
     public void removeAllViewers() {
         getNpcManager().getNpcList().forEach(ZNPC::deleteViewers);
@@ -189,8 +193,7 @@ public class ServersNPC extends JavaPlugin {
     /**
      * Deletes a npc.
      *
-     * @param npcID         The npc ID.
-     * @return {@code true} If the npc was removed successfully.
+     * @param npcID The npc ID.
      */
     public void deleteNPC(int npcID) {
         ZNPC npc = npcManager.getNpcList().stream().filter(npc1 -> npc1.getId() == npcID).findFirst().orElse(null);

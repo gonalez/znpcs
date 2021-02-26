@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
+import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
@@ -171,8 +172,8 @@ public final class ZNPCPathWriter {
                 if (last) {
                     getNpcUser().setHasPath(false);
 
-                    // Add path
-                    serversNPC.getNpcManager().getNpcPaths().add(new ZNPCPathReader(file));
+                    // Create path
+                    ZNPCPathReader.register(file);
                 }
             }
         }

@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,11 +45,12 @@ public class ZNPCPathReader {
      * @param file The path file.
      * @throws IOException If the path cannot be loaded.
      */
-    public ZNPCPathReader(File file) throws IOException {
+    protected ZNPCPathReader(File file) throws IOException {
         this.file = file;
         this.locationList = new ArrayList<>();
 
-        register(this);
+        // Load path
+        this.read();
     }
 
     /**
@@ -88,11 +90,9 @@ public class ZNPCPathReader {
     /**
      * Registers a new path reader.
      */
-    public static void register(ZNPCPathReader pathReader) {
-        PATH_TYPES.put(pathReader.getName(), pathReader);
-
-        // Load path
-        pathReader.read();
+    public static void register(File file) throws IOException {
+        ZNPCPathReader znpcPathReader = new ZNPCPathReader(file);
+        PATH_TYPES.put(znpcPathReader.getName(), znpcPathReader);
     }
 
     /**
@@ -103,5 +103,14 @@ public class ZNPCPathReader {
      */
     public static ZNPCPathReader find(String name) {
         return PATH_TYPES.get(name);
+    }
+
+    /**
+     * A collection of all registered paths.
+     *
+     * @return A collection of all registered paths.
+     */
+    public static Collection<ZNPCPathReader> getPaths() {
+        return PATH_TYPES.values();
     }
 }

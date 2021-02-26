@@ -5,6 +5,7 @@ import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.impl.ZNCommandImpl;
 import ak.znetwork.znpcservers.commands.invoker.ZNCommandInvoker;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
@@ -91,7 +92,7 @@ public class ZNCommand implements ZNCommandImpl {
                     else break;
                 }
 
-                argsMap.put(input.replace("-", ""), value.substring(0, value.length() - 1));
+                argsMap.put(input.replace("-", ""), value.substring(0, Math.max(0, value.length() - 1)));
             }
         }
         return argsMap;

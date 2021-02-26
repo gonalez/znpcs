@@ -416,7 +416,6 @@ public class DefaultCommand {
 
         try {
             if (args.containsKey("holo")) foundNPC.toggleHolo();
-            else if (args.containsKey("name")) foundNPC.toggleName(true);
             else if (args.containsKey("glow")) foundNPC.toggleGlow(args.get("glow"), true);
             else if (args.containsKey("mirror")) foundNPC.toggleMirror();
             else if (args.containsKey("look")) foundNPC.toggleLookAt();
@@ -514,8 +513,8 @@ public class DefaultCommand {
 
             String pathName = args.get("path");
 
-            ZNPCPathReader pathReader = serversNPC.getNpcManager().getNpcPaths().stream().filter(znpcPathReader -> znpcPathReader.getName().equalsIgnoreCase(pathName)).findFirst().orElse(null);
-            foundNPC.setPath(pathReader);
+            foundNPC.setPath(ZNPCPathReader.find(pathName));
+
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("create")) {
             String pathName = args.get("create");
@@ -525,7 +524,7 @@ public class DefaultCommand {
                 return;
             }
 
-            boolean exists = serversNPC.getNpcManager().getNpcPaths().stream().anyMatch(znpcPath -> znpcPath.getName().equalsIgnoreCase(pathName));
+            boolean exists = ZNPCPathReader.find(pathName) != null;
 
             if (exists) {
                 sender.getPlayer().sendMessage(ChatColor.RED + "There is already a path with this name.");
@@ -545,9 +544,9 @@ public class DefaultCommand {
 
             sender.getPlayer().sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {
-            if (serversNPC.getNpcManager().getNpcPaths().isEmpty())
+            if (ZNPCPathReader.getPaths().isEmpty())
                 sender.getPlayer().sendMessage(ChatColor.RED + "No PATH found!");
-            else serversNPC.getNpcManager().getNpcPaths().forEach(znpcPath -> sender.getPlayer().sendMessage(ChatColor.GREEN + znpcPath.getName()));
+            else ZNPCPathReader.getPaths().forEach(pathReader -> sender.getPlayer().sendMessage(ChatColor.GREEN + pathReader.getName()));
         }
     }
 }

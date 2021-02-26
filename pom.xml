@@ -6,7 +6,7 @@
 
     <groupId>ak.znetwork.znpcservers</groupId>
     <artifactId>ServersNPC</artifactId>
-    <version>2.7</version>
+    <version>3.0</version>
 
     <repositories>
         <repository>

@@ -21,11 +21,6 @@ import lombok.Getter;
 public final class NPCManager {
 
     /**
-     * A list of paths that are provided to NPCs.
-     */
-    private final List<ZNPCPathReader> npcPaths;
-
-    /**
      * A list of npc users.
      */
     private final List<ZNPCUser> npcUsers;
@@ -39,7 +34,6 @@ public final class NPCManager {
      * Initializes manager for NPCs.
      */
     public NPCManager() {
-        this.npcPaths = new ArrayList<>();
         this.npcUsers = new ArrayList<>();
 
         this.npcList = ConfigManager.getByType(ZNConfigType.DATA).getValue(ZNConfigValue.NPC_LIST);

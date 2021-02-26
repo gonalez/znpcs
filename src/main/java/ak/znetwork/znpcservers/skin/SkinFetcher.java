@@ -87,7 +87,7 @@ public final class SkinFetcher implements SkinFetcherImpl {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
         skinExecutorService.submit(() -> {
             try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(builder.getApiUrl().getApiURL() + getData()).openConnection();
+                HttpURLConnection connection = (HttpURLConnection) new URL(getBuilder().getApiUrl().getApiURL() + getData()).openConnection();
                 connection.setRequestMethod(getBuilder().getApiUrl().getMethod());
 
                 connection.setDoInput(true);

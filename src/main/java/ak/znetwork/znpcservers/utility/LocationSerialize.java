@@ -18,9 +18,9 @@ public class LocationSerialize implements JsonSerializer<Location>, JsonDeserial
     public JsonElement serialize(Location src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("world", src.getWorld().getName());
-        jsonObject.addProperty("x", src.getBlockX());
-        jsonObject.addProperty("y", src.getBlockY());
-        jsonObject.addProperty("z", src.getBlockZ());
+        jsonObject.addProperty("x", src.getX());
+        jsonObject.addProperty("y", src.getY());
+        jsonObject.addProperty("z", src.getZ());
         jsonObject.addProperty("yaw", src.getYaw());
         jsonObject.addProperty("pitch", src.getPitch());
         return jsonObject;
@@ -30,6 +30,6 @@ public class LocationSerialize implements JsonSerializer<Location>, JsonDeserial
     public Location deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
 
-        return new Location(Bukkit.getWorld(jsonObject.get("world").getAsString()), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("z").getAsInt(), jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat());
+        return new Location(Bukkit.getWorld(jsonObject.get("world").getAsString()), jsonObject.get("x").getAsDouble(), jsonObject.get("y").getAsDouble(), jsonObject.get("z").getAsDouble(), jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat());
     }
 }

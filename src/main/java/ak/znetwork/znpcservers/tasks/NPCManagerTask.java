@@ -52,7 +52,7 @@ public final class NPCManagerTask extends BukkitRunnable {
                     }
 
                     if (npc.isHasLookAt())
-                        npc.lookAt(Optional.of(player), player.getLocation(), false);
+                        npc.lookAt(player, player.getLocation(), false);
 
                     npc.getHologram().updateNames(player);
                 }

@@ -30,12 +30,14 @@ public class ReflectionUtils {
     /**
      * Sends the packet to a receiver.
      *
-     * @param player The receiver of the packet.
-     * @param packet The packet to send.
+     * @param player  The receiver of the packet.
+     * @param packets The packets to send.
      */
-    public static void sendPacket(Player player, Object packet) {
+    public static void sendPacket(Player player, Object... packets) {
         try {
-            ClassTypes.SEND_PACKET_METHOD.invoke(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)), packet);
+            for (Object packet : packets) {
+                ClassTypes.SEND_PACKET_METHOD.invoke(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)), packet);
+            }
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }

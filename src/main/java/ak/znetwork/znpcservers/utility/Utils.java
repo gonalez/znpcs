@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.utility;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+
 import org.bukkit.ChatColor;
 
 /**
@@ -29,15 +29,6 @@ public final class Utils {
      */
     public static boolean versionNewer(int version) {
         return BUKKIT_VERSION >= version;
-    }
-
-    /**
-     * Generates a random alpha-numeric string that is 8 characters.
-     *
-     * @return The Generated string.
-     */
-    public static String generateRandomString() {
-        return RandomStringUtils.randomAlphanumeric(8).toLowerCase();
     }
 
     /**
