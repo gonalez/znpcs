@@ -263,26 +263,19 @@ public class ZNPC {
      * @param signature     The skin signature.
      * @param location      The npc location.
      * @param npcType       The npc entity type.
-     * @param npcEquipments The npc equipments.
-     * @param save          Checks if npc will be saved on data.
      */
     public ZNPC(int id,
                 String lines,
                 String skin,
                 String signature,
                 Location location,
-                NPCType npcType,
-                HashMap<NPCItemSlot, Material> npcEquipments,
-                boolean save) {
+                NPCType npcType) {
         this.id = id;
         this.lines = lines;
         this.skin = skin;
         this.signature = signature;
         this.location = location;
         this.npcType = npcType;
-        this.save = save;
-
-        this.npcEquipments.putAll(npcEquipments);
 
         this.init();
     }
@@ -307,7 +300,7 @@ public class ZNPC {
     /**
      * Set/Update the npc glow.
      *
-     * @param color The glow color.
+     * @param color  The glow color.
      * @param toggle Toggles (on/off) the glow of the npc.
      */
     public void toggleGlow(String color, boolean toggle) {

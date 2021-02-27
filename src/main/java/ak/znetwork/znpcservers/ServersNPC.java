@@ -169,14 +169,18 @@ public class ServersNPC extends JavaPlugin {
     /**
      * Creates a new npc.
      *
-     * @param id The npc identifier.
+     * @param id       The npc identifier.
+     * @param location The npc location.
+     * @param skin     The npc skin name.
+     * @param text     The npc hologram text.
      * @return   {@code true} If the npc was created correctly.
      */
-    public boolean createNPC(int id, Location location, String skin, String holo_lines, boolean save) {
-        if (ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id)) return false;
+    public boolean createNPC(int id, Location location, String skin, String text) {
+        if (ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id))
+            return false;
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return ConfigTypes.NPC_LIST.add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new HashMap<>(), save));
+        return ConfigTypes.NPC_LIST.add(new ZNPC(id, text, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER));
     }
 
     /**

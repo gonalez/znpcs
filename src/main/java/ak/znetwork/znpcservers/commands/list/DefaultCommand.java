@@ -96,7 +96,7 @@ public class DefaultCommand {
 
         try {
             // All success!
-            serversNPC.createNPC(id, sender.getPlayer().getLocation(), skin, (name.length() > 0 ? name : "NPC"), true);
+            serversNPC.createNPC(id, sender.getPlayer().getLocation(), skin, (name.length() > 0 ? name : "NPC"));
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception e) {
