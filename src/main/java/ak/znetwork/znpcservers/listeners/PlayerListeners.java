@@ -2,6 +2,8 @@ package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
 
+import ak.znetwork.znpcservers.manager.NPCManager;
+import ak.znetwork.znpcservers.types.ConfigTypes;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -41,12 +43,12 @@ public final class PlayerListeners implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        getServersNPC().getNpcManager().getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
+        NPCManager.getNpcUsers().stream().filter(playerNetty -> playerNetty.getUuid() == event.getPlayer().getUniqueId()).findFirst().ifPresent(playerNetty -> {
             playerNetty.ejectNetty();
 
-            getServersNPC().getNpcManager().getNpcUsers().remove(playerNetty);
+            NPCManager.getNpcUsers().remove(playerNetty);
         });
 
-        getServersNPC().getNpcManager().getNpcList().stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));
+        ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getViewers().contains(event.getPlayer())).forEach(npc -> npc.delete(event.getPlayer(), true));
     }
 }

@@ -3,6 +3,8 @@ package ak.znetwork.znpcservers.configuration.enums;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import lombok.Getter;

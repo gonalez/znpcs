@@ -7,7 +7,7 @@ import ak.znetwork.znpcservers.configuration.impl.ZNConfigImpl;
 import ak.znetwork.znpcservers.utility.Utils;
 
 import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.internal.$Gson$Types;
 import com.google.gson.JsonParser;
 
 import org.bukkit.command.CommandSender;
@@ -102,7 +102,7 @@ public final class ZNConfig implements ZNConfigImpl {
 
                 JsonElement jsonElement = getConfigValues().size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
                 if (jsonElement != null && !jsonElement.isJsonNull())
-                    getConfigValues().put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, TypeToken.getParameterized(znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType()).getType()));
+                    getConfigValues().put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType())));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

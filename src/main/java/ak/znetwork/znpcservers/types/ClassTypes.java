@@ -788,11 +788,18 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
+    public static final Method GET_ENUM_CHAT_METHOD = new ClassCache(new ClassCacheBuilder<>().builderType(BuilderType.METHOD).
+            packageType(PackageType.MINECRAFT_SERVER).
+            className("EnumChatFormat").
+            methodName("b").
+            parameterTypes(String.class)).
+    typeOf();
+
     public static final Method GET_ENUM_CHAT_ID_METHOD = new ClassCache(new ClassCacheBuilder<>().builderType(BuilderType.METHOD).
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat").
             methodName("b")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}

@@ -4,10 +4,12 @@ import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 
-import org.bukkit.Bukkit;
+import ak.znetwork.znpcservers.npc.ZNPC;
+
+import java.util.List;
 
 /**
- * Contains the constants for configuration.
+ * Contains the constants for configuration values.
  *
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
@@ -32,7 +34,12 @@ public final class ConfigTypes {
     public static final int SAVE_DELAY = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS);
 
     /**
-     * Represents if the plugin will use external placeholders.
+     * Represents the npc list.
      */
-    public static boolean PLACEHOLDER_SUPPORT = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
+    public static final List<ZNPC> NPC_LIST = ConfigManager.getByType(ZNConfigType.DATA).getValue(ZNConfigValue.NPC_LIST);
+
+    static {
+        // Init all saved NPC
+        ConfigTypes.NPC_LIST.forEach(ZNPC::init);
+    }
 }

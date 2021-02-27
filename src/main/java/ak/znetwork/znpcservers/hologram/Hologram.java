@@ -159,7 +159,7 @@ public class Hologram {
                 if (Utils.versionNewer(13))
                     ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, getLines()[i]));
                 else
-                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(ConfigTypes.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, getLines()[i]) : line));
+                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, getLines()[i]) : line));
 
                 Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(armorStand);
 
@@ -217,7 +217,7 @@ public class Hologram {
         try {
             text = Utils.color(text);
 
-            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(ConfigTypes.PLACEHOLDER_SUPPORT && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ConfigTypes.SPACE_SYMBOL, " "));
+            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(Utils.PLACEHOLDER_SUPPORT && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ConfigTypes.SPACE_SYMBOL, " "));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }

@@ -82,11 +82,6 @@ public class ServersNPC extends JavaPlugin {
      */
     private CommandsManager commandsManager;
 
-    /**
-     * The NPCs manager.
-     */
-    private NPCManager npcManager;
-
     @Override
     public void onEnable() {
         // Load entity type cache
@@ -98,10 +93,8 @@ public class ServersNPC extends JavaPlugin {
         loadAllPaths();
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        
-        // Load managers
-        npcManager = new NPCManager();
 
+        // Load managers
         commandsManager = new CommandsManager(this, "znpcs");
         commandsManager.addCommand(new ZNCommand(new DefaultCommand(this)));
 
@@ -157,7 +150,7 @@ public class ServersNPC extends JavaPlugin {
      * Deletes all NPC for viewers.
      */
     public void removeAllViewers() {
-        getNpcManager().getNpcList().forEach(ZNPC::deleteViewers);
+        ConfigTypes.NPC_LIST.forEach(ZNPC::deleteViewers);
     }
 
     /**
@@ -167,7 +160,7 @@ public class ServersNPC extends JavaPlugin {
      */
     public void setupNetty(Player player) {
         try {
-            getNpcManager().getNpcUsers().add(new ZNPCUser(this, player));
+            NPCManager.getNpcUsers().add(new ZNPCUser(this, player));
         } catch (Exception exception) {
             throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
         }
@@ -180,10 +173,10 @@ public class ServersNPC extends JavaPlugin {
      * @return   {@code true} If the npc was created correctly.
      */
     public boolean createNPC(int id, Location location, String skin, String holo_lines, boolean save) {
-        if (getNpcManager().getNpcList().stream().anyMatch(npc -> npc.getId() == id)) return false;
+        if (ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id)) return false;
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return getNpcManager().getNpcList().add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new HashMap<>(), save));
+        return ConfigTypes.NPC_LIST.add(new ZNPC(id, holo_lines, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER, new HashMap<>(), save));
     }
 
     /**
@@ -192,12 +185,12 @@ public class ServersNPC extends JavaPlugin {
      * @param npcID The npc ID.
      */
     public void deleteNPC(int npcID) {
-        ZNPC npc = npcManager.getNpcList().stream().filter(npc1 -> npc1.getId() == npcID).findFirst().orElse(null);
+        ZNPC npc = ConfigTypes.NPC_LIST.stream().filter(npc1 -> npc1.getId() == npcID).findFirst().orElse(null);
 
         if (npc == null)
             return;
 
-        getNpcManager().getNpcList().remove(npc);
+        ConfigTypes.NPC_LIST.remove(npc);
 
         npc.deleteViewers();
     }

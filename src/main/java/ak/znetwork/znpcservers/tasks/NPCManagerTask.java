@@ -36,7 +36,7 @@ public final class NPCManagerTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (ZNPC npc : serversNPC.getNpcManager().getNpcList()) {
+        for (ZNPC npc : ConfigTypes.NPC_LIST) {
             npc.handlePath();
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -46,8 +46,6 @@ public final class NPCManagerTask extends BukkitRunnable {
                     npc.delete(player, true);
                 else if (canSeeNPC) {
                     if (!npc.getViewers().contains(player)) {
-                        npc.getViewers().add(player);
-
                         npc.spawn(player);
                     }
 

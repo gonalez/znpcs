@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.utility;
 
 import org.apache.commons.lang.math.NumberUtils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 /**
@@ -16,6 +17,11 @@ public final class Utils {
      * The current bukkit version.
      */
     public static final int BUKKIT_VERSION;
+
+    /**
+     * Represents if the plugin will use external placeholders.
+     */
+    public static boolean PLACEHOLDER_SUPPORT = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
 
     static {
         BUKKIT_VERSION = NumberUtils.toInt(ReflectionUtils.getFriendlyBukkitPackage());

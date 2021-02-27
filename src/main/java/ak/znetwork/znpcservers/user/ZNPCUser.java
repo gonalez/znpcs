@@ -8,6 +8,7 @@ import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
+import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.collect.HashBasedTable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -162,7 +163,7 @@ public class ZNPCUser {
                 int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
 
                 // Try find npd
-                ZNPC znpc = serversNPC.getNpcManager().getNpcList().stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
+                ZNPC znpc = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
                 if (znpc == null) return;
 
                 setLastInteract(System.currentTimeMillis());
@@ -182,7 +183,7 @@ public class ZNPCUser {
 
                         String actionValue = actions[1];
                         // Run action for the provided actionValue
-                        npcAction.run(ZNPCUser.this, toPlayer(), ConfigTypes.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
+                        npcAction.run(ZNPCUser.this, toPlayer(), Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
 
                         // Check for action cooldown
                         if (actions.length > 2) {
