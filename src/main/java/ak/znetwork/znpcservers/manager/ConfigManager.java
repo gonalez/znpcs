@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public final class ConfigManager {
+public class ConfigManager {
 
     /**
      * The configuration types.

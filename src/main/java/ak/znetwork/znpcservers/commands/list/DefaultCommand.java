@@ -45,7 +45,7 @@ public class DefaultCommand {
     /**
      * The plugin instance.
      */
-    private ServersNPC serversNPC;
+    private final ServersNPC serversNPC;
 
     /**
      * Creates a new command.

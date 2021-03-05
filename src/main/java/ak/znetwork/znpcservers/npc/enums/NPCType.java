@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import lombok.Getter;
 
@@ -87,6 +86,11 @@ public enum NPCType {
     private final List<String> customization;
 
     /**
+     * The customization methods.
+     */
+    private final HashMap<String, Method> customizationMethods;
+
+    /**
      * The bukkit entity type.
      */
     private Object entityType;
@@ -95,11 +99,6 @@ public enum NPCType {
      * The entity spawn packet.
      */
     private Constructor<?> constructor = null;
-
-    /**
-     * The customization methods.
-     */
-    private final HashMap<String, Method> customizationMethods;
 
     /**
      * Creates a new Entity type.
@@ -217,7 +216,7 @@ public enum NPCType {
      * Gets NPCType by name.
      *
      * @param text The npc type name.
-     * @return     Corresponding enum or null if not found.
+     * @return     The corresponding enum or {@code null} if not found.
      */
     public static NPCType fromString(String text) {
         for (NPCType b : NPCType.values()) {

@@ -16,7 +16,7 @@ import java.util.List;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public final class ConfigTypes {
+public class ConfigTypes {
 
     /**
      * Represents the symbol that will be used as spaces for each string.
@@ -40,6 +40,6 @@ public final class ConfigTypes {
 
     static {
         // Init all saved NPC
-        ConfigTypes.NPC_LIST.forEach(ZNPC::init);
+        NPC_LIST.forEach(ZNPC::init);
     }
 }

@@ -53,7 +53,7 @@ public class ZNPCPathReader {
     }
 
     /**
-     * Reads path file.
+     * Reads the path file.
      */
     public void read() {
         try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
@@ -93,7 +93,7 @@ public class ZNPCPathReader {
     }
 
     /**
-     * Gets a path by its name.
+     * Locates a path by its name.
      *
      * @param name The path name.
      * @return     The path reader or {@code null} if no path was found.

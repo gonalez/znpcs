@@ -18,6 +18,7 @@ import ak.znetwork.znpcservers.utility.LocationSerialize;
 import ak.znetwork.znpcservers.utility.MetricsLite;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
+import ak.znetwork.znpcservers.utility.SchedulerUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -27,8 +28,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.logging.Level;
 
 import lombok.Getter;
@@ -73,9 +72,9 @@ public class ServersNPC extends JavaPlugin {
                     create();
 
     /**
-     * A executor service.
+     * The scheduler instance.
      */
-    public static Executor EXECUTOR;
+    public static SchedulerUtils SCHEDULER;
 
     /**
      * The commands manager.
@@ -94,7 +93,7 @@ public class ServersNPC extends JavaPlugin {
 
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        // Load managers
+        // Load commands
         commandsManager = new CommandsManager(this, "znpcs");
         commandsManager.addCommand(new ZNCommand(new DefaultCommand(this)));
 
@@ -102,7 +101,7 @@ public class ServersNPC extends JavaPlugin {
         new MetricsLite(this, PLUGIN_ID);
 
         // Default executor
-        EXECUTOR = r -> getServer().getScheduler().scheduleSyncDelayedTask(this, r, 40L);
+        SCHEDULER = new SchedulerUtils(this);
 
         // Setup netty again for online players
         Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);

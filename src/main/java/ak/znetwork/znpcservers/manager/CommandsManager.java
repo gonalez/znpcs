@@ -56,7 +56,7 @@ public class CommandsManager implements CommandExecutor {
     /**
      * Get commands.
      *
-     * @return command list
+     * @return The command list.
      */
     public LinkedHashSet<ZNCommand> getZnCommands() {
         return znCommands;

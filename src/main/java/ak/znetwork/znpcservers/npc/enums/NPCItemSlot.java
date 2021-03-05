@@ -69,7 +69,7 @@ public enum NPCItemSlot {
      * Gets NPCItemSlot by name.
      *
      * @param text The item slot name.
-     * @return Corresponding enum or null if not found.
+     * @return     The corresponding enum or {@code null} if not found.
      */
     public static NPCItemSlot fromString(String text) {
         for (NPCItemSlot b : NPCItemSlot.values()) {

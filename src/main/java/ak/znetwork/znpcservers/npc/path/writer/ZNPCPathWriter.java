@@ -182,7 +182,7 @@ public final class ZNPCPathWriter {
     /**
      * Checks if a location can be added to path.
      *
-     * @param location The path location to add.
+     * @param location      The path location to add.
      * @return {@code true} If location can be added.
      */
     public boolean checkEntry(Location location) {

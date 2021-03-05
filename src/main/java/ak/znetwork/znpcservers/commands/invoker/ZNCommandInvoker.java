@@ -58,7 +58,8 @@ public class ZNCommandInvoker<S extends ZNCommandSender> {
      * @throws CommandExecuteException     If subCommand cannot be executed.
      */
     public void execute(S sender, Object object) throws CommandPermissionException, CommandExecuteException {
-        if (!sender.getCommandSender().hasPermission(getPermission())) throw new CommandPermissionException("Insufficient permission");
+        if (getPermission().length() > 0 && !sender.getCommandSender().hasPermission(getPermission()))
+            throw new CommandPermissionException("Insufficient permission");
 
         try {
             getCommandMethod().invoke(getCommandInstance(), sender, object);

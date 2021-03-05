@@ -11,7 +11,7 @@ import java.util.List;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public final class NPCManager {
+public class NPCManager {
 
     /**
      * A list of npc users.

@@ -752,7 +752,7 @@ public class ClassTypes {
     public static final Method SET_LOCATION_METHOD = new ClassCache(new ClassCacheBuilder<>().builderType(BuilderType.METHOD).
             packageType(PackageType.MINECRAFT_SERVER).
             className("Entity").
-            methodName("setLocation").
+            methodName("setPositionRotation").
             parameterTypes(double.class, double.class, double.class, float.class, float.class)).
     typeOf();
 
@@ -795,6 +795,9 @@ public class ClassTypes {
             parameterTypes(String.class)).
     typeOf();
 
+    /**
+     * {@inheritDoc}
+     */
     public static final Method GET_ENUM_CHAT_ID_METHOD = new ClassCache(new ClassCacheBuilder<>().builderType(BuilderType.METHOD).
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat").

@@ -3,6 +3,7 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
+import ak.znetwork.znpcservers.npc.enums.NPCToggle;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.types.ClassTypes;
@@ -131,6 +132,11 @@ public class ZNPC {
     private static final String LINE_SEPARATOR = ":";
 
     /**
+     * The delay to hide npc from tab-list (in ticks).
+     */
+    private static final int DELAY_HIDE_TAB = 60;
+
+    /**
      * The npc identifier.
      */
     @Expose private int id;
@@ -247,7 +253,7 @@ public class ZNPC {
     /**
      * Determines if path is running backwards or forwards.
      */
-    private boolean reversePath = false;
+    private boolean pathReverse = false;
 
     /**
      * Determines if the npc is created by first time.
@@ -295,6 +301,9 @@ public class ZNPC {
         this.changeType(getNpcType());
 
         this.updateCustomization();
+
+        if (getPathName() != null)
+            this.setPath(ZNPCPathReader.find(getPathName()));
     }
 
     /**
@@ -340,7 +349,7 @@ public class ZNPC {
     }
 
     /**
-     * Set new location for the npc.
+     * Sets a new location for the npc.
      *
      * @param location The new location.
      */
@@ -396,7 +405,7 @@ public class ZNPC {
     }
 
     /**
-     * Updates npc skin.
+     * Updates the npc skin.
      *
      * @param skinFetch The skin to set.
      */
@@ -469,7 +478,7 @@ public class ZNPC {
     }
 
     /**
-     * Spawn the npc for player.
+     * Spawns the npc for a player.
      *
      * @param player The player to see the npc.
      */
@@ -515,7 +524,7 @@ public class ZNPC {
             lookAt(player, location, true);
 
             if (npcIsPlayer)
-                ServersNPC.EXECUTOR.execute(() -> hideFromTab(player));
+                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> hideFromTab(player), DELAY_HIDE_TAB);
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
         }
@@ -573,30 +582,29 @@ public class ZNPC {
     }
 
     /**
-     * Makes the npc look at the location
+     * Makes the npc look at the location.
      *
-     * @param location the location to look
+     * @param location The location to look.
      */
     public void lookAt(Player player, Location location, boolean rotation) {
         Location direction = (rotation ? location : this.location.clone().setDirection(location.clone().subtract(this.location.clone()).toVector()));
-        boolean rotate = (rotation || hasLookAt);
 
         try {
-            Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(getEntityId(), (byte) (direction.getYaw() % (rotate ? 360 : 0) * 256 / 360), (byte) (direction.getPitch() % (rotate ? 360. : 0) * 256 / 360), false);
-            Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(getZnEntity(), (byte) ((direction.getYaw() % 360.) * 256 / 360));
+            Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(getEntityId(), (byte) (direction.getYaw() * 256.0F / 360.0F), (byte) (direction.getPitch() * 256.0F / 360.0F), true);
+            Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(getZnEntity(), (byte) (direction.getYaw() * 256.0F / 360.0F));
 
             if (player != null) ReflectionUtils.sendPacket(player, lookPacket, headRotationPacket);
-            else getViewers().forEach(players -> ReflectionUtils.sendPacket(players, lookPacket, headRotationPacket));
+            else getViewers().forEach(players -> ReflectionUtils.sendPacket(players, headRotationPacket));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
     }
 
     /**
-     * Get clone of game-profile for player
+     * Get clone of game-profile for player.
      *
-     * @param player object
-     * @return game profile for player
+     * @param player The player.
+     * @return The player game-profile.
      */
     public GameProfile getGameProfileForPlayer(Player player) {
         try {
@@ -664,14 +672,14 @@ public class ZNPC {
      * @param location   The npc path location.
      */
     public void updatePathLocation(ZNPCPathReader pathReader, Location location) {
-        setLocation(location);
-
         int pathIndex = pathReader.getLocationList().indexOf(getCurrentPathLocation());
 
-        Vector vector = (isReversePath() ? pathReader.getLocationList().get(Math.max(0, Math.min(pathReader.getLocationList().size() - 1, pathIndex + 1))) : pathReader.getLocationList().get(Math.min(pathReader.getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toVector();
+        Vector vector = (isPathReverse() ? pathReader.getLocationList().get(Math.max(0, Math.min(pathReader.getLocationList().size() - 1, pathIndex + 1))) : pathReader.getLocationList().get(Math.min(pathReader.getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toVector();
         double yDiff = (location.getY() - vector.getY());
 
         Location direction = getCurrentPathLocation().clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
+
+        setLocation(direction);
         lookAt(null, direction, true);
     }
 
@@ -696,13 +704,13 @@ public class ZNPC {
         if (getNpcPath() == null) return;
 
         if (isReversePath()) {
-            if (getCurrentEntryPath() <= 0) setReversePath(false);
-            else if (getCurrentEntryPath() >= getNpcPath().getLocationList().size() - 1) setReversePath(true);
+            if (getCurrentEntryPath() <= 0) setPathReverse(false);
+            else if (getCurrentEntryPath() >= getNpcPath().getLocationList().size() - 1) setPathReverse(true);
         }
 
         setCurrentPathLocation(getNpcPath().getLocationList().get(Math.min(getNpcPath().getLocationList().size() - 1, getCurrentEntryPath())));
 
-        if (!isReversePath()) setCurrentEntryPath(getCurrentEntryPath() + 1);
+        if (!isPathReverse()) setCurrentEntryPath(getCurrentEntryPath() + 1);
         else setCurrentEntryPath(getCurrentEntryPath() - 1);
 
         updatePathLocation(getNpcPath(), getCurrentPathLocation());
@@ -780,7 +788,7 @@ public class ZNPC {
     /**
      * Checks if npc has a path.
      *
-     * @return {@code true} if the npc has a path.
+     * @return {@code true} If the npc has a path.
      */
     public boolean hasPath() {
         return getPathName() != null && !getPathName().equalsIgnoreCase(DEFAULT_PATH);
@@ -791,7 +799,7 @@ public class ZNPC {
      * enum is found, default glow color (@WHITE) will be returned.
      *
      * @param glowColorName The glow color name.
-     * @return Glow color enum.
+     * @return              The glow color enum.
      */
     public Object getGlowColor(String glowColorName) {
         try {
