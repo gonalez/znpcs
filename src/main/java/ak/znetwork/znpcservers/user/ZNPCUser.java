@@ -146,14 +146,16 @@ public class ZNPCUser {
 
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, Object packet, List<Object> out) throws Exception {
-            if (channel == null) throw new IllegalStateException("Channel is NULL!");
+            if (channel == null)
+                throw new IllegalStateException("Channel is NULL!");
 
             out.add(packet);
 
             if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
                 String useActionName = ReflectionUtils.getValue(packet, "action").toString();
                 // Only allow interact by right-click.
-                if (!useActionName.equalsIgnoreCase("INTERACT")) return;
+                if (!useActionName.equalsIgnoreCase("INTERACT"))
+                    return;
 
                 // Check for interact wait time between npc
                 if (getLastInteract() > 0 && System.currentTimeMillis() - getLastInteract() <= 1000L * DEFAULT_DELAY)
@@ -162,9 +164,10 @@ public class ZNPCUser {
                 // The clicked entity id
                 int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
 
-                // Try find npd
+                // Try find npc
                 ZNPC znpc = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
-                if (znpc == null) return;
+                if (znpc == null)
+                    return;
 
                 setLastInteract(System.currentTimeMillis());
 
@@ -172,18 +175,23 @@ public class ZNPCUser {
                     // Call NPC interact event
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), znpc));
 
-                    if (znpc.getActions() == null || znpc.getActions().isEmpty()) return;
+                    if (znpc.getActions() == null || znpc.getActions().isEmpty())
+                        return;
 
                     for (String string : znpc.getActions()) {
                         String[] actions = string.split(":");
 
                         // Get npc action type
                         NPCAction npcAction = NPCAction.fromString(actions[0]);
-                        if (npcAction == null) return;
+                        if (npcAction == null)
+                            return;
 
                         String actionValue = actions[1];
                         // Run action for the provided actionValue
-                        npcAction.run(ZNPCUser.this, toPlayer(), Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) : actionValue);
+                        npcAction.run(ZNPCUser.this, toPlayer(), Utils.PLACEHOLDER_SUPPORT ?
+                                PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :
+                                actionValue
+                        );
 
                         // Check for action cooldown
                         if (actions.length > 2) {

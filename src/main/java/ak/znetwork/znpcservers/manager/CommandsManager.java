@@ -35,7 +35,7 @@ public class CommandsManager implements CommandExecutor {
      * Initializes commands.
      *
      * @param serversNPC The plugin instance.
-     * @param command The command name.
+     * @param command    The command name.
      */
     public CommandsManager(ServersNPC serversNPC,
                            String command) {
@@ -47,14 +47,14 @@ public class CommandsManager implements CommandExecutor {
     /**
      * Adds a new command.
      *
-     * @param commands Commands to add.
+     * @param commands The commands to add.
      */
-    public final void addCommand(final ZNCommand... commands) {
+    public void addCommand(final ZNCommand... commands) {
         znCommands.addAll(Arrays.asList(commands));
     }
 
     /**
-     * Get commands.
+     * Gets commands.
      *
      * @return The command list.
      */

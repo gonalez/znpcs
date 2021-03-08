@@ -8,7 +8,6 @@ import org.apache.commons.lang.ArrayUtils;
 import lombok.Getter;
 
 /**
- *
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork

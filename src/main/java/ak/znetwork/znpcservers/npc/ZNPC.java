@@ -2,8 +2,8 @@ package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
+import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.NPCToggle;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.types.ClassTypes;
@@ -82,7 +82,7 @@ public class ZNPC {
     private static final String TEAM_NAME = "a";
 
     /**
-     * The team dispaly name in the npc scoreboard.
+     * The team display name in the npc scoreboard.
      */
     private static final String TEAM_DISPLAY_NAME = "b";
 
@@ -175,7 +175,7 @@ public class ZNPC {
     /**
      * The npc location
      */
-    @Expose private Location location;
+    @Expose private ZLocation location;
 
     /**
      * The npc entity type.
@@ -274,7 +274,7 @@ public class ZNPC {
                 String lines,
                 String skin,
                 String signature,
-                Location location,
+                ZLocation location,
                 NPCType npcType) {
         this.id = id;
         this.lines = lines;
@@ -356,7 +356,8 @@ public class ZNPC {
     public void setLocation(Location location) {
         try {
             if (!hasPath()) {
-                this.location = location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch());
+                location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch());
+                this.location = new ZLocation(location);
 
                 lookAt(null, location, true);
             }
@@ -446,7 +447,8 @@ public class ZNPC {
      * @param npcType The new entity type.
      */
     public void changeType(NPCType npcType) {
-        if (isSetup() && getNpcType() == npcType) return;
+        if (isSetup() && getNpcType() == npcType)
+            return;
 
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
@@ -469,7 +471,7 @@ public class ZNPC {
             // Update new entity id
             setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
 
-            // Checks if the npc is created by first time
+            // Check if the npc is created by first time
             if (!isSetup())
                 setSetup(true);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
@@ -505,7 +507,7 @@ public class ZNPC {
             if (npcIsPlayer)
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, true));
 
-            if (isHasToggleHolo()) getHologram().spawn(player, true);
+            if (isHasToggleHolo()) getHologram().spawn(player);
             if (isHasGlow() && V9) toggleGlow(getGlowName(), false);
 
             // Update new npc id
@@ -521,7 +523,7 @@ public class ZNPC {
             getViewers().add(player);
 
             // Fix npc rotation
-            lookAt(player, location, true);
+            lookAt(player, location.toBukkitLocation(), true);
 
             if (npcIsPlayer)
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> hideFromTab(player), DELAY_HIDE_TAB);
@@ -572,7 +574,7 @@ public class ZNPC {
                 hideFromTab(player);
 
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{getEntityId()}));
-            getHologram().delete(player, removeViewer);
+            getHologram().delete(player);
 
             if (removeViewer)
                 getViewers().remove(player);
@@ -587,7 +589,7 @@ public class ZNPC {
      * @param location The location to look.
      */
     public void lookAt(Player player, Location location, boolean rotation) {
-        Location direction = (rotation ? location : this.location.clone().setDirection(location.clone().subtract(this.location.clone()).toVector()));
+        Location direction = (rotation ? location : this.location.toBukkitLocation().clone().setDirection(location.clone().subtract(this.location.toBukkitLocation().clone()).toVector()));
 
         try {
             Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(getEntityId(), (byte) (direction.getYaw() * 256.0F / 360.0F), (byte) (direction.getPitch() * 256.0F / 360.0F), true);
@@ -746,8 +748,8 @@ public class ZNPC {
     public void toggleHolo() {
         setHasToggleHolo(!isHasToggleHolo());
 
-        if (!isHasToggleHolo()) getViewers().forEach(player -> getHologram().delete(player, true));
-        else getViewers().forEach(player -> getHologram().spawn(player, true));
+        if (!isHasToggleHolo()) getViewers().forEach(player -> getHologram().delete(player));
+        else getViewers().forEach(player -> getHologram().spawn(player));
     }
 
     /**
@@ -773,7 +775,7 @@ public class ZNPC {
      * @return The npc location.
      */
     public Location getLocation() {
-        return hasPath() && getCurrentPathLocation() != null ? getCurrentPathLocation() : location;
+        return hasPath() && getCurrentPathLocation() != null ? getCurrentPathLocation() : location.toBukkitLocation();
     }
 
     /**
@@ -782,7 +784,7 @@ public class ZNPC {
      * @return The npc hologram.
      */
     public Hologram getHologram() {
-        return hologram == null ? (hologram = new Hologram(location, lines = getTextFormatted(getLines()))) : hologram;
+        return hologram == null ? (hologram = new Hologram(this, location.toBukkitLocation())) : hologram;
     }
 
     /**

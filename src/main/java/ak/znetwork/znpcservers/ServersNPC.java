@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
+import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.manager.CommandsManager;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.manager.NPCManager;
@@ -14,7 +15,7 @@ import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
-import ak.znetwork.znpcservers.utility.LocationSerialize;
+import ak.znetwork.znpcservers.utility.location.ZLocationSerialize;
 import ak.znetwork.znpcservers.utility.MetricsLite;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
@@ -52,7 +53,7 @@ public class ServersNPC extends JavaPlugin {
     public static final File PLUGIN_FOLDER = new File("plugins/" + PLUGIN_NAME);
 
     static {
-        // Creates the plugin folder if it doesn't exist.
+        // Create the plugin folder if it doesn't exist.
         PLUGIN_FOLDER.mkdirs();
     }
 
@@ -66,7 +67,7 @@ public class ServersNPC extends JavaPlugin {
      * custom type adapters.
      */
     public final static Gson GSON = new GsonBuilder().
-            registerTypeAdapter(Location.class, new LocationSerialize()).
+            registerTypeAdapter(ZLocation.class, new ZLocationSerialize()).
             excludeFieldsWithoutExposeAnnotation().
                     setPrettyPrinting().
                     create();
@@ -179,7 +180,7 @@ public class ServersNPC extends JavaPlugin {
             return false;
 
         ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return ConfigTypes.NPC_LIST.add(new ZNPC(id, text, skinFetch.getValue(), skinFetch.getSignature(), location, NPCType.PLAYER));
+        return ConfigTypes.NPC_LIST.add(new ZNPC(id, text, skinFetch.getValue(), skinFetch.getSignature(), new ZLocation(location), NPCType.PLAYER));
     }
 
     /**

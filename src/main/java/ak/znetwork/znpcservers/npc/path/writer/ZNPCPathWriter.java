@@ -40,6 +40,11 @@ public final class ZNPCPathWriter {
     private static final Logger logger = Bukkit.getLogger();
 
     /**
+     * Represents one game-tick (50 milliseconds).
+     */
+    private static final int TICK = 50;
+
+    /**
      * The maximum elements that the npc path can have.
      */
     private static final int MAX_LOCATIONS = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.MAX_PATH_LOCATIONS);
@@ -100,7 +105,7 @@ public final class ZNPCPathWriter {
         try {
             this.file.createNewFile();
 
-            start();
+            this.start();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -126,10 +131,10 @@ public final class ZNPCPathWriter {
                 // Check if location is valid
                 if (checkEntry(location)) {
                     locationsCache.add(location);
-                }
 
-                // Lock current thread for 20 MILLISECONDS
-                LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(20));
+                    // Lock current thread for 1 TICK
+                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(TICK));
+                }
             }
 
             try {
@@ -186,7 +191,8 @@ public final class ZNPCPathWriter {
      * @return {@code true} If location can be added.
      */
     public boolean checkEntry(Location location) {
-        if (locationsCache.isEmpty()) return true;
+        if (locationsCache.isEmpty())
+            return true;
 
         Location last = locationsCache.get(locationsCache.size() - 1);
 
@@ -194,7 +200,7 @@ public final class ZNPCPathWriter {
         double yDiff = Math.abs(last.getY() - location.getY());
         double zDiff = Math.abs(last.getZ() - location.getZ());
 
-        return (xDiff + yDiff + zDiff) > 0;
+        return (xDiff + yDiff + zDiff) > 0.01;
     }
 
     /**

@@ -1,5 +1,6 @@
 package ak.znetwork.znpcservers.types;
 
+import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
@@ -17,6 +18,11 @@ import java.util.List;
  * @since 07/02/2020
  */
 public class ConfigTypes {
+
+    /**
+     * The delay for the NPC to be initialized (in ticks).
+     */
+    private static final int DELAY = 25;
 
     /**
      * Represents the symbol that will be used as spaces for each string.
@@ -39,7 +45,10 @@ public class ConfigTypes {
     public static final List<ZNPC> NPC_LIST = ConfigManager.getByType(ZNConfigType.DATA).getValue(ZNConfigValue.NPC_LIST);
 
     static {
-        // Init all saved NPC
-        NPC_LIST.forEach(ZNPC::init);
+        // Init all saved NPC...
+        ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
+                NPC_LIST.forEach(ZNPC::init),
+                DELAY
+        );
     }
 }

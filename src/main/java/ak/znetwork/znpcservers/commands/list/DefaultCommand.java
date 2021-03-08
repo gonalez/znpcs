@@ -224,11 +224,9 @@ public class DefaultCommand {
         try {
             List<String> stringList = Lists.reverse(Arrays.asList(lines.split(WHITESPACE)));
 
-            foundNPC.getHologram().setLines(stringList.toArray(new String[0]));
-            foundNPC.getHologram().createHologram();
-
             // Update lines
-            foundNPC.setLines(foundNPC.getTextFormatted(foundNPC.getHologram().getLines()));
+            foundNPC.setLines(foundNPC.getTextFormatted(stringList.toArray(new String[0])));
+            foundNPC.getHologram().createHologram();
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception exception) {

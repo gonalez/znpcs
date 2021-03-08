@@ -24,7 +24,7 @@ public enum NPCToggle {
     GLOW,
 
     /**
-     * Determines if the skin of an npc should be the same as the viewers
+     * Determines if the skin of an npc should be the same as the viewers.
      */
     MIRROR,
 

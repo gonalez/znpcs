@@ -1,17 +1,16 @@
 package ak.znetwork.znpcservers.hologram;
 
+import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import lombok.Getter;
@@ -32,6 +31,11 @@ public class Hologram {
     private static final double HOLOGRAM_SPACE = 0.3;
 
     /**
+     * A string whitespace.
+     */
+    private static final String WHITESPACE = " ";
+
+    /**
      * The line separator for hologram text.
      */
     private static final String HOLOGRAM_LINE_SEPARATOR = ":";
@@ -42,14 +46,9 @@ public class Hologram {
     private final List<Object> entityArmorStands;
 
     /**
-     * A set of viewers, represents the players who see the hologram.
+     * The npc.
      */
-    private final HashSet<Player> viewers;
-
-    /**
-     * The hologram lines.
-     */
-    private String[] lines;
+    private ZNPC npc;
 
     /**
      * The hologram location.
@@ -59,17 +58,15 @@ public class Hologram {
     /**
      * Creates a new hologram.
      *
+     * @param npc      The npc.
      * @param location The hologram location.
-     * @param lines    The hologram text.
      */
-    public Hologram(Location location,
-                    String lines) {
-        this.lines = lines.split(HOLOGRAM_LINE_SEPARATOR);
+    public Hologram(ZNPC npc,
+                    Location location) {
+        this.npc = npc;
         this.location = location;
 
         this.entityArmorStands = new ArrayList<>();
-        this.viewers = new HashSet<>();
-
         this.createHologram();
     }
 
@@ -77,20 +74,20 @@ public class Hologram {
      * Creation of the hologram.
      */
     public void createHologram() {
-        getViewers().forEach(player -> delete(player, false));
+        getNpc().getViewers().forEach(this::delete);
 
         try {
             getEntityArmorStands().clear();
 
             double y = 0;
-            for (String line : lines) {
+            for (String line : getLines()) {
                 Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld()), getLocation().getX(), (getLocation().getY() - 0.15) + (y), getLocation().getZ());
 
                 ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() >= 1);
                 if (Utils.versionNewer(13))
-                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(null, line));
+                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(null, Utils.color(line)));
                 else
-                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, ChatColor.translateAlternateColorCodes('&', line));
+                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(line));
 
                 ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
 
@@ -99,27 +96,24 @@ public class Hologram {
                 y+=HOLOGRAM_SPACE;
             }
 
-            getViewers().forEach(player -> spawn(player, false));
+            getNpc().getViewers().forEach(this::spawn);
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
     }
 
     /**
-     * Show npc for player.
+     * Spawn hologram for player.
      *
-     * @param player                 The player to show the hologram.
-     * @param addViewer              {@code true} If player should be added to viewers set.
+     * @param player The player to show the hologram.
      */
-    public void spawn(Player player, boolean addViewer) {
-        if (addViewer) getViewers().add(player);
-
+    public void spawn(Player player) {
         getEntityArmorStands().forEach(entityArmorStand -> {
             try {
                 Object entityPlayerPacketSpawn = ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
-                getViewers().remove(player);
+                delete(player);
 
                 throw new AssertionError(operationException);
             }
@@ -131,9 +125,7 @@ public class Hologram {
      *
      * @param player The player to remove the hologram.
      */
-    public void delete(Player player, boolean remove) {
-        if (remove) getViewers().remove(player);
-
+    public void delete(Player player) {
         getEntityArmorStands().forEach(entityArmorStand -> {
             try {
                 int armorStandId = (int) ClassTypes.GET_ENTITY_ID.invoke(entityArmorStand);
@@ -150,14 +142,15 @@ public class Hologram {
      */
     public void updateNames(Player player) {
         for (int i = 0; i < getLines().length; i++) {
-            if (i >= getEntityArmorStands().size()) break;
+            if (i >= getEntityArmorStands().size())
+                break;
 
             Object armorStand = getEntityArmorStands().get(i);
             try {
-                String line = getLines()[i].replace(ConfigTypes.SPACE_SYMBOL, " ");
+                String line = getLines()[i].replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
 
                 if (Utils.versionNewer(13))
-                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, getLines()[i]));
+                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, Utils.color(getLines()[i])));
                 else
                     ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, getLines()[i]) : line));
 
@@ -178,7 +171,7 @@ public class Hologram {
         getEntityArmorStands().forEach(o -> {
             try {
                 Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(o);
-                getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
+                getNpc().getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
                 throw new AssertionError("An exception occurred while trying to update location for hologram", operationException);
             }
@@ -195,7 +188,7 @@ public class Hologram {
 
         try {
             double y = 0;
-            for (Object o : entityArmorStands) {
+            for (Object o : getEntityArmorStands()) {
                 ClassTypes.SET_LOCATION_METHOD.invoke(o, getLocation().getX(), (getLocation().getY() - 0.15) + y,
                         getLocation().getZ(), getLocation().getYaw(), getLocation().getPitch());
 
@@ -209,15 +202,25 @@ public class Hologram {
     }
 
     /**
-     * Get new hologram line for newer versions.
+     * Gets the hologram lines separated.
+     *
+     * @return The hologram lines separated.
+     */
+    public String[] getLines() {
+        return getNpc().getLines().split(HOLOGRAM_LINE_SEPARATOR);
+    }
+
+    /**
+     * Gets new hologram line for newer versions.
      *
      * @return The new hologram line.
      */
     public Object getStringNewestVersion(Player player, String text) {
         try {
-            text = Utils.color(text);
-
-            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(Utils.PLACEHOLDER_SUPPORT && player != null ? PlaceholderUtils.getWithPlaceholders(player, text) : text.replace(ConfigTypes.SPACE_SYMBOL, " "));
+            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(Utils.PLACEHOLDER_SUPPORT && player != null ?
+                    PlaceholderUtils.getWithPlaceholders(player, text) :
+                    text.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE)
+            );
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }

@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.skin.impl;
 
 import ak.znetwork.znpcservers.skin.SkinFetcher;
+
 import lombok.Getter;
 
 /**
@@ -69,7 +70,7 @@ public interface SkinFetcherImpl {
          * Creates a new builder for an API Server.
          *
          * @param skinAPIURL The API url.
-         * @return A builder for an API Server.
+         * @return           A builder for an API Server.
          */
         public static SkinBuilder ofType(SkinAPI skinAPIURL) {
             return new SkinBuilder(skinAPIURL, EMPTY_STRING);
