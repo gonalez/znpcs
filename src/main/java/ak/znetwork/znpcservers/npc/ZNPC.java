@@ -356,8 +356,7 @@ public class ZNPC {
     public void setLocation(Location location) {
         try {
             if (!hasPath()) {
-                location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch());
-                this.location = new ZLocation(location);
+                this.location = new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch()));
 
                 lookAt(null, location, true);
             }
@@ -452,7 +451,7 @@ public class ZNPC {
 
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-            setZnEntity(npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, gameProfile, (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(13) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            setZnEntity(npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, getGameProfile(), (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
 
             if (npcType == NPCType.PLAYER) {
                 setTabConstructor(ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.ADD_PLAYER_FIELD.get(null), Collections.singletonList(getZnEntity())));
@@ -526,7 +525,10 @@ public class ZNPC {
             lookAt(player, location.toBukkitLocation(), true);
 
             if (npcIsPlayer)
-                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> hideFromTab(player), DELAY_HIDE_TAB);
+                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
+                        hideFromTab(player),
+                        DELAY_HIDE_TAB
+                );
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
         }
@@ -606,7 +608,7 @@ public class ZNPC {
      * Get clone of game-profile for player.
      *
      * @param player The player.
-     * @return The player game-profile.
+     * @return       The player game-profile.
      */
     public GameProfile getGameProfileForPlayer(Player player) {
         try {
@@ -703,7 +705,8 @@ public class ZNPC {
      * Resolves the current npc path.
      */
     public void handlePath() {
-        if (getNpcPath() == null) return;
+        if (getNpcPath() == null)
+            return;
 
         if (isReversePath()) {
             if (getCurrentEntryPath() <= 0) setPathReverse(false);
@@ -775,7 +778,8 @@ public class ZNPC {
      * @return The npc location.
      */
     public Location getLocation() {
-        return hasPath() && getCurrentPathLocation() != null ? getCurrentPathLocation() : location.toBukkitLocation();
+        return hasPath() && getCurrentPathLocation() != null ?
+                getCurrentPathLocation() : location.toBukkitLocation();
     }
 
     /**
