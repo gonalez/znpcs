@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.npc.skin;
 
 import java.net.URL;
+
 import lombok.Getter;
 
 import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
@@ -55,11 +56,10 @@ public final class ZNPCSkin {
             // Check if skin value is a url
             new URL(skin).toURI();
 
-            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.GENERATE_API, skin).toSkinFetcher().getProfile());
+            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.GENERATE_API,
+                    skin).toSkinFetcher().getProfile());
         } catch (Exception e) {
-            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.PROFILE_API,
-                    SkinBuilder.withData(SkinAPI.UUID_API, skin).toSkinFetcher().getUUID()).
-                    toSkinFetcher().getProfile());
+            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.PROFILE_API, skin).toSkinFetcher().getProfile());
         }
     }
 }

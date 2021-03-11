@@ -10,6 +10,7 @@ import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.collect.HashBasedTable;
+import com.mojang.authlib.GameProfile;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -73,7 +74,7 @@ public class ZNPCUser {
     private final UUID uuid;
 
     /**
-     * Checks if player is creating a npc path.
+     * Determines if player is creating a npc path.
      */
     private boolean hasPath = false;
 
@@ -81,6 +82,11 @@ public class ZNPCUser {
      * Used to compare the interaction time when a npc is clicked.
      */
     private long lastInteract = 0;
+
+    /**
+     * The player game-profile.
+     */
+    private final GameProfile gameProfile;
 
     /**
      * The plugin instance.
@@ -99,10 +105,12 @@ public class ZNPCUser {
         this.serversNPC = serversNPC;
         this.uuid = player.getUniqueId();
 
+        this.actionDelay = HashBasedTable.create();
+
         this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));
         this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
 
-        this.actionDelay = HashBasedTable.create();
+        this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player));
 
         this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
 

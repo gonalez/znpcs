@@ -23,13 +23,6 @@ public interface SkinFetcherImpl {
     String POST_METHOD = "POST";
 
     /**
-     * Represents the skin uuid.
-     *
-     * @return The skin uuid.
-     */
-    String getUUID();
-
-    /**
      * Represents the skin profile values.
      *
      * @return The skin profile with the value & signature.
@@ -98,24 +91,19 @@ public interface SkinFetcherImpl {
     }
 
     /**
-     * This enum represents the possible API servers to use
+     * This enum represents the possible API servers to use,
      * for fetching a skin.
      */
     @Getter
     enum SkinAPI {
 
         /**
-         * Used for retrieving a UUID linked to a username.
+         * Used for retrieving a profile linked to a name.
          */
-        UUID_API(GET_METHOD, "https://api.minetools.eu/uuid"),
+        PROFILE_API(GET_METHOD, "https://api.ashcon.app/mojang/v2/user"),
 
         /**
-         * Used for retrieving a Profile linked to a uuid.
-         */
-        PROFILE_API(GET_METHOD, "https://api.minetools.eu/profile"),
-
-        /**
-         * Used to generate a texture from an image URL.
+         * Used to generate a profile from an image URL.
          */
         GENERATE_API(POST_METHOD, "https://api.mineskin.org/generate/url");
 

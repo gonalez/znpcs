@@ -37,7 +37,7 @@ public final class ZNPCPathWriter {
     /**
      * The logger.
      */
-    private static final Logger logger = Bukkit.getLogger();
+    private static final Logger LOGGER = Bukkit.getLogger();
 
     /**
      * Represents one game-tick (50 milliseconds).
@@ -143,7 +143,7 @@ public final class ZNPCPathWriter {
             } catch (IOException e) {
                 getNpcUser().setHasPath(false);
 
-                logger.log(Level.WARNING, String.format("Path %s could not be created", name), e);
+                LOGGER.log(Level.WARNING, String.format("Path %s could not be created", name), e);
             }
         });
     }

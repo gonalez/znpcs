@@ -14,8 +14,10 @@ import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
+
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -64,7 +66,7 @@ public class DefaultCommand {
         sender.sendMessage("&6&m------------------------------------------");
     }
 
-    @ZNCommandSub(aliases = {"-id", "-skin", "-name"}, name = "create", permission = "znpcs.cmd.create")
+    @ZNCommandSub(aliases = {"-id", "-type", "-name"}, name = "create", permission = "znpcs.cmd.create")
     public void createNPC(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 3) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -85,18 +87,22 @@ public class DefaultCommand {
             return;
         }
 
-        String skin = args.get("skin");
+        String name = args.get("name");
 
-        if (skin.length() < 3 || skin.length() > 16) {
-            sender.sendMessage(ChatColor.RED + "The skin name is too short or long, it must be in the range of (3 to 16) characters.");
+        if (name.length() < 3 || name.length() > 16) {
+            sender.sendMessage(ChatColor.RED + "The name is too short or long, it must be in the range of (3 to 16) characters.");
             return;
         }
 
-        String name = args.get("name");
+        String type = args.get("type");
 
         try {
             // All success!
-            serversNPC.createNPC(id, sender.getPlayer().getLocation(), skin, (name.length() > 0 ? name : "NPC"));
+            serversNPC.createNPC(id,
+                    type != null ? NPCType.fromString(type) : NPCType.PLAYER,
+                    sender.getPlayer().getLocation(),
+                    name
+            );
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception e) {
@@ -546,5 +552,29 @@ public class DefaultCommand {
                 sender.getPlayer().sendMessage(ChatColor.RED + "No PATH found!");
             else ZNPCPathReader.getPaths().forEach(pathReader -> sender.getPlayer().sendMessage(ChatColor.GREEN + pathReader.getName()));
         }
+    }
+
+    @ZNCommandSub(aliases = {"-id"}, name = "teleport", permission = "znpcs.cmd.teleport")
+    public void teleport(ZNCommandSender sender, Map<String, String> args) {
+        if (args.size() < 1) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
+            return;
+        }
+
+        Integer id = Ints.tryParse(args.get("id"));
+
+        if (id == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
+            return;
+        }
+
+        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+
+        if (foundNPC == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
+            return;
+        }
+
+        sender.getPlayer().teleport(foundNPC.getLocation());
     }
 }

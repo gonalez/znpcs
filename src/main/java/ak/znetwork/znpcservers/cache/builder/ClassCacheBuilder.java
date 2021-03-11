@@ -14,7 +14,7 @@ import lombok.Getter;
  * @since 07/02/2020
  */
 @Getter
-public class ClassCacheBuilder<T> implements ClassCacheImpl.Builder<T> {
+public class ClassCacheBuilder implements ClassCacheImpl.Builder {
 
     /**
      * A empty string.
@@ -24,12 +24,7 @@ public class ClassCacheBuilder<T> implements ClassCacheImpl.Builder<T> {
     /**
      * A empty array.
      */
-    private static final Class[] EMPTY_ARRAY = ArrayUtils.EMPTY_CLASS_ARRAY;
-
-    /**
-     * The builder type.
-     */
-    private final BuilderType builderType;
+    private static final Class<?>[] EMPTY_ARRAY = ArrayUtils.EMPTY_CLASS_ARRAY;
 
     /**
      * The class package.
@@ -44,14 +39,13 @@ public class ClassCacheBuilder<T> implements ClassCacheImpl.Builder<T> {
     /**
      * The class parameters.
      */
-    private final Class[] parameterTypes;
+    private final Class<?>[] parameterTypes;
 
     /**
      * Creates a new empty classCache builder.
      */
     public ClassCacheBuilder() {
-        this(BuilderType.DEFAULT,
-                PackageType.DEFAULT,
+        this(PackageType.DEFAULT,
                 EMPTY_STRING,
                 EMPTY_STRING,
                 EMPTY_STRING,
@@ -62,20 +56,17 @@ public class ClassCacheBuilder<T> implements ClassCacheImpl.Builder<T> {
     /**
      * Creates a new classCache builder.
      *
-     * @param builderType     The class type.
      * @param packageType     The class package.
      * @param className       The class name.
      * @param methodName      The class method name.
      * @param fieldName       The class field name.
      * @param parameterTypes  The class parameters.
      */
-    protected ClassCacheBuilder(BuilderType builderType,
-                                PackageType packageType,
+    protected ClassCacheBuilder(PackageType packageType,
                                 String className,
                                 String methodName,
                                 String fieldName,
-                                Class... parameterTypes) {
-        this.builderType = builderType;
+                                Class<?>... parameterTypes) {
         this.packageType = packageType;
         this.className = className;
         this.methodName = methodName;
@@ -84,67 +75,51 @@ public class ClassCacheBuilder<T> implements ClassCacheImpl.Builder<T> {
     }
 
     @Override
-    public ClassCacheImpl.Builder<T> builderType(BuilderType builderType) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
-                className,
-                methodName,
-                fieldName,
-                parameterTypes
+    public ClassCacheBuilder packageType(PackageType packageType) {
+        return new ClassCacheBuilder(packageType,
+                getClassName(),
+                getMethodName(),
+                getFieldName(),
+                getParameterTypes()
         );
     }
 
     @Override
-    public ClassCacheImpl.Builder<T> packageType(PackageType packageType) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
-                className,
-                methodName,
-                fieldName,
-                parameterTypes
-        );
-    }
-
-    @Override
-    public ClassCacheImpl.Builder<T> className(String className) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
+    public ClassCacheBuilder className(String className) {
+        return new ClassCacheBuilder(getPackageType(),
                 toBukkitClass(className),
-                methodName,
-                fieldName,
-                parameterTypes
+                getMethodName(),
+                getFieldName(),
+                getParameterTypes()
         );
     }
 
     @Override
-    public ClassCacheImpl.Builder<T> methodName(String methodName) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
-                className,
+    public ClassCacheBuilder methodName(String methodName) {
+        return new ClassCacheBuilder(getPackageType(),
+                getClassName(),
                 methodName,
-                fieldName,
-                parameterTypes
+                getFieldName(),
+                getParameterTypes()
         );
     }
 
     @Override
-    public ClassCacheImpl.Builder<T> fieldName(String fieldName) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
-                className,
-                methodName,
+    public ClassCacheBuilder fieldName(String fieldName) {
+        return new ClassCacheBuilder(getPackageType(),
+                getClassName(),
+                getMethodName(),
                 fieldName,
-                parameterTypes
+                getParameterTypes()
         );
     }
 
     @Override
-    public ClassCacheImpl.Builder<T> parameterTypes(Class... parameterTypes) {
-        return new ClassCacheBuilder<T>(builderType,
-                packageType,
-                className,
-                methodName,
-                fieldName,
+    public ClassCacheBuilder parameterTypes(Class<?>... parameterTypes) {
+        return new ClassCacheBuilder(getPackageType(),
+                getClassName(),
+                getMethodName(),
+                getFieldName(),
                 parameterTypes
         );
     }

@@ -2,6 +2,8 @@ package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
+import ak.znetwork.znpcservers.manager.NPCManager;
+import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
@@ -32,6 +34,8 @@ import com.google.gson.annotations.Expose;
 import lombok.Getter;
 import lombok.Setter;
 
+import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.*;
+
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
@@ -44,7 +48,7 @@ public class ZNPC {
     /**
      * The logger.
      */
-    private static final Logger logger = Bukkit.getLogger();
+    private static final Logger LOGGER = Bukkit.getLogger();
 
     /**
      * Determines if v1.9+ methods will be used.
@@ -225,10 +229,7 @@ public class ZNPC {
     /**
      * Cache reflection variables.
      */
-    private Object glowColor;
-    private Object dataWatcherRegistryEnum;
-    private Object tabConstructor;
-    private Object znEntity;
+    private Object glowColor,dataWatcherRegistryEnum,tabConstructor,znEntity;
 
     /**
      * The current profile of the npc.
@@ -265,21 +266,18 @@ public class ZNPC {
      *
      * @param id            The npc id.
      * @param lines         The hologram lines.
-     * @param skin          The skin value.
-     * @param signature     The skin signature.
      * @param location      The npc location.
      * @param npcType       The npc entity type.
      */
     public ZNPC(int id,
                 String lines,
-                String skin,
-                String signature,
+                ZNPCSkin znpcSkin,
                 ZLocation location,
                 NPCType npcType) {
         this.id = id;
         this.lines = lines;
-        this.skin = skin;
-        this.signature = signature;
+        this.skin = znpcSkin.getValue();
+        this.signature = znpcSkin.getSignature();
         this.location = location;
         this.npcType = npcType;
 
@@ -299,8 +297,7 @@ public class ZNPC {
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, skin, signature));
 
         this.changeType(getNpcType());
-
-        this.updateCustomization();
+        this.loadCustomization();
 
         if (getPathName() != null)
             this.setPath(ZNPCPathReader.find(getPathName()));
@@ -433,7 +430,7 @@ public class ZNPC {
             if (V9) {
                 dataWatcherRegistryEnum = ClassTypes.DATA_WATCHER_REGISTER_ENUM_FIELD.get(null);
 
-                ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(Utils.versionNewer(16) ? 16 : 13, dataWatcherRegistryEnum), (byte) 127);
+                ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(Utils.versionNewer(16) ? 16 : Utils.BUKKIT_VERSION <= 13 ? 13 : 15, dataWatcherRegistryEnum), (byte) 127);
             } else ClassTypes.WATCH_DATA_WATCHER_METHOD.invoke(dataWatcherObject, 10, (byte) 127);
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
             throw new AssertionError(operationException);
@@ -506,8 +503,10 @@ public class ZNPC {
             if (npcIsPlayer)
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, true));
 
-            if (isHasToggleHolo()) getHologram().spawn(player);
-            if (isHasGlow() && V9) toggleGlow(getGlowName(), false);
+            if (isHasToggleHolo())
+                getHologram().spawn(player);
+            if (isHasGlow() && V9)
+                toggleGlow(getGlowName(), false);
 
             // Update new npc id
             setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
@@ -605,22 +604,13 @@ public class ZNPC {
     }
 
     /**
-     * Get clone of game-profile for player.
+     * Gets the game-profile for player.
      *
      * @param player The player.
-     * @return       The player game-profile.
+     * @return       The player game-profile or default npc game-profile if not found.
      */
     public GameProfile getGameProfileForPlayer(Player player) {
-        try {
-            GameProfile newProfile = new GameProfile(UUID.randomUUID(), getNpcName());
-
-            GameProfile playerProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player));
-            newProfile.getProperties().putAll(playerProfile.getProperties());
-
-            return newProfile;
-        } catch (IllegalAccessException | InvocationTargetException operationException) {
-            throw new AssertionError(operationException);
-        }
+        return NPCManager.getNpcUsers().stream().filter(npcUser -> npcUser.getUuid().equals(player.getUniqueId())).map(ZNPCUser::getGameProfile).findFirst().orElse(getGameProfile());
     }
 
     /**
@@ -639,10 +629,9 @@ public class ZNPC {
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_DATA, 0);
 
             if (V9 && isHasGlow() && getGlowColor() != null) {
-                Object enumChat = ClassTypes.GET_ENUM_CHAT_METHOD.invoke(null, getGlowName());
                 Object enumPrefix = ClassTypes.ENUM_CHAT_TO_STRING_METHOD.invoke(getGlowColor());
 
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_GLOW_ID, Utils.versionNewer(13) ? enumChat : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(enumChat));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_GLOW_ID, Utils.versionNewer(13) ? getGlowColor() : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(getGlowColor()));
                 ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_PREFIX, Utils.versionNewer(13) ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
             }
 
@@ -809,12 +798,10 @@ public class ZNPC {
      */
     public Object getGlowColor(String glowColorName) {
         try {
-            return ClassTypes.ENUM_CHAT_FORMAT.getField(glowColorName.toUpperCase()).get(null);
-        } catch (NoSuchFieldException e) {
-            // Get Default Glow-Color
+            return ClassCache.find(glowColorName, ClassTypes.ENUM_CHAT_CLASS);
+        } catch (NullPointerException e) {
+            // Return default glow-color
             return getGlowColor("WHITE");
-        } catch (IllegalAccessException accessException) {
-            throw new AssertionError(accessException);
         }
     }
 
@@ -828,15 +815,15 @@ public class ZNPC {
     }
 
     /**
-     * Updates customization for the npc.
+     * Loads customization for the npc.
      */
-    public void updateCustomization() {
+    private void loadCustomization() {
         for (Map.Entry<String, String[]> entry : getCustomizationMap().entrySet()) {
             if (getNpcType().getCustomizationMethods().containsKey(entry.getKey())) {
                 try {
                     getNpcType().invokeMethod(entry.getKey(), getZnEntity(), NPCType.arrayToPrimitive(entry.getValue(), getNpcType().getCustomizationMethods().get(entry.getKey())));
                 } catch (Exception e) {
-                    logger.log(Level.WARNING, "Skipping customization (%s) for npc " + getId(), entry.getKey());
+                    LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + getId(), entry.getKey()));
                 }
             }
         }

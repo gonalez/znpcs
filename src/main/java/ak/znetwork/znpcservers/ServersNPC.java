@@ -20,6 +20,7 @@ import ak.znetwork.znpcservers.utility.MetricsLite;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
 import ak.znetwork.znpcservers.utility.SchedulerUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -170,17 +171,19 @@ public class ServersNPC extends JavaPlugin {
      * Creates a new npc.
      *
      * @param id       The npc identifier.
+     * @param npcType  The npc entity type.
      * @param location The npc location.
-     * @param skin     The npc skin name.
-     * @param text     The npc hologram text.
-     * @return   {@code true} If the npc was created correctly.
+     * @param name     The npc skin name.
+     * @return         The created zNPC.
      */
-    public boolean createNPC(int id, Location location, String skin, String text) {
+    public ZNPC createNPC(int id, NPCType npcType, Location location, String name) {
         if (ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id))
-            return false;
+            return null;
 
-        ZNPCSkin skinFetch = ZNPCSkin.forName(skin);
-        return ConfigTypes.NPC_LIST.add(new ZNPC(id, text, skinFetch.getValue(), skinFetch.getSignature(), new ZLocation(location), NPCType.PLAYER));
+        ZNPC znpc = new ZNPC(id, name, ZNPCSkin.forName(name), new ZLocation(location), npcType);
+        ConfigTypes.NPC_LIST.add(znpc);
+
+        return znpc;
     }
 
     /**

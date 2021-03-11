@@ -32,6 +32,12 @@ public final class SkinFetcher implements SkinFetcherImpl {
     private static final String EMPTY_STRING = "";
 
     /**
+     * A empty array of size 1.
+     */
+    private static final String[] EMPTY_ARRAY = new String[]{EMPTY_STRING,
+            EMPTY_STRING};
+
+    /**
      * The default charset name.
      */
     private static final String DEFAULT_CHARSET = "UTF-8";
@@ -83,7 +89,7 @@ public final class SkinFetcher implements SkinFetcherImpl {
      *
      * @return The http response.
      */
-    public CompletableFuture<JsonObject> getResponse() {
+    private CompletableFuture<JsonObject> getResponse() {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
         skinExecutorService.submit(() -> {
             try {
@@ -100,11 +106,6 @@ public final class SkinFetcher implements SkinFetcherImpl {
                     }
                 }
 
-                int responseCode = connection.getResponseCode();
-                if (responseCode != HttpURLConnection.HTTP_OK) {
-                    throw new IOException("Failed to retrieve response from api server.");
-                }
-
                 try (Reader reader = new InputStreamReader(connection.getInputStream(), Charset.forName(DEFAULT_CHARSET))) {
                     // Read json
                     completableFuture.complete(jsonParser.parse(reader).getAsJsonObject());
@@ -119,34 +120,27 @@ public final class SkinFetcher implements SkinFetcherImpl {
     }
 
     @Override
-    public String getUUID() {
-        try {
-            return getResponse().get().get("id").getAsString();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    @Override
     public String[] getProfile() {
         try {
-            JsonObject data = getResponse().get().get(getSkinAPI() == SkinAPI.GENERATE_API ? "data" : "raw").getAsJsonObject();
+            JsonObject data = getResponse().get().getAsJsonObject(getSkinAPI() == SkinAPI.GENERATE_API ? "data" : "textures");
             JsonObject properties = (getSkinAPI() == SkinAPI.GENERATE_API ?
-                    data.get("texture").getAsJsonObject() :
-                    data.getAsJsonArray("properties").get(0).getAsJsonObject());
+                    data.getAsJsonObject("texture") :
+                    data.getAsJsonObject("raw"));
 
             return new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() };
         } catch (InterruptedException | ExecutionException e) {
-            throw new AssertionError(e);
+            // The skin was not found, return the default skin profile (Steve)
+            return EMPTY_ARRAY;
         }
     }
 
     /**
      * Gets real data for skin api.
      *
-     * @return Get data for skin api.
+     * @return The data for skin api.
      */
     private String getData() {
-        return getSkinAPI() != SkinAPI.GENERATE_API ? "/" + getBuilder().getData() : EMPTY_STRING;
+        return getSkinAPI() != SkinAPI.GENERATE_API ?
+                "/" + getBuilder().getData() : EMPTY_STRING;
     }
 }

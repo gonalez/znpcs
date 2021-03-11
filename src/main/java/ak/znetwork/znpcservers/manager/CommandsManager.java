@@ -50,7 +50,7 @@ public class CommandsManager implements CommandExecutor {
      * @param commands The commands to add.
      */
     public void addCommand(final ZNCommand... commands) {
-        znCommands.addAll(Arrays.asList(commands));
+        getZnCommands().addAll(Arrays.asList(commands));
     }
 
     /**
@@ -65,7 +65,7 @@ public class CommandsManager implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String arg, String[] args) {
         try {
-            Optional<ZNCommand> znCommand = znCommands.stream().findFirst();
+            Optional<ZNCommand> znCommand = getZnCommands().stream().findFirst();
 
             if (znCommand.isPresent())
                 znCommand.get().execute(new ZNCommandSender(sender), args);
