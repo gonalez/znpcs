@@ -26,7 +26,7 @@ public final class PlayerListeners implements Listener {
     private final ServersNPC serversNPC;
 
     /**
-     * Creates and register the necessary listeners for players.
+     * Creates and register the necessary events for players.
      *
      * @param serversNPC The plugin instance.
      */
