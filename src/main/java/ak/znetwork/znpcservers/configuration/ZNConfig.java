@@ -36,11 +36,7 @@ public final class ZNConfig implements ZNConfigImpl {
     /**
      * Creates a new parser.
      */
-    private static final JsonParser jsonParser;
-
-    static {
-        jsonParser = new JsonParser();
-    }
+    private static final JsonParser JSON_PARSER = new JsonParser();
 
     /**
      * The class start time.
@@ -94,7 +90,7 @@ public final class ZNConfig implements ZNConfigImpl {
         setConfigValues(Arrays.stream(ZNConfigValue.values()).filter(znConfigValue -> znConfigValue.getConfigType() == this.configType).collect(Collectors.toMap(key -> key, ZNConfigValue::getValue)));
 
         try (BufferedReader reader = Files.newBufferedReader(path, CHARSET)) {
-            JsonElement data = jsonParser.parse(reader);
+            JsonElement data = JSON_PARSER.parse(reader);
             if (data == null) return;
 
             for (ZNConfigValue znConfigValue : ZNConfigValue.values()) {

@@ -35,12 +35,7 @@ public interface ClassCacheImpl {
         /**
          * A map containing the cached objects & classes.
          */
-        protected static final ConcurrentMap<ClassKey, Object> cache;
-
-        static {
-            // Initialize map
-            cache = new ConcurrentHashMap<>();
-        }
+        protected static final ConcurrentMap<ClassKey, Object> CACHE = new ConcurrentHashMap<>();
 
         /**
          * Finds a cached object by its name.
@@ -50,7 +45,7 @@ public interface ClassCacheImpl {
          * @return            The cached object or {@code null} if no object was found.
          */
         public static Object find(String name, Class<?> objectClass) {
-            return cache.get(new ClassKey(name, objectClass));
+            return CACHE.get(new ClassKey(name, objectClass));
         }
 
         /**
@@ -61,11 +56,11 @@ public interface ClassCacheImpl {
          * @param objectClass The object class.
          */
         public static void register(String name, Object object, Class<?> objectClass) {
-            Object findObject = cache.get(new ClassKey(name, objectClass));
+            Object findObject = CACHE.get(new ClassKey(name, objectClass));
             if (findObject != null)
                 return;
 
-            cache.putIfAbsent(new ClassKey(name, objectClass), object);
+            CACHE.putIfAbsent(new ClassKey(name, objectClass), object);
         }
 
         /**

@@ -36,11 +36,6 @@ public class Hologram {
     private static final String WHITESPACE = " ";
 
     /**
-     * The line separator for hologram text.
-     */
-    private static final String HOLOGRAM_LINE_SEPARATOR = ":";
-
-    /**
      * A list of entities (Holograms).
      */
     private final List<Object> entityArmorStands;
@@ -207,7 +202,7 @@ public class Hologram {
      * @return The hologram lines separated.
      */
     public String[] getLines() {
-        return getNpc().getLines().split(HOLOGRAM_LINE_SEPARATOR);
+        return getNpc().getLines().split(":");
     }
 
     /**

@@ -45,18 +45,13 @@ public final class SkinFetcher implements SkinFetcherImpl {
     /**
      * The executor service to delegate work.
      */
-    private static final ExecutorService skinExecutorService;
+    private static final ExecutorService SKIN_EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     /**
      * Creates a new parser.
      */
-    private static final JsonParser jsonParser;
+    private static final JsonParser JSON_PARSER = new JsonParser();
 
-    static {
-        skinExecutorService = Executors.newCachedThreadPool();
-
-        jsonParser = new JsonParser();
-    }
 
     /**
      * The skin builder.
@@ -91,7 +86,7 @@ public final class SkinFetcher implements SkinFetcherImpl {
      */
     private CompletableFuture<JsonObject> getResponse() {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
-        skinExecutorService.submit(() -> {
+        SKIN_EXECUTOR_SERVICE.submit(() -> {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(getBuilder().getApiUrl().getApiURL() + getData()).openConnection();
                 connection.setRequestMethod(getBuilder().getApiUrl().getMethod());
@@ -108,7 +103,7 @@ public final class SkinFetcher implements SkinFetcherImpl {
 
                 try (Reader reader = new InputStreamReader(connection.getInputStream(), Charset.forName(DEFAULT_CHARSET))) {
                     // Read json
-                    completableFuture.complete(jsonParser.parse(reader).getAsJsonObject());
+                    completableFuture.complete(JSON_PARSER.parse(reader).getAsJsonObject());
                 } finally {
                     connection.disconnect();
                 }

@@ -39,11 +39,6 @@ public class ZNPCUser {
     private static final String CHANNEL_NAME = "npc_interact";
 
     /**
-     * An empty string.
-     */
-    private static final String EMPTY_STRING = "";
-
-    /**
      * The default wait time between each npc interact.
      */
     private static int DEFAULT_DELAY = 2;

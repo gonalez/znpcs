@@ -15,6 +15,7 @@ import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.Bukkit;
@@ -56,24 +57,9 @@ public class ZNPC {
     private static final boolean V9 = Utils.versionNewer(9);
 
     /**
-     * The npc name.
-     */
-    private static final String NPC_NAME = "znpc";
-
-    /**
      * The default path name when no path is found.
      */
     private static final String DEFAULT_PATH = "none";
-
-    /**
-     * The profile id in the npc {@link GameProfile}.
-     */
-    private static final String PROFILE_ID = "id";
-
-    /**
-     * The profile properties in the npc {@link GameProfile}.
-     */
-    private static final String PROFILE_PROPERTIES = "properties";
 
     /**
      * The profile textures in the npc {@link GameProfile}.
@@ -86,120 +72,92 @@ public class ZNPC {
     private static final String TEAM_NAME = "a";
 
     /**
-     * The team display name in the npc scoreboard.
-     */
-    private static final String TEAM_DISPLAY_NAME = "b";
-
-    /**
-     * The team prefix in the npc scoreboard.
-     */
-    private static final String TEAM_PREFIX = "c";
-
-    /**
-     * The nameTag visibility in the npc scoreboard.
-     */
-    private static final String TEAM_ENUM_VISIBILITY = "e";
-
-    /**
-     * The {@link GameProfile} collection in the npc scoreboard.
-     */
-    private static final String TEAM_PROFILES = V9 ? "h" : "g";
-
-    /**
      * The team mode id in the npc scoreboard.
      */
     private static final String TEAM_MODE = V9 ? "i" : "h";
 
     /**
-     * The optional data in the npc scoreboard.
+     * The default glow color.
      */
-    private static final String TEAM_DATA = V9 ? "j" : "i";
-
-    /**
-     * The glow id in the npc scoreboard.
-     */
-    private static final String TEAM_GLOW_ID = "g";
-
-    /**
-     * The default nameTag visibility name for the npc scoreboard.
-     */
-    private static final String TEAM_DEFAULT_VISIBILITY = "never";
-
-    /**
-     * The list field of item-stacks for npc equipment.
-     */
-    private static final String EQUIPMENT_LIST = "b";
-
-    /**
-     * The line separator for text.
-     */
-    private static final String LINE_SEPARATOR = ":";
-
-    /**
-     * The delay to hide npc from tab-list (in ticks).
-     */
-    private static final int DELAY_HIDE_TAB = 60;
+    private static final String GLOW_COLOR = "WHITE";
 
     /**
      * The npc identifier.
      */
-    @Expose private int id;
+    @Expose
+    private int id;
 
     /**
      * Toggle variables.
      */
-    @Expose private boolean hasGlow, hasToggleName, hasLookAt, hasMirror, isReversePath = false;
-    @Expose private boolean hasToggleHolo = true;
+    @Expose
+    private boolean hasGlow, hasToggleName, hasLookAt, hasMirror, isReversePath = false;
+
+    /**
+     * Toggle variables.
+     */
+    @Expose
+    private boolean hasToggleHolo = true;
 
     /**
      * Determines if the npc should be saved.
      */
-    @Expose private boolean save;
+    @Expose
+    private boolean save;
 
     /**
      * The skin value & signature.
      */
-    @Expose private String skin, signature;
+    @Expose
+    private String skin, signature;
 
     /**
      * The hologram lines.
      */
-    @Expose private String lines;
+    @Expose
+    private String lines;
 
     /**
      * The path name.
      */
-    @Expose private String pathName;
+    @Expose
+    private String pathName;
 
     /**
      * The glow name.
      */
-    @Expose private String glowName = "WHITE";
+    @Expose
+    private String glowName = GLOW_COLOR;
 
     /**
      * The npc location
      */
-    @Expose private ZLocation location;
+    @Expose
+    private ZLocation location;
 
     /**
      * The npc entity type.
      */
-    @Expose private NPCType npcType;
+    @Expose
+    private NPCType npcType;
 
     /**
      * The actions to be executed when the npc is clicked.
      */
-    @Expose private final List<String> actions = new ArrayList<>();
+    @Expose
+    private List<String> actions = new ArrayList<>();
 
     /**
      * The npc equipment.
      */
-    @Expose private final HashMap<NPCItemSlot, Material> npcEquipments = new HashMap<>();
+    @Expose
+    private HashMap<NPCItemSlot, Material> npcEquipments = new HashMap<>();
 
     /**
      * The npc customizations.
      */
-    @Expose private final HashMap<String, String[]> customizationMap = new HashMap<>();
+    @Expose
+    private HashMap<String, String[]> customizationMap = new HashMap<>();
 
     /**
      * The npc entity id.
@@ -291,7 +249,7 @@ public class ZNPC {
     public void init() {
         this.viewers = new HashSet<>();
 
-        this.setNpcName(NPC_NAME + "_" + getId());
+        this.setNpcName("zNPC_" + getId());
 
         this.gameProfile = new GameProfile(UUID.randomUUID(), getNpcName());
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, skin, signature));
@@ -383,7 +341,7 @@ public class ZNPC {
                 equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(getEntityId(), slot.getSlotOld(), item);
             } else {
                 if (Utils.versionNewer(16)) {
-                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), EQUIPMENT_LIST);
+                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), "b");
                     pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item));
 
                     equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(getEntityId(), pairs);
@@ -414,7 +372,7 @@ public class ZNPC {
         getGameProfile().getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, getSkin(), getSignature()));
 
         // Update new game profile properties
-        updateProfile();
+        updateProfile(getGameProfile().getProperties());
 
         // Spawn npc again for viewers
         deleteViewers();
@@ -489,10 +447,8 @@ public class ZNPC {
             boolean npcIsPlayer = getNpcType() == NPCType.PLAYER;
 
             if (npcIsPlayer && isHasMirror()) {
-                Object gameProfileObj = ClassTypes.GET_PROFILE_METHOD.invoke(getZnEntity());
-
-                ReflectionUtils.setValue(gameProfileObj, PROFILE_ID, UUID.randomUUID());
-                ReflectionUtils.setValue(gameProfileObj, PROFILE_PROPERTIES, getGameProfileForPlayer(player).getProperties());
+                // Set npc skin to player skin
+                updateProfile(getGameProfileForPlayer(player).getProperties());
             }
 
             if (npcIsPlayer) ReflectionUtils.sendPacket(player, getTabConstructor());
@@ -526,9 +482,9 @@ public class ZNPC {
             if (npcIsPlayer)
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
                         hideFromTab(player),
-                        DELAY_HIDE_TAB
+                        60
                 );
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -623,19 +579,19 @@ public class ZNPC {
             Object packetPlayOutScoreboardTeam = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.newInstance();
 
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_NAME, getGameProfile().getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_DISPLAY_NAME, Utils.versionNewer(13) ? getHologram().getStringNewestVersion(null, getGameProfile().getName()) : getGameProfile().getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_ENUM_VISIBILITY, TEAM_DEFAULT_VISIBILITY);
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", Utils.versionNewer(13) ? getHologram().getStringNewestVersion(null, getGameProfile().getName()) : getGameProfile().getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_MODE, 0);
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_DATA, 0);
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "j" : "i", 0);
 
             if (V9 && isHasGlow() && getGlowColor() != null) {
                 Object enumPrefix = ClassTypes.ENUM_CHAT_TO_STRING_METHOD.invoke(getGlowColor());
 
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_GLOW_ID, Utils.versionNewer(13) ? getGlowColor() : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(getGlowColor()));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_PREFIX, Utils.versionNewer(13) ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", Utils.versionNewer(13) ? getGlowColor() : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(getGlowColor()));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", Utils.versionNewer(13) ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
             }
 
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_PROFILES, Collections.singletonList(getGameProfile().getName()));
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "h" : "g", Collections.singletonList(getGameProfile().getName()));
 
             ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchFieldException operationException) {
@@ -679,12 +635,12 @@ public class ZNPC {
     /**
      * Updates the npc game-profile.
      */
-    public void updateProfile() {
+    public void updateProfile(PropertyMap propertyMap) {
         try {
             Object gameProfileObj = ClassTypes.GET_PROFILE_METHOD.invoke(getZnEntity());
 
-            ReflectionUtils.setValue(gameProfileObj, PROFILE_ID, UUID.randomUUID());
-            ReflectionUtils.setValue(gameProfileObj, PROFILE_PROPERTIES, getGameProfile().getProperties());
+            ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
+            ReflectionUtils.setValue(gameProfileObj, "properties", propertyMap);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
         }
@@ -801,7 +757,7 @@ public class ZNPC {
             return ClassCache.find(glowColorName, ClassTypes.ENUM_CHAT_CLASS);
         } catch (NullPointerException e) {
             // Return default glow-color
-            return getGlowColor("WHITE");
+            return getGlowColor(GLOW_COLOR);
         }
     }
 
@@ -811,7 +767,7 @@ public class ZNPC {
      * @return The hologram lines formatted.
      */
     public String getTextFormatted(String... text) {
-        return String.join(LINE_SEPARATOR, text);
+        return String.join(":", text);
     }
 
     /**
