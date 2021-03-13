@@ -191,7 +191,7 @@ public class ZNPCUser {
 
                         String actionValue = actions[1];
                         // Run action for the provided actionValue
-                        npcAction.run(ZNPCUser.this, toPlayer(), Utils.PLACEHOLDER_SUPPORT ?
+                        npcAction.run(ZNPCUser.this, Utils.PLACEHOLDER_SUPPORT ?
                                 PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :
                                 actionValue
                         );

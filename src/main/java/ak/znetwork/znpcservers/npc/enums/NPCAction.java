@@ -4,7 +4,6 @@ import ak.znetwork.znpcservers.user.ZNPCUser;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -17,47 +16,60 @@ public enum NPCAction {
     /**
      * Represents an action executed by a player.
      */
-    CMD,
+    CMD {
+        @Override
+        public void run(ZNPCUser znpcUser, String actionValue) {
+            znpcUser.toPlayer().performCommand(actionValue);
+        }
+    },
 
     /**
      * Represents an action executed by the console.
      */
-    CONSOLE,
+    CONSOLE {
+        @Override
+        public void run(ZNPCUser znpcUser, String actionValue) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), actionValue);
+        }
+    },
 
     /**
      * Represents an action executed by a player.
      */
-    CHAT,
+    CHAT {
+        @Override
+        public void run(ZNPCUser znpcUser, String actionValue) {
+            znpcUser.toPlayer().chat(actionValue);
+        }
+    },
 
     /**
      * Represents sending a message to a player.
      */
-    MESSAGE,
+    MESSAGE {
+        @Override
+        public void run(ZNPCUser znpcUser, String actionValue) {
+            znpcUser.toPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', actionValue));
+        }
+    },
 
     /**
      * Represents sending a player to another server (Bungee).
      */
-    SERVER;
+    SERVER {
+        @Override
+        public void run(ZNPCUser znpcUser, String actionValue) {
+            znpcUser.getServersNPC().sendPlayerToServer(znpcUser.toPlayer(), actionValue);
+        }
+    };
 
     /**
      * Executes the appropriate method for provided action type.
      *
      * @param npcUser      The user instance.
-     * @param player       The user player.
-     * @param actionValue  The method value.
+     * @param actionValue  The action value.
      */
-    public void run(ZNPCUser npcUser, Player player, String actionValue) {
-        if (this == CMD)
-            player.performCommand(actionValue);
-        else if (this == CONSOLE)
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), actionValue);
-        else if (this == CHAT)
-            player.chat(actionValue);
-        else if (this == MESSAGE)
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', actionValue));
-        else
-            npcUser.getServersNPC().sendPlayerToServer(player, actionValue);
-    }
+    public abstract void run(ZNPCUser npcUser, String actionValue);
 
     /**
      * Gets NPCAction by name.

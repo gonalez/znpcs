@@ -471,7 +471,7 @@ public class DefaultCommand {
             try {
                 Object[] objects = NPCType.arrayToPrimitive(split, method);
 
-                npcType.invokeMethod(methodName, foundNPC.getZnEntity(), objects);
+                npcType.invokeMethod(methodName, foundNPC.getNmsEntity(), objects);
                 foundNPC.customize(methodName, split);
             } catch (IllegalAccessException | InvocationTargetException exception) {
                 throw new CommandExecuteException("An error occurred while customizing npc", exception);

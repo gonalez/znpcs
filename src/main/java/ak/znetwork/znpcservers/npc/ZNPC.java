@@ -187,7 +187,7 @@ public class ZNPC {
     /**
      * Cache reflection variables.
      */
-    private Object glowColor,dataWatcherRegistryEnum,tabConstructor,znEntity;
+    private Object glowColor,dataWatcherRegistryEnum,tabConstructor, nmsEntity;
 
     /**
      * The current profile of the npc.
@@ -275,7 +275,7 @@ public class ZNPC {
             setHasGlow(!isHasGlow());
 
         try {
-            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity());
+            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
             ClassTypes.SET_DATA_WATCHER_METHOD.invoke(npcDataWatcher, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(0, dataWatcherRegistryEnum), (isHasGlow() ? (byte) 0x40 : (byte) 0x0));
 
             Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, true);
@@ -296,7 +296,7 @@ public class ZNPC {
      */
     public void updateLocation() {
         try {
-            Object npcTeleportPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(getZnEntity());
+            Object npcTeleportPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(getNmsEntity());
             getViewers().forEach(player -> ReflectionUtils.sendPacket(player, npcTeleportPacket));
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
             throw new AssertionError(operationException);
@@ -316,7 +316,7 @@ public class ZNPC {
                 lookAt(null, location, true);
             }
 
-            ClassTypes.SET_LOCATION_METHOD.invoke(getZnEntity(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+            ClassTypes.SET_LOCATION_METHOD.invoke(getNmsEntity(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
             updateLocation();
 
             getHologram().setLocation(location, getNpcType().getHoloHeight());
@@ -383,7 +383,7 @@ public class ZNPC {
      */
     public void setSecondLayerSkin() {
         try {
-            Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity());
+            Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
 
             if (V9) {
                 dataWatcherRegistryEnum = ClassTypes.DATA_WATCHER_REGISTER_ENUM_FIELD.get(null);
@@ -406,10 +406,10 @@ public class ZNPC {
 
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-            setZnEntity(npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, getGameProfile(), (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            setNmsEntity(npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, getGameProfile(), (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
 
             if (npcType == NPCType.PLAYER) {
-                setTabConstructor(ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.ADD_PLAYER_FIELD.get(null), Collections.singletonList(getZnEntity())));
+                setTabConstructor(ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.ADD_PLAYER_FIELD.get(null), Collections.singletonList(getNmsEntity())));
 
                 // Fix second layer skin for entity player
                 setSecondLayerSkin();
@@ -423,7 +423,7 @@ public class ZNPC {
             deleteViewers();
 
             // Update new entity id
-            setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
+            setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getNmsEntity()));
 
             // Check if the npc is created by first time
             if (!isSetup())
@@ -452,9 +452,9 @@ public class ZNPC {
             }
 
             if (npcIsPlayer) ReflectionUtils.sendPacket(player, getTabConstructor());
-            ReflectionUtils.sendPacket(player, npcIsPlayer ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(getZnEntity()) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(getZnEntity()));
+            ReflectionUtils.sendPacket(player, npcIsPlayer ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(getNmsEntity()) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(getNmsEntity()));
 
-            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity());
+            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
 
             if (npcIsPlayer)
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, true));
@@ -465,7 +465,7 @@ public class ZNPC {
                 toggleGlow(getGlowName(), false);
 
             // Update new npc id
-            setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getZnEntity()));
+            setEntityId((Integer) ClassTypes.GET_ENTITY_ID.invoke(getNmsEntity()));
 
             // Send npc equipment packets for player
             getNpcEquipments().forEach((itemSlot, material) -> equip(player, itemSlot, material));
@@ -496,7 +496,7 @@ public class ZNPC {
      */
     public void hideFromTab(Player player) {
         try {
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.REMOVE_PLAYER_FIELD.get(null), Collections.singletonList(getZnEntity())));
+            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.REMOVE_PLAYER_FIELD.get(null), Collections.singletonList(getNmsEntity())));
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
             throw new AssertionError(operationException);
         }
@@ -550,7 +550,7 @@ public class ZNPC {
 
         try {
             Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(getEntityId(), (byte) (direction.getYaw() * 256.0F / 360.0F), (byte) (direction.getPitch() * 256.0F / 360.0F), true);
-            Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(getZnEntity(), (byte) (direction.getYaw() * 256.0F / 360.0F));
+            Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(getNmsEntity(), (byte) (direction.getYaw() * 256.0F / 360.0F));
 
             if (player != null) ReflectionUtils.sendPacket(player, lookPacket, headRotationPacket);
             else getViewers().forEach(players -> ReflectionUtils.sendPacket(players, headRotationPacket));
@@ -637,7 +637,7 @@ public class ZNPC {
      */
     public void updateProfile(PropertyMap propertyMap) {
         try {
-            Object gameProfileObj = ClassTypes.GET_PROFILE_METHOD.invoke(getZnEntity());
+            Object gameProfileObj = ClassTypes.GET_PROFILE_METHOD.invoke(getNmsEntity());
 
             ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
             ReflectionUtils.setValue(gameProfileObj, "properties", propertyMap);
@@ -676,7 +676,7 @@ public class ZNPC {
         try {
             getCustomizationMap().put(name, values);
 
-            Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getZnEntity()), true);
+            Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity()), true);
             getViewers().forEach(player -> ReflectionUtils.sendPacket(player, customizationPacket));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new AssertionError(e);
@@ -777,7 +777,7 @@ public class ZNPC {
         for (Map.Entry<String, String[]> entry : getCustomizationMap().entrySet()) {
             if (getNpcType().getCustomizationMethods().containsKey(entry.getKey())) {
                 try {
-                    getNpcType().invokeMethod(entry.getKey(), getZnEntity(), NPCType.arrayToPrimitive(entry.getValue(), getNpcType().getCustomizationMethods().get(entry.getKey())));
+                    getNpcType().invokeMethod(entry.getKey(), getNmsEntity(), NPCType.arrayToPrimitive(entry.getValue(), getNpcType().getCustomizationMethods().get(entry.getKey())));
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + getId(), entry.getKey()));
                 }
