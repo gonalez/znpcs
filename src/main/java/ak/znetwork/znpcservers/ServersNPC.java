@@ -93,6 +93,7 @@ public class ServersNPC extends JavaPlugin {
         // Load paths
         loadAllPaths();
 
+        // Register BungeeCord channel
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
         // Load commands
@@ -133,7 +134,8 @@ public class ServersNPC extends JavaPlugin {
         if (!npcPaths.exists()) npcPaths.mkdirs();
 
         File[] listFiles = npcPaths.listFiles();
-        if (listFiles == null) return;
+        if (listFiles == null)
+            return;
 
         for (File file : listFiles) {
             // Check if file is path

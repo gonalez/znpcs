@@ -473,7 +473,7 @@ public class DefaultCommand {
 
                 npcType.invokeMethod(methodName, foundNPC.getZnEntity(), objects);
                 foundNPC.customize(methodName, split);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
+            } catch (IllegalAccessException | InvocationTargetException exception) {
                 throw new CommandExecuteException("An error occurred while customizing npc", exception);
             }
         } else {

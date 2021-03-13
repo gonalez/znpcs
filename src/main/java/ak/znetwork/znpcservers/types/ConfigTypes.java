@@ -20,11 +20,6 @@ import java.util.List;
 public class ConfigTypes {
 
     /**
-     * The delay for the NPC to be initialized (in ticks).
-     */
-    private static final int DELAY = 25;
-
-    /**
      * Represents the symbol that will be used as spaces for each string.
      */
     public static final String SPACE_SYMBOL = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.REPLACE_SYMBOL);
@@ -48,7 +43,7 @@ public class ConfigTypes {
         // Init all saved NPC...
         ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
                 NPC_LIST.forEach(ZNPC::init),
-                DELAY
+                25
         );
     }
 }

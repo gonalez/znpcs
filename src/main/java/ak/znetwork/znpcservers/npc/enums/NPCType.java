@@ -7,6 +7,7 @@ import ak.znetwork.znpcservers.utility.Utils;
 import org.apache.commons.lang.math.NumberUtils;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -217,7 +218,7 @@ public enum NPCType {
      * @param values     The method values.
      * @throws Exception If method could not be invoked.
      */
-    public void invokeMethod(String name, Object entity, Object[] values) throws Exception {
+    public void invokeMethod(String name, Object entity, Object[] values) throws InvocationTargetException, IllegalAccessException {
         if (!getCustomizationMethods().containsKey(name))
             return;
 

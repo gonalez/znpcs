@@ -52,7 +52,6 @@ public final class SkinFetcher implements SkinFetcherImpl {
      */
     private static final JsonParser JSON_PARSER = new JsonParser();
 
-
     /**
      * The skin builder.
      */

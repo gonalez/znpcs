@@ -4,7 +4,6 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
@@ -52,11 +51,7 @@ public final class ZNPCPathWriter {
     /**
      * The executor service to delegate work.
      */
-    private static final ExecutorService pathExecutorService;
-
-    static {
-        pathExecutorService = Executors.newCachedThreadPool();
-    }
+    private static final ExecutorService PATH_EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     /**
      * The user who creates the path.
@@ -89,8 +84,8 @@ public final class ZNPCPathWriter {
      * Creates a new path creator.
      *
      * @param serversNPC The plugin instance.
-     * @param npcUser The user who creates the path.
-     * @param name The path name.
+     * @param npcUser    The user who creates the path.
+     * @param name       The path name.
      */
     public ZNPCPathWriter(ServersNPC serversNPC,
                           ZNPCUser npcUser,
@@ -121,7 +116,7 @@ public final class ZNPCPathWriter {
         getNpcUser().setHasPath(true);
 
         // Schedule npc path task.
-        pathExecutorService.execute(() -> {
+        PATH_EXECUTOR_SERVICE.execute(() -> {
             // This while loop will continue recording new locations for path & blocking the current thread.
             // As long the player is connected & the locations size hasn't reached the limit.
             // Once the loop is broken the thread will write the recorded locations to the path file.
@@ -154,7 +149,8 @@ public final class ZNPCPathWriter {
      * @throws IOException If the file cannot be written.
      */
     public void write() throws IOException {
-        if (locationsCache.isEmpty()) return;
+        if (locationsCache.isEmpty())
+            return;
 
         try(FileOutputStream inputStream = new FileOutputStream(file);
             DataOutputStream dataOutputStream = new DataOutputStream(inputStream)) {
@@ -163,10 +159,10 @@ public final class ZNPCPathWriter {
             while (locationIterator.hasNext()) {
                 Location location = locationIterator.next();
 
-                // Location world name
+                // The location world name
                 dataOutputStream.writeUTF(location.getWorld().getName());
 
-                // Location x,y,z,yaw,pitch
+                // The location x,y,z,yaw,pitch
                 dataOutputStream.writeDouble(location.getX());
                 dataOutputStream.writeDouble(location.getY());
                 dataOutputStream.writeDouble(location.getZ());
@@ -204,7 +200,7 @@ public final class ZNPCPathWriter {
     }
 
     /**
-     * Returns the player who is creating the path.
+     * The player who is creating the path.
      *
      * @return The player who is creating the path.
      */
