@@ -70,19 +70,4 @@ public enum NPCAction {
      * @param actionValue  The action value.
      */
     public abstract void run(ZNPCUser npcUser, String actionValue);
-
-    /**
-     * Gets NPCAction by name.
-     *
-     * @param text The action type name.
-     * @return     The corresponding enum or {@code null} if not found.
-     */
-    public static NPCAction fromString(String text) {
-        for (NPCAction b : NPCAction.values()) {
-            if (b.name().equalsIgnoreCase(text)) {
-                return b;
-            }
-        }
-        return null;
-    }
 }

@@ -13,8 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -22,7 +21,7 @@ import lombok.Setter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter @Setter
+@Data
 public class Hologram {
 
     /**

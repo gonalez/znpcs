@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import lombok.Getter;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -37,6 +38,22 @@ public class SchedulerUtils {
     public void scheduleSyncDelayedTask(Runnable runnable, int delay) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(getPlugin(),
                 runnable,
+                delay
+        );
+    }
+
+    /**
+     *  Schedules a repeatedly asynchronous task.
+     *
+     * @param runnable The runnable to execute.
+     * @param start    The start delay for the runnable to be executed
+     * @param delay    The delay for the runnable to be executed
+     * @return         The bukkit task.
+     */
+    public BukkitTask runTaskTimerAsynchronously(Runnable runnable, long start, long delay) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(getPlugin(),
+                runnable,
+                start,
                 delay
         );
     }

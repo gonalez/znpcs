@@ -10,10 +10,9 @@ import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
-import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
-import ak.znetwork.znpcservers.npc.path.writer.ZNPCPathWriter;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
@@ -27,9 +26,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
-
 import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
+import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -99,7 +97,7 @@ public class DefaultCommand {
         try {
             // All success!
             serversNPC.createNPC(id,
-                    type != null ? NPCType.fromString(type) : NPCType.PLAYER,
+                    type != null ? NPCType.valueOf(type) : NPCType.PLAYER,
                     sender.getPlayer().getLocation(),
                     name
             );
@@ -194,10 +192,10 @@ public class DefaultCommand {
         }
 
         args.forEach((key, value) -> {
-            NPCItemSlot npcItemSlot = NPCItemSlot.fromString(key.toUpperCase());
+            NPCItemSlot npcItemSlot = NPCItemSlot.valueOf(key.toUpperCase());
             Material material = Material.getMaterial(value.toUpperCase());
 
-            if (npcItemSlot != null && material != null) {
+            if (material != null) {
                 foundNPC.equip(null, npcItemSlot, material);
             }
         });
@@ -262,7 +260,9 @@ public class DefaultCommand {
         }
 
         try {
-            if (foundNPC.isHasLookAt()) foundNPC.toggleLookAt();
+            if (foundNPC.isHasLookAt()) {
+                foundNPC.setHasLookAt(!foundNPC.isHasLookAt());
+            }
 
             Location location = sender.getPlayer().getLocation().clone();
             foundNPC.setLocation(location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location);
@@ -295,15 +295,7 @@ public class DefaultCommand {
             return;
         }
 
-        NPCType npcType = NPCType.fromString(args.get("type").toUpperCase());
-
-        if (npcType == null) {
-            sender.sendMessage(ChatColor.RED + "NPC type not found");
-            sender.sendMessage(ChatColor.GOLD + "Valid Types:");
-
-            for (NPCType npcTypes : NPCType.values()) sender.sendMessage(ChatColor.RED + npcTypes.name());
-            return;
-        }
+        NPCType npcType = NPCType.valueOf(args.get("type").toUpperCase());
 
         if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
             sender.sendMessage(ChatColor.RED + "NPC type not available for your current version.");
@@ -348,11 +340,9 @@ public class DefaultCommand {
                 return;
             }
 
-            NPCAction npcAction = NPCAction.fromString(split[0]);
-            if (npcAction == null)
-                throw new UnsupportedOperationException(String.format("The action type %s was not found", split[0]));
-
+            NPCAction npcAction = NPCAction.valueOf(split[0].toUpperCase());
             foundNPC.getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
+
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("remove")) {
             Integer actionId = Ints.tryParse(args.get("remove"));
@@ -422,8 +412,8 @@ public class DefaultCommand {
         try {
             if (args.containsKey("holo")) foundNPC.toggleHolo();
             else if (args.containsKey("glow")) foundNPC.toggleGlow(args.get("glow"), true);
-            else if (args.containsKey("mirror")) foundNPC.toggleMirror();
-            else if (args.containsKey("look")) foundNPC.toggleLookAt();
+            else if (args.containsKey("mirror")) foundNPC.setHasMirror(!foundNPC.isHasMirror());
+            else if (args.containsKey("look")) foundNPC.setHasLookAt(!foundNPC.isHasLookAt());
             else if (args.containsKey("pathreverse")) foundNPC.setReversePath(!foundNPC.isReversePath());
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
@@ -486,14 +476,15 @@ public class DefaultCommand {
     }
 
     @ZNCommandSub(aliases = {"-set", "-create", "-exit", "-id", "-path", "-list"}, name = "path", permission = "znpcs.cmd.path")
-    public void path(ZNCommandSender sender, Map<String, String> args) throws Exception {
+    public void path(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
             return;
         }
 
-        ZNPCUser znpcUser = NPCManager.getNpcUsers().stream().filter(znpcUser1 -> znpcUser1.getUuid().equals(sender.getPlayer().getUniqueId())).findFirst().orElse(null);
-        if (znpcUser == null) return;
+        ZNPCUser znpcUser = NPCManager.getNpcUsers().stream().filter(npcUser -> npcUser.getUuid().equals(sender.getPlayer().getUniqueId())).findFirst().orElse(null);
+        if (znpcUser == null)
+            return;
 
         if (args.containsKey("set")) {
             if (!args.containsKey("id") || !args.containsKey("path")) {
@@ -517,7 +508,7 @@ public class DefaultCommand {
 
             String pathName = args.get("path");
 
-            foundNPC.setPath(ZNPCPathReader.find(pathName));
+            foundNPC.setPath(AbstractZNPCPath.find(pathName));
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("create")) {
@@ -528,7 +519,7 @@ public class DefaultCommand {
                 return;
             }
 
-            boolean exists = ZNPCPathReader.find(pathName) != null;
+            boolean exists = AbstractZNPCPath.find(pathName) != null;
 
             if (exists) {
                 sender.getPlayer().sendMessage(ChatColor.RED + "There is already a path with this name.");
@@ -541,16 +532,16 @@ public class DefaultCommand {
                 return;
             }
 
-            new ZNPCPathWriter(serversNPC, znpcUser, pathName);
+            new ZNPCMovementPath(pathName, znpcUser);
             sender.getPlayer().sendMessage(ChatColor.GREEN + "Done, now walk where you want the npc to, when u finish type /znpcs path -exit");
         } else if (args.containsKey("exit")) {
             znpcUser.setHasPath(false);
 
             sender.getPlayer().sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {
-            if (ZNPCPathReader.getPaths().isEmpty())
+            if (AbstractZNPCPath.getPaths().isEmpty())
                 sender.getPlayer().sendMessage(ChatColor.RED + "No PATH found!");
-            else ZNPCPathReader.getPaths().forEach(pathReader -> sender.getPlayer().sendMessage(ChatColor.GREEN + pathReader.getName()));
+            else AbstractZNPCPath.getPaths().forEach(path -> sender.getPlayer().sendMessage(ChatColor.GREEN + path.getName()));
         }
     }
 

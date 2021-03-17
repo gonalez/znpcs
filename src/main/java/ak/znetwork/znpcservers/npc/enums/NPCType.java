@@ -241,19 +241,4 @@ public enum NPCType {
         Method method = getCustomizationMethods().get(name);
         method.invoke(entity, values);
     }
-
-    /**
-     * Gets a NPCType by name.
-     *
-     * @param text The npc type name.
-     * @return     The corresponding enum or {@code null} if not found.
-     */
-    public static NPCType fromString(String text) {
-        for (NPCType b : NPCType.values()) {
-            if (b.name().equalsIgnoreCase(text)) {
-                return b;
-            }
-        }
-        return null;
-    }
 }

@@ -37,7 +37,9 @@ public final class NPCManagerTask extends BukkitRunnable {
     @Override
     public void run() {
         for (ZNPC npc : ConfigTypes.NPC_LIST) {
-            npc.handlePath();
+            if (npc.getNpcPath() != null) {
+                npc.getNpcPath().handlePath();
+            }
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
@@ -49,8 +51,9 @@ public final class NPCManagerTask extends BukkitRunnable {
                         npc.spawn(player);
                     }
 
-                    if (npc.isHasLookAt())
+                    if (npc.isHasLookAt()) {
                         npc.lookAt(player, player.getLocation(), false);
+                    }
 
                     npc.getHologram().updateNames(player);
                 }

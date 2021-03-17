@@ -64,19 +64,4 @@ public enum NPCItemSlot {
         this.slotOld = slotOld;
         this.slotNew = slotNew;
     }
-
-    /**
-     * Gets NPCItemSlot by name.
-     *
-     * @param text The item slot name.
-     * @return     The corresponding enum or {@code null} if not found.
-     */
-    public static NPCItemSlot fromString(String text) {
-        for (NPCItemSlot b : NPCItemSlot.values()) {
-            if (b.name().equalsIgnoreCase(text)) {
-                return b;
-            }
-        }
-        return null;
-    }
 }

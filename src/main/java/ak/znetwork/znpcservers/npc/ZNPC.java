@@ -7,7 +7,6 @@ import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
-import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -32,10 +31,10 @@ import java.util.logging.Logger;
 
 import com.google.gson.annotations.Expose;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.*;
+import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -43,18 +42,13 @@ import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter @Setter
+@Data
 public class ZNPC {
 
     /**
      * The logger.
      */
     private static final Logger LOGGER = Bukkit.getLogger();
-
-    /**
-     * Determines if v1.9+ methods will be used.
-     */
-    private static final boolean V9 = Utils.versionNewer(9);
 
     /**
      * The default path name when no path is found.
@@ -74,7 +68,7 @@ public class ZNPC {
     /**
      * The team mode id in the npc scoreboard.
      */
-    private static final String TEAM_MODE = V9 ? "i" : "h";
+    private static final String TEAM_MODE = Utils.versionNewer(9) ? "i" : "h";
 
     /**
      * The default glow color.
@@ -187,7 +181,7 @@ public class ZNPC {
     /**
      * Cache reflection variables.
      */
-    private Object glowColor,dataWatcherRegistryEnum,tabConstructor, nmsEntity;
+    private Object glowColor, dataWatcherRegistryEnum, tabConstructor, nmsEntity;
 
     /**
      * The current profile of the npc.
@@ -195,24 +189,9 @@ public class ZNPC {
     private GameProfile gameProfile;
 
     /**
-     * The path reader.
+     * The npc path.
      */
-    private ZNPCPathReader npcPath;
-
-    /**
-     * The path location.
-     */
-    private Location currentPathLocation;
-
-    /**
-     * Determines the current path location.
-     */
-    private int currentEntryPath = 0;
-
-    /**
-     * Determines if path is running backwards or forwards.
-     */
-    private boolean pathReverse = false;
+    private ZNPCPath npcPath;
 
     /**
      * Determines if the npc is created by first time.
@@ -254,11 +233,13 @@ public class ZNPC {
         this.gameProfile = new GameProfile(UUID.randomUUID(), getNpcName());
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, skin, signature));
 
+        this.hologram = new Hologram(this, location.toBukkitLocation());
+
         this.changeType(getNpcType());
         this.loadCustomization();
 
         if (getPathName() != null)
-            this.setPath(ZNPCPathReader.find(getPathName()));
+            this.setPath(AbstractZNPCPath.find(getPathName()));
     }
 
     /**
@@ -268,7 +249,7 @@ public class ZNPC {
      * @param toggle Toggles (on/off) the glow of the npc.
      */
     public void toggleGlow(String color, boolean toggle) {
-        if (!V9)
+        if (!Utils.versionNewer(9))
             throw new UnsupportedOperationException("Version not supported");
 
         if (toggle)
@@ -310,7 +291,7 @@ public class ZNPC {
      */
     public void setLocation(Location location) {
         try {
-            if (!hasPath()) {
+            if (getNpcPath() == null) {
                 this.location = new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch()));
 
                 lookAt(null, location, true);
@@ -337,7 +318,7 @@ public class ZNPC {
             Object item = ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, new ItemStack(material));
 
             Object equipPacket;
-            if (!V9) {
+            if (!Utils.versionNewer(9)) {
                 equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(getEntityId(), slot.getSlotOld(), item);
             } else {
                 if (Utils.versionNewer(16)) {
@@ -385,7 +366,7 @@ public class ZNPC {
         try {
             Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
 
-            if (V9) {
+            if (Utils.versionNewer(9)) {
                 dataWatcherRegistryEnum = ClassTypes.DATA_WATCHER_REGISTER_ENUM_FIELD.get(null);
 
                 ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(Utils.versionNewer(16) ? 16 : Utils.BUKKIT_VERSION <= 13 ? 13 : 15, dataWatcherRegistryEnum), (byte) 127);
@@ -445,23 +426,25 @@ public class ZNPC {
         try {
             // Check if npc type is player
             boolean npcIsPlayer = getNpcType() == NPCType.PLAYER;
+            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
 
-            if (npcIsPlayer && isHasMirror()) {
-                // Set npc skin to player skin
-                updateProfile(getGameProfileForPlayer(player).getProperties());
+            if (npcIsPlayer) {
+                if (hasMirror) {
+                    // Set npc skin to player skin
+                    updateProfile(getGameProfileForPlayer(player).getProperties());
+                }
+
+                ReflectionUtils.sendPacket(player, getTabConstructor());
             }
 
-            if (npcIsPlayer) ReflectionUtils.sendPacket(player, getTabConstructor());
             ReflectionUtils.sendPacket(player, npcIsPlayer ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(getNmsEntity()) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(getNmsEntity()));
-
-            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(getNmsEntity());
 
             if (npcIsPlayer)
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(getEntityId(), npcDataWatcher, true));
 
             if (isHasToggleHolo())
                 getHologram().spawn(player);
-            if (isHasGlow() && V9)
+            if (isHasGlow() && Utils.versionNewer(9))
                 toggleGlow(getGlowName(), false);
 
             // Update new npc id
@@ -576,10 +559,13 @@ public class ZNPC {
         deleteScoreboard(player);
 
         try {
+            final boolean V9 = Utils.versionNewer(9);
+            final boolean V13 = Utils.versionNewer(13);
+
             Object packetPlayOutScoreboardTeam = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.newInstance();
 
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_NAME, getGameProfile().getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", Utils.versionNewer(13) ? getHologram().getStringNewestVersion(null, getGameProfile().getName()) : getGameProfile().getName());
+            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", V13 ? getHologram().getStringNewestVersion(null, getGameProfile().getName()) : getGameProfile().getName());
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_MODE, 0);
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "j" : "i", 0);
@@ -587,8 +573,8 @@ public class ZNPC {
             if (V9 && isHasGlow() && getGlowColor() != null) {
                 Object enumPrefix = ClassTypes.ENUM_CHAT_TO_STRING_METHOD.invoke(getGlowColor());
 
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", Utils.versionNewer(13) ? getGlowColor() : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(getGlowColor()));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", Utils.versionNewer(13) ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", V13 ? getGlowColor() : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(getGlowColor()));
+                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", V13 ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
             }
 
             ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "h" : "g", Collections.singletonList(getGameProfile().getName()));
@@ -615,24 +601,6 @@ public class ZNPC {
     }
 
     /**
-     * Updates the new npc location according to current path index.
-     *
-     * @param pathReader The npc path.
-     * @param location   The npc path location.
-     */
-    public void updatePathLocation(ZNPCPathReader pathReader, Location location) {
-        int pathIndex = pathReader.getLocationList().indexOf(getCurrentPathLocation());
-
-        Vector vector = (isPathReverse() ? pathReader.getLocationList().get(Math.max(0, Math.min(pathReader.getLocationList().size() - 1, pathIndex + 1))) : pathReader.getLocationList().get(Math.min(pathReader.getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toVector();
-        double yDiff = (location.getY() - vector.getY());
-
-        Location direction = getCurrentPathLocation().clone().setDirection(location.clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
-
-        setLocation(direction);
-        lookAt(null, direction, true);
-    }
-
-    /**
      * Updates the npc game-profile.
      */
     public void updateProfile(PropertyMap propertyMap) {
@@ -644,26 +612,6 @@ public class ZNPC {
         } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException operationException) {
             throw new AssertionError(operationException);
         }
-    }
-
-    /**
-     * Resolves the current npc path.
-     */
-    public void handlePath() {
-        if (getNpcPath() == null)
-            return;
-
-        if (isReversePath()) {
-            if (getCurrentEntryPath() <= 0) setPathReverse(false);
-            else if (getCurrentEntryPath() >= getNpcPath().getLocationList().size() - 1) setPathReverse(true);
-        }
-
-        setCurrentPathLocation(getNpcPath().getLocationList().get(Math.min(getNpcPath().getLocationList().size() - 1, getCurrentEntryPath())));
-
-        if (!isPathReverse()) setCurrentEntryPath(getCurrentEntryPath() + 1);
-        else setCurrentEntryPath(getCurrentEntryPath() - 1);
-
-        updatePathLocation(getNpcPath(), getCurrentPathLocation());
     }
 
     /**
@@ -686,13 +634,6 @@ public class ZNPC {
     /**
      * @inheritDoc
      */
-    public void toggleLookAt() {
-        setHasLookAt(!isHasLookAt());
-    }
-
-    /**
-     * @inheritDoc
-     */
     public void toggleHolo() {
         setHasToggleHolo(!isHasToggleHolo());
 
@@ -701,20 +642,17 @@ public class ZNPC {
     }
 
     /**
-     * @inheritDoc
-     */
-    public void toggleMirror() {
-        setHasMirror(!isHasMirror());
-    }
-
-    /**
      * Sets a new path for the npc.
      *
      * @param pathReader The new path.
      */
-    public void setPath(ZNPCPathReader pathReader) {
-        setNpcPath(pathReader);
-        setPathName(pathReader != null ? pathReader.getName() : DEFAULT_PATH);
+    public void setPath(AbstractZNPCPath pathReader) {
+        if (pathReader == null) {
+            setNpcPath(null);
+            setPathName(DEFAULT_PATH);
+        } else {
+            setNpcPath(new ZNPCPath(pathReader));
+        }
     }
 
     /**
@@ -723,26 +661,7 @@ public class ZNPC {
      * @return The npc location.
      */
     public Location getLocation() {
-        return hasPath() && getCurrentPathLocation() != null ?
-                getCurrentPathLocation() : location.toBukkitLocation();
-    }
-
-    /**
-     * Gets the npc hologram or create a new one if not found.
-     *
-     * @return The npc hologram.
-     */
-    public Hologram getHologram() {
-        return hologram == null ? (hologram = new Hologram(this, location.toBukkitLocation())) : hologram;
-    }
-
-    /**
-     * Checks if npc has a path.
-     *
-     * @return {@code true} If the npc has a path.
-     */
-    public boolean hasPath() {
-        return getPathName() != null && !getPathName().equalsIgnoreCase(DEFAULT_PATH);
+        return getNpcPath() != null ? getNpcPath().getCurrentPathLocation().toBukkitLocation() : location.toBukkitLocation();
     }
 
     /**
@@ -782,6 +701,75 @@ public class ZNPC {
                     LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + getId(), entry.getKey()));
                 }
             }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Data
+    public class ZNPCPath {
+
+        /**
+         * The npc path.
+         */
+        private final AbstractZNPCPath pathAbstract;
+
+        /**
+         * The current path location.
+         */
+        private ZLocation currentPathLocation;
+
+        /**
+         * The current path location.
+         */
+        private int currentEntryPath = 0;
+
+        /**
+         * Determines if path is running backwards or forwards.
+         */
+        private boolean pathReverse = false;
+
+        public ZNPCPath(AbstractZNPCPath pathAbstract) {
+            this.pathAbstract = pathAbstract;
+
+            setPathName(this.pathAbstract != null ? this.pathAbstract.getName() : DEFAULT_PATH);
+        }
+
+        /**
+         * Resolves the current npc path.
+         */
+        public void handlePath() {
+            final int currentEntry = getCurrentEntryPath();
+
+            if (isReversePath()) {
+                if (currentEntry <= 0) setPathReverse(false);
+                else if (currentEntry >= getPathAbstract().getLocationList().size() - 1) setPathReverse(true);
+            }
+
+            setCurrentPathLocation(getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, currentEntry)));
+
+            if (!isPathReverse()) setCurrentEntryPath(currentEntry + 1);
+            else setCurrentEntryPath(currentEntry - 1);
+
+            updatePathLocation(getCurrentPathLocation());
+        }
+
+        /**
+         * Updates the new npc location according to current path index.
+         *
+         * @param location The npc path location.
+         */
+        public void updatePathLocation(ZLocation location) {
+            int pathIndex = getPathAbstract().getLocationList().indexOf(getCurrentPathLocation());
+
+            Vector vector = (isPathReverse() ? getPathAbstract().getLocationList().get(Math.max(0, Math.min(getPathAbstract().getLocationList().size() - 1, pathIndex + 1))) : getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toBukkitLocation().toVector();
+            double yDiff = (location.getY() - vector.getY());
+
+            Location direction = getCurrentPathLocation().toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
+
+            setLocation(direction);
+            lookAt(null, direction, true);
         }
     }
 }

@@ -185,9 +185,7 @@ public class ZNPCUser {
                         String[] actions = string.split(":");
 
                         // Get npc action type
-                        NPCAction npcAction = NPCAction.fromString(actions[0]);
-                        if (npcAction == null)
-                            return;
+                        NPCAction npcAction = NPCAction.valueOf(actions[0]);
 
                         String actionValue = actions[1];
                         // Run action for the provided actionValue

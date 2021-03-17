@@ -11,7 +11,6 @@ import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
-import ak.znetwork.znpcservers.npc.path.ZNPCPathReader;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
@@ -30,9 +29,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.util.logging.Level;
 
 import lombok.Getter;
+
+import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -53,9 +53,15 @@ public class ServersNPC extends JavaPlugin {
      */
     public static final File PLUGIN_FOLDER = new File("plugins/" + PLUGIN_NAME);
 
+    /**
+     * The path folder.
+     */
+    public static final File PATH_FOLDER = new File("plugins/" + PLUGIN_NAME + "/paths");
+
     static {
-        // Create the plugin folder if it doesn't exist.
+        // Create the folder if it doesn't exist.
         PLUGIN_FOLDER.mkdirs();
+        PATH_FOLDER.mkdirs();
     }
 
     /**
@@ -130,21 +136,16 @@ public class ServersNPC extends JavaPlugin {
      * Loads all npc paths.
      */
     public void loadAllPaths() {
-        File npcPaths = PLUGIN_FOLDER.toPath().resolve("paths").toFile();
-        if (!npcPaths.exists()) npcPaths.mkdirs();
-
-        File[] listFiles = npcPaths.listFiles();
+        File[] listFiles = PATH_FOLDER.listFiles();
         if (listFiles == null)
             return;
 
         for (File file : listFiles) {
             // Check if file is path
             if (file.getName().endsWith(".path")) {
-                try {
-                    ZNPCPathReader.register(file);
-                } catch (IOException e) {
-                    getLogger().log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
-                }
+                ZNPCMovementPath pathAbstract = new ZNPCMovementPath(file);
+                // Load path..
+                pathAbstract.load();
             }
         }
     }
