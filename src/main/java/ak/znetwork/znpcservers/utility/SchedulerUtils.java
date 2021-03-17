@@ -3,7 +3,6 @@ package ak.znetwork.znpcservers.utility;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import lombok.Getter;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -12,7 +11,6 @@ import org.bukkit.scheduler.BukkitTask;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public class SchedulerUtils {
 
     /**
@@ -36,7 +34,7 @@ public class SchedulerUtils {
      * @param delay    The delay for the runnable to be executed
      */
     public void scheduleSyncDelayedTask(Runnable runnable, int delay) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(getPlugin(),
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin,
                 runnable,
                 delay
         );
@@ -51,7 +49,7 @@ public class SchedulerUtils {
      * @return         The bukkit task.
      */
     public BukkitTask runTaskTimerAsynchronously(Runnable runnable, long start, long delay) {
-        return Bukkit.getScheduler().runTaskTimerAsynchronously(getPlugin(),
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin,
                 runnable,
                 start,
                 delay

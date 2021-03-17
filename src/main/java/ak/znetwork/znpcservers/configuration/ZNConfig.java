@@ -21,17 +21,13 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter @Setter
-public final class ZNConfig implements ZNConfigImpl {
+public class ZNConfig implements ZNConfigImpl {
 
     /**
      * Creates a new parser.
@@ -87,18 +83,18 @@ public final class ZNConfig implements ZNConfigImpl {
     @Override
     public void load() {
         // Set default configuration values
-        setConfigValues(Arrays.stream(ZNConfigValue.values()).filter(znConfigValue -> znConfigValue.getConfigType() == this.configType).collect(Collectors.toMap(key -> key, ZNConfigValue::getValue)));
+        configValues = Arrays.stream(ZNConfigValue.values()).filter(znConfigValue -> znConfigValue.getConfigType() == this.configType).collect(Collectors.toMap(key -> key, ZNConfigValue::getValue));
 
         try (BufferedReader reader = Files.newBufferedReader(path, CHARSET)) {
             JsonElement data = JSON_PARSER.parse(reader);
             if (data == null) return;
 
             for (ZNConfigValue znConfigValue : ZNConfigValue.values()) {
-                if (znConfigValue.getConfigType() != getConfigType()) continue;
+                if (znConfigValue.getConfigType() != configType) continue;
 
-                JsonElement jsonElement = getConfigValues().size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
+                JsonElement jsonElement = configValues.size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
                 if (jsonElement != null && !jsonElement.isJsonNull())
-                    getConfigValues().put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType())));
+                    configValues.put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType())));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -113,8 +109,8 @@ public final class ZNConfig implements ZNConfigImpl {
         if (System.currentTimeMillis() - START_TIME < 1000 * 10)
             return;
 
-        try (BufferedWriter writer = Files.newBufferedWriter(getPath(), CHARSET)) {
-            ServersNPC.GSON.toJson(getConfigValues().size() == 1 ? getConfigValues().values().iterator().next() : getConfigValues(), writer);
+        try (BufferedWriter writer = Files.newBufferedWriter(path, CHARSET)) {
+            ServersNPC.GSON.toJson(configValues.size() == 1 ? configValues.values().iterator().next() : configType, writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -127,6 +123,6 @@ public final class ZNConfig implements ZNConfigImpl {
 
     @Override
     public <T> T getValue(ZNConfigValue znConfigValue) {
-        return (T) getConfigValues().get(znConfigValue);
+        return (T) configValues.get(znConfigValue);
     }
 }

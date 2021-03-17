@@ -81,12 +81,12 @@ public class ZLocation {
         if (locationCache != null)
             return locationCache;
 
-        return locationCache = new Location(Bukkit.getWorld(getWorld()),
-                getX(),
-                getY(),
-                getZ(),
-                getYaw(),
-                getPitch()
+        return locationCache = new Location(Bukkit.getWorld(world),
+                x,
+                y,
+                z,
+                yaw,
+                pitch
         );
     }
 }

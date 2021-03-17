@@ -22,7 +22,6 @@ import lombok.Getter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public class ZNCommand implements ZNCommandImpl {
 
     /**
@@ -38,7 +37,7 @@ public class ZNCommand implements ZNCommandImpl {
     /**
      * A map that contains the subcommands of the current command.
      */
-    private final HashMap<ZNCommandSub, ZNCommandInvoker<? extends CommandSender>> consumerSet;
+    @Getter private final HashMap<ZNCommandSub, ZNCommandInvoker<? extends CommandSender>> consumerSet;
 
     /**
      * Creates a new command.
@@ -54,10 +53,10 @@ public class ZNCommand implements ZNCommandImpl {
 
     @Override
     public void load() {
-        for (Method method : getCommandInstance().getClass().getMethods()) {
+        for (Method method : commandInstance.getClass().getMethods()) {
             if (method.isAnnotationPresent(ZNCommandSub.class)) {
                 ZNCommandSub cmdInfo = method.getAnnotation(ZNCommandSub.class);
-                getConsumerSet().put(cmdInfo, new ZNCommandInvoker<>(getCommandInstance(), method, cmdInfo.permission()));
+                consumerSet.put(cmdInfo, new ZNCommandInvoker<>(commandInstance, method, cmdInfo.permission()));
             }
         }
     }

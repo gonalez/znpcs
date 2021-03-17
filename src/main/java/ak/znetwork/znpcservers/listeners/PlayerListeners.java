@@ -17,7 +17,6 @@ import lombok.Getter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public final class PlayerListeners implements Listener {
 
     /**
@@ -38,7 +37,7 @@ public final class PlayerListeners implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        getServersNPC().setupNetty(event.getPlayer());
+        serversNPC.setupNetty(event.getPlayer());
     }
 
     @EventHandler

@@ -6,8 +6,6 @@ import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import lombok.Getter;
-
 import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
 
 /**
@@ -16,7 +14,6 @@ import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public class ZNCommandInvoker<S extends ZNCommandSender> {
 
     /**
@@ -58,11 +55,11 @@ public class ZNCommandInvoker<S extends ZNCommandSender> {
      * @throws CommandExecuteException     If subCommand cannot be executed.
      */
     public void execute(S sender, Object object) throws CommandPermissionException, CommandExecuteException {
-        if (getPermission().length() > 0 && !sender.getCommandSender().hasPermission(getPermission()))
+        if (permission.length() > 0 && !sender.getCommandSender().hasPermission(permission))
             throw new CommandPermissionException("Insufficient permission");
 
         try {
-            getCommandMethod().invoke(getCommandInstance(), sender, object);
+            commandMethod.invoke(commandInstance, sender, object);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new CommandExecuteException(e.getMessage(), e.getCause());
         }

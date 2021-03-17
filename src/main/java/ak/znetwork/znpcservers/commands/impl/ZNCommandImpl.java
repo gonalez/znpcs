@@ -37,13 +37,12 @@ public interface ZNCommandImpl {
      */
     <S extends ZNCommandSender> void execute(S commandSender, String[] args) throws CommandNotFoundException, CommandPermissionException, CommandExecuteException;
 
-    @Getter
     class ZNCommandSender {
 
         /**
          * The command sender.
          */
-        private final CommandSender commandSender;
+        @Getter private final CommandSender commandSender;
 
         /**
          * Represents if the sender is a player or console.
@@ -67,7 +66,7 @@ public interface ZNCommandImpl {
          * @param message The message to send.
          */
         public void sendMessage(String message) {
-            getCommandSender().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+            commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
         }
 
         /**
@@ -79,10 +78,10 @@ public interface ZNCommandImpl {
          * @return The player command sender.
          */
         public Player getPlayer() {
-            if (getType() != SenderType.PLAYER)
+            if (type != SenderType.PLAYER)
                 throw new IllegalStateException("Sender is not a player");
 
-            return (Player) getCommandSender();
+            return (Player) commandSender;
         }
 
         /**

@@ -66,7 +66,7 @@ public interface ClassCacheImpl {
         /**
          * {@inheritDoc}
          */
-        static class ClassKey {
+        private static class ClassKey {
 
             /**
              * The key class type.

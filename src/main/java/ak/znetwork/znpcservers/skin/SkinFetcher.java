@@ -14,17 +14,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter @Setter
-public final class SkinFetcher implements SkinFetcherImpl {
+public class SkinFetcher implements SkinFetcherImpl {
 
     /**
      * A empty string.
@@ -87,16 +83,16 @@ public final class SkinFetcher implements SkinFetcherImpl {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
         SKIN_EXECUTOR_SERVICE.submit(() -> {
             try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(getBuilder().getApiUrl().getApiURL() + getData()).openConnection();
-                connection.setRequestMethod(getBuilder().getApiUrl().getMethod());
+                HttpURLConnection connection = (HttpURLConnection) new URL(builder.getApiUrl().getApiURL() + getData()).openConnection();
+                connection.setRequestMethod(builder.getApiUrl().getMethod());
 
                 connection.setDoInput(true);
 
-                if (getBuilder().getApiUrl() == SkinAPI.GENERATE_API) {
+                if (builder.getApiUrl() == SkinAPI.GENERATE_API) {
                     // Send data
                     connection.setDoOutput(true);
                     try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
-                        outputStream.writeBytes("url=" + URLEncoder.encode(getBuilder().getData(), DEFAULT_CHARSET));
+                        outputStream.writeBytes("url=" + URLEncoder.encode(builder.getData(), DEFAULT_CHARSET));
                     }
                 }
 
@@ -116,8 +112,8 @@ public final class SkinFetcher implements SkinFetcherImpl {
     @Override
     public String[] getProfile() {
         try {
-            JsonObject data = getResponse().get().getAsJsonObject(getSkinAPI() == SkinAPI.GENERATE_API ? "data" : "textures");
-            JsonObject properties = (getSkinAPI() == SkinAPI.GENERATE_API ?
+            JsonObject data = getResponse().get().getAsJsonObject(skinAPI == SkinAPI.GENERATE_API ? "data" : "textures");
+            JsonObject properties = (skinAPI == SkinAPI.GENERATE_API ?
                     data.getAsJsonObject("texture") :
                     data.getAsJsonObject("raw"));
 
@@ -134,7 +130,7 @@ public final class SkinFetcher implements SkinFetcherImpl {
      * @return The data for skin api.
      */
     private String getData() {
-        return getSkinAPI() != SkinAPI.GENERATE_API ?
-                "/" + getBuilder().getData() : EMPTY_STRING;
+        return skinAPI != SkinAPI.GENERATE_API ?
+                "/" + builder.getData() : EMPTY_STRING;
     }
 }

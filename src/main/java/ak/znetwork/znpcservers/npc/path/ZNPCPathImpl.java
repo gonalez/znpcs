@@ -56,7 +56,6 @@ public interface ZNPCPathImpl {
     /**
      * {@inheritDoc}
      */
-    @Getter
     class ZNPCPathDelegator {
 
         /**
@@ -79,7 +78,7 @@ public interface ZNPCPathImpl {
          * @throws IOException If an I/O error occurs
          */
         public DataOutputStream getOutputStream() throws IOException {
-            return new DataOutputStream(new FileOutputStream(getFile()));
+            return new DataOutputStream(new FileOutputStream(file));
         }
 
         /**
@@ -88,7 +87,7 @@ public interface ZNPCPathImpl {
          * @throws IOException If an I/O error occurs
          */
         public DataInputStream getInputStream() throws IOException {
-            return new DataInputStream(new FileInputStream(getFile()));
+            return new DataInputStream(new FileInputStream(file));
         }
 
         /**
@@ -166,7 +165,7 @@ public interface ZNPCPathImpl {
          * Registers the path and load it.
          */
         public void load() {
-            try (DataInputStream reader = ZNPCPathDelegator.forFile(getFile()).getInputStream()) {
+            try (DataInputStream reader = ZNPCPathDelegator.forFile(file).getInputStream()) {
                 initialize(reader);
 
                 // Register path..
@@ -215,7 +214,6 @@ public interface ZNPCPathImpl {
         /**
          * {@inheritDoc}
          */
-        @Getter @Setter
         public static class ZNPCMovementPath extends AbstractZNPCPath {
 
             /**
@@ -289,7 +287,7 @@ public interface ZNPCPathImpl {
 
                     boolean last = !locationIterator.hasNext();
                     if (last) {
-                        getNpcUser().setHasPath(false);
+                        npcUser.setHasPath(false);
 
                         // Register the path...
                         register(this);
@@ -299,11 +297,11 @@ public interface ZNPCPathImpl {
 
             @Override
             public void start() {
-                getNpcUser().setHasPath(true);
+                npcUser.setHasPath(true);
 
-                setBukkitTask(ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
-                    if (getNpcUser().toPlayer() != null && getNpcUser().isHasPath() && MAX_LOCATIONS > getLocationList().size()) {
-                        final Location location = getNpcUser().toPlayer().getLocation();
+                bukkitTask = ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
+                    if (npcUser.toPlayer() != null && npcUser.isHasPath() && MAX_LOCATIONS > getLocationList().size()) {
+                        final Location location = npcUser.toPlayer().getLocation();
 
                         // Check if location is valid
                         if (isValid(location)) {
@@ -312,20 +310,20 @@ public interface ZNPCPathImpl {
                         }
                     } else {
                         // Cancel task...
-                        getBukkitTask().cancel();
+                        bukkitTask.cancel();
 
                         // Set user path
-                        getNpcUser().setHasPath(false);
+                        npcUser.setHasPath(false);
 
                         try (DataOutputStream writer = ZNPCPathDelegator.forFile(getFile()).getOutputStream()) {
                             write(writer);
                         } catch (IOException e) {
-                            getNpcUser().setHasPath(false);
+                            npcUser.setHasPath(false);
 
                             LOGGER.log(Level.WARNING, String.format("Path %s could not be created", getName()), e);
                         }
                     }
-                }, PATH_DELAY, PATH_DELAY));
+                }, PATH_DELAY, PATH_DELAY);
             }
 
             /**

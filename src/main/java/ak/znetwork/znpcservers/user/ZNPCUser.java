@@ -9,11 +9,14 @@ import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
+
 import com.google.common.collect.HashBasedTable;
 import com.mojang.authlib.GameProfile;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -21,8 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -30,7 +32,7 @@ import lombok.Setter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter @Setter
+@Data
 public class ZNPCUser {
 
     /**
@@ -118,17 +120,17 @@ public class ZNPCUser {
     public void injectNetty() {
         ejectNetty();
 
-        getChannel().pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
+        channel.pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
     }
 
     /**
      * Unregisters the NPC channel for player.
      */
     public void ejectNetty() {
-        if (!getChannel().pipeline().names().contains(CHANNEL_NAME))
+        if (!channel.pipeline().names().contains(CHANNEL_NAME))
             return;
 
-        getChannel().eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
+        channel.eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
     }
 
     /**
@@ -137,7 +139,7 @@ public class ZNPCUser {
      * @return The player.
      */
     public Player toPlayer() {
-        return Bukkit.getPlayer(getUuid());
+        return Bukkit.getPlayer(uuid);
     }
 
     /**
@@ -161,7 +163,7 @@ public class ZNPCUser {
                     return;
 
                 // Check for interact wait time between npc
-                if (getLastInteract() > 0 && System.currentTimeMillis() - getLastInteract() <= 1000L * DEFAULT_DELAY)
+                if (lastInteract > 0 && System.currentTimeMillis() - lastInteract <= 1000L * DEFAULT_DELAY)
                     return;
 
                 // The clicked entity id
@@ -172,7 +174,7 @@ public class ZNPCUser {
                 if (znpc == null)
                     return;
 
-                setLastInteract(System.currentTimeMillis());
+                lastInteract = System.currentTimeMillis();
 
                 executor.execute(() -> {
                     // Call NPC interact event
@@ -199,7 +201,7 @@ public class ZNPCUser {
                             int actionId = znpc.getActions().indexOf(string);
 
                             // Set new action cooldown for user
-                            getActionDelay().put(actionId, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
+                            actionDelay.put(actionId, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
                         }
                     }
                 });

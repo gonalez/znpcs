@@ -17,6 +17,7 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -707,7 +708,7 @@ public class ZNPC {
     /**
      * @inheritDoc
      */
-    @Data
+    @Getter
     public class ZNPCPath {
 
         /**
@@ -740,19 +741,19 @@ public class ZNPC {
          * Resolves the current npc path.
          */
         public void handlePath() {
-            final int currentEntry = getCurrentEntryPath();
+            final int currentEntry = currentEntryPath;
 
             if (isReversePath()) {
-                if (currentEntry <= 0) setPathReverse(false);
-                else if (currentEntry >= getPathAbstract().getLocationList().size() - 1) setPathReverse(true);
+                if (currentEntry <= 0) pathReverse = false;
+                else if (currentEntry >= getPathAbstract().getLocationList().size() - 1) pathReverse = true;
             }
 
-            setCurrentPathLocation(getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, currentEntry)));
+            currentPathLocation = (getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, currentEntry)));
 
-            if (!isPathReverse()) setCurrentEntryPath(currentEntry + 1);
-            else setCurrentEntryPath(currentEntry - 1);
+            if (!isPathReverse()) currentEntryPath = currentEntry + 1;
+            else currentEntryPath = currentEntry - 1;
 
-            updatePathLocation(getCurrentPathLocation());
+            updatePathLocation(currentPathLocation);
         }
 
         /**
@@ -761,12 +762,12 @@ public class ZNPC {
          * @param location The npc path location.
          */
         public void updatePathLocation(ZLocation location) {
-            int pathIndex = getPathAbstract().getLocationList().indexOf(getCurrentPathLocation());
+            int pathIndex = getPathAbstract().getLocationList().indexOf(currentPathLocation);
 
             Vector vector = (isPathReverse() ? getPathAbstract().getLocationList().get(Math.max(0, Math.min(getPathAbstract().getLocationList().size() - 1, pathIndex + 1))) : getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toBukkitLocation().toVector();
             double yDiff = (location.getY() - vector.getY());
 
-            Location direction = getCurrentPathLocation().toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
+            Location direction = currentPathLocation.toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
 
             setLocation(direction);
             lookAt(null, direction, true);

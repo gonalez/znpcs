@@ -2,15 +2,12 @@ package ak.znetwork.znpcservers.cache.enums;
 
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 
-import lombok.Getter;
-
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public enum PackageType {
 
     /**
@@ -40,5 +37,12 @@ public enum PackageType {
      */
     PackageType(String packageName) {
         this.packageName = packageName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getPackageName() {
+        return packageName;
     }
 }

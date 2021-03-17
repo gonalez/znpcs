@@ -3,9 +3,8 @@ package ak.znetwork.znpcservers.cache.builder;
 import ak.znetwork.znpcservers.cache.enums.PackageType;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
-import org.apache.commons.lang.ArrayUtils;
-
 import lombok.Getter;
+import org.apache.commons.lang.ArrayUtils;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -77,49 +76,49 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     @Override
     public ClassCacheBuilder packageType(PackageType packageType) {
         return new ClassCacheBuilder(packageType,
-                getClassName(),
-                getMethodName(),
-                getFieldName(),
-                getParameterTypes()
+                className,
+                methodName,
+                fieldName,
+                parameterTypes
         );
     }
 
     @Override
     public ClassCacheBuilder className(String className) {
-        return new ClassCacheBuilder(getPackageType(),
+        return new ClassCacheBuilder(packageType,
                 toBukkitClass(className),
-                getMethodName(),
-                getFieldName(),
-                getParameterTypes()
+                methodName,
+                fieldName,
+                parameterTypes
         );
     }
 
     @Override
     public ClassCacheBuilder methodName(String methodName) {
-        return new ClassCacheBuilder(getPackageType(),
-                getClassName(),
+        return new ClassCacheBuilder(packageType,
+                className,
                 methodName,
-                getFieldName(),
-                getParameterTypes()
+                fieldName,
+                parameterTypes
         );
     }
 
     @Override
     public ClassCacheBuilder fieldName(String fieldName) {
-        return new ClassCacheBuilder(getPackageType(),
-                getClassName(),
-                getMethodName(),
+        return new ClassCacheBuilder(packageType,
+                className,
+                methodName,
                 fieldName,
-                getParameterTypes()
+                parameterTypes
         );
     }
 
     @Override
     public ClassCacheBuilder parameterTypes(Class<?>... parameterTypes) {
-        return new ClassCacheBuilder(getPackageType(),
-                getClassName(),
-                getMethodName(),
-                getFieldName(),
+        return new ClassCacheBuilder(packageType,
+                className,
+                methodName,
+                fieldName,
                 parameterTypes
         );
     }
@@ -128,6 +127,6 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
      * {@inheritDoc}
      */
     private String toBukkitClass(String className) {
-        return String.format(getPackageType().getPackageName() + ".%s", className);
+        return String.format(packageType.getPackageName() + ".%s", className);
     }
 }

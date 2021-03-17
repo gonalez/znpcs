@@ -30,8 +30,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 
-import lombok.Getter;
-
 import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
 
 /**
@@ -40,7 +38,6 @@ import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public class ServersNPC extends JavaPlugin {
 
     /**
@@ -222,5 +219,12 @@ public class ServersNPC extends JavaPlugin {
             e.printStackTrace();
         }
         player.sendPluginMessage(this, "BungeeCord", b.toByteArray());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CommandsManager getCommandsManager() {
+        return commandsManager;
     }
 }

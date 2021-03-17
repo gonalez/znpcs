@@ -21,7 +21,6 @@ import lombok.Data;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Data
 public class Hologram {
 
     /**
@@ -42,7 +41,7 @@ public class Hologram {
     /**
      * The npc.
      */
-    private ZNPC npc;
+    private final ZNPC npc;
 
     /**
      * The hologram location.
@@ -68,14 +67,14 @@ public class Hologram {
      * Creation of the hologram.
      */
     public void createHologram() {
-        getNpc().getViewers().forEach(this::delete);
+        npc.getViewers().forEach(this::delete);
 
         try {
-            getEntityArmorStands().clear();
+            entityArmorStands.clear();
 
             double y = 0;
             for (String line : getLines()) {
-                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld()), getLocation().getX(), (getLocation().getY() - 0.15) + (y), getLocation().getZ());
+                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
 
                 ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() >= 1);
                 if (Utils.versionNewer(13))
@@ -85,12 +84,12 @@ public class Hologram {
 
                 ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
 
-                getEntityArmorStands().add(armorStand);
+                entityArmorStands.add(armorStand);
 
                 y+=HOLOGRAM_SPACE;
             }
 
-            getNpc().getViewers().forEach(this::spawn);
+            npc.getViewers().forEach(this::spawn);
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
             throw new AssertionError(operationException);
         }
@@ -102,7 +101,7 @@ public class Hologram {
      * @param player The player to show the hologram.
      */
     public void spawn(Player player) {
-        getEntityArmorStands().forEach(entityArmorStand -> {
+        entityArmorStands.forEach(entityArmorStand -> {
             try {
                 Object entityPlayerPacketSpawn = ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
@@ -120,7 +119,7 @@ public class Hologram {
      * @param player The player to remove the hologram.
      */
     public void delete(Player player) {
-        getEntityArmorStands().forEach(entityArmorStand -> {
+        entityArmorStands.forEach(entityArmorStand -> {
             try {
                 int armorStandId = (int) ClassTypes.GET_ENTITY_ID.invoke(entityArmorStand);
 
@@ -136,10 +135,10 @@ public class Hologram {
      */
     public void updateNames(Player player) {
         for (int i = 0; i < getLines().length; i++) {
-            if (i >= getEntityArmorStands().size())
+            if (i >= entityArmorStands.size())
                 break;
 
-            Object armorStand = getEntityArmorStands().get(i);
+            Object armorStand = entityArmorStands.get(i);
             try {
                 String line = getLines()[i].replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
 
@@ -162,10 +161,10 @@ public class Hologram {
      * Updates the hologram location.
      */
     public void updateLocation() {
-        getEntityArmorStands().forEach(o -> {
+        entityArmorStands.forEach(o -> {
             try {
                 Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(o);
-                getNpc().getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
+                npc.getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
                 throw new AssertionError("An exception occurred while trying to update location for hologram", operationException);
             }
@@ -178,13 +177,13 @@ public class Hologram {
      * @param location the new location.
      */
     public void setLocation(Location location, double height) {
-        setLocation(location.clone().add(0, height, 0));
+        this.location = location = location.clone().add(0, height, 0);
 
         try {
             double y = 0;
-            for (Object o : getEntityArmorStands()) {
-                ClassTypes.SET_LOCATION_METHOD.invoke(o, getLocation().getX(), (getLocation().getY() - 0.15) + y,
-                        getLocation().getZ(), getLocation().getYaw(), getLocation().getPitch());
+            for (Object o : entityArmorStands) {
+                ClassTypes.SET_LOCATION_METHOD.invoke(o, location.getX(), (location.getY() - 0.15) + y,
+                        location.getZ(), location.getYaw(), location.getPitch());
 
                 y+=HOLOGRAM_SPACE;
             }
@@ -201,7 +200,7 @@ public class Hologram {
      * @return The hologram lines separated.
      */
     public String[] getLines() {
-        return getNpc().getLines().split(":");
+        return npc.getLines().split(":");
     }
 
     /**
