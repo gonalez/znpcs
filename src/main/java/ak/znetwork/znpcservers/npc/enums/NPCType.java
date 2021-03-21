@@ -2,8 +2,6 @@ package ak.znetwork.znpcservers.npc.enums;
 
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.Utils;
-import lombok.Getter;
-import org.apache.commons.lang.math.NumberUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -11,6 +9,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
+
+import lombok.Getter;
 
 import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.ClassCache;
 
@@ -204,21 +205,11 @@ public enum NPCType {
 
         Object[] newArray = new Object[methodParameterTypes.length];
         for (int i = 0; i < methodParameterTypes.length; i++) {
-            if (methodParameterTypes[i] == boolean.class)
-                newArray[i] = Boolean.parseBoolean(strings[i]);
-            else if (methodParameterTypes[i] == float.class)
-                newArray[i] = NumberUtils.createNumber(strings[i]).floatValue();
-            else if (methodParameterTypes[i] == double.class)
-                newArray[i] = NumberUtils.createNumber(strings[i]).doubleValue();
-            else if (methodParameterTypes[i] == int.class)
-                newArray[i] = NumberUtils.createNumber(strings[i]).intValue();
-            else if (methodParameterTypes[i] == short.class)
-                newArray[i] = NumberUtils.createNumber(strings[i]).shortValue();
-            else if (methodParameterTypes[i] == long.class)
-                newArray[i] = NumberUtils.createNumber(strings[i]).longValue();
-            else if (methodParameterTypes[i] == String.class)
-                newArray[i] = String.valueOf(strings[i]);
-            else {
+            TypeProperty typeProperty = TypeProperty.forType(methodParameterTypes[i]);
+
+            if (typeProperty != null) {
+                newArray[i] = typeProperty.function.apply(strings[i]);
+            } else {
                 // Use cache values
                 newArray[i] = ClassCache.find(strings[i], methodParameterTypes[i]);
             }
@@ -232,7 +223,7 @@ public enum NPCType {
      * @param name       The method name.
      * @param entity     The npc.
      * @param values     The method values.
-     * @throws Exception If method could not be invoked.
+     * @throws InvocationTargetException If method could not be invoked.
      */
     public void invokeMethod(String name, Object entity, Object[] values) throws InvocationTargetException, IllegalAccessException {
         if (!getCustomizationMethods().containsKey(name))
@@ -240,5 +231,72 @@ public enum NPCType {
 
         Method method = getCustomizationMethods().get(name);
         method.invoke(entity, values);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    enum TypeProperty {
+
+        STRING(String.class, String::toString),
+
+        BOOLEAN(boolean.class, Boolean::parseBoolean),
+
+        INT(int.class, Integer::parseInt),
+
+        DOUBLE(double.class, Double::parseDouble),
+
+        FLOAT(float.class, Float::parseFloat),
+
+        SHORT(short.class, Short::parseShort),
+
+        LONG(long.class, Long::parseLong);
+
+        /**
+         * The primitive type
+         */
+        private final Class<?> primitiveType;
+
+        /**
+         * A function that parses an String to its corresponding primitive type.
+         */
+        private final Function<String, ?> function;
+
+        /**
+         * Creates a new type class for a primitive type.
+         *
+         * @param primitiveType The primitive type.
+         * @param function The primitive type parse function.
+         */
+        TypeProperty(Class<?> primitiveType,
+                     Function<String, ?> function) {
+            this.primitiveType = primitiveType;
+            this.function = function;
+        }
+
+        /**
+         * Locates a type property by its primitive type.
+         *
+         * @param primitiveType The primitiveType;
+         * @return The corresponding enum or {@code null} if not found.
+         */
+        public static TypeProperty forType(Class<?> primitiveType) {
+            if (primitiveType == String.class)
+                return STRING;
+            else if (primitiveType == boolean.class)
+                return BOOLEAN;
+            else if (primitiveType == int.class)
+                return INT;
+            else if (primitiveType == double.class)
+                return DOUBLE;
+            else if (primitiveType == float.class)
+                return FLOAT;
+            else if (primitiveType == short.class)
+                return SHORT;
+            else if (primitiveType == long.class)
+                return LONG;
+            else
+                return null;
+        }
     }
 }
