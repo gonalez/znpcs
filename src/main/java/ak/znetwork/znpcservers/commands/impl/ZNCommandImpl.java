@@ -26,23 +26,12 @@ public interface ZNCommandImpl {
      */
     void load();
 
-    /**
-     * Executes a subcommand for sender.
-     *
-     * @param commandSender               The commandSender to run the command-
-     * @param args                        The command arguments.
-     * @throws CommandPermissionException If commandSender does not have permission to execute the subCommand.
-     * @throws CommandExecuteException    If subCommand cannot be executed.
-     * @throws CommandNotFoundException   If no subCommand was found.
-     */
-    <S extends ZNCommandSender> void execute(S commandSender, String[] args) throws CommandNotFoundException, CommandPermissionException, CommandExecuteException;
-
     class ZNCommandSender {
 
         /**
          * The command sender.
          */
-        @Getter private final CommandSender commandSender;
+        private final CommandSender commandSender;
 
         /**
          * Represents if the sender is a player or console.
@@ -81,7 +70,16 @@ public interface ZNCommandImpl {
             if (type != SenderType.PLAYER)
                 throw new IllegalStateException("Sender is not a player");
 
-            return (Player) commandSender;
+            return (Player) getCommandSender();
+        }
+
+        /**
+         * Gets the command sender.
+         *
+         * @return The command sender
+         */
+        public CommandSender getCommandSender() {
+            return commandSender;
         }
 
         /**

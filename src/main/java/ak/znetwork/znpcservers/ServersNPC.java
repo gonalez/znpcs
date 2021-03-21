@@ -1,13 +1,11 @@
 package ak.znetwork.znpcservers;
 
-import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.listeners.PlayerListeners;
+import ak.znetwork.znpcservers.utility.BungeeUtils;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
-import ak.znetwork.znpcservers.manager.CommandsManager;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
@@ -29,6 +27,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
 
@@ -82,9 +82,9 @@ public class ServersNPC extends JavaPlugin {
     public static SchedulerUtils SCHEDULER;
 
     /**
-     * The commands manager.
+     * The bungee utils.
      */
-    private CommandsManager commandsManager;
+    public static BungeeUtils BUNGEE_UTILS;
 
     @Override
     public void onEnable() {
@@ -99,18 +99,20 @@ public class ServersNPC extends JavaPlugin {
         // Register BungeeCord channel
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        // Load commands
-        commandsManager = new CommandsManager(this, "znpcs");
-        commandsManager.addCommand(new ZNCommand(new DefaultCommand(this)));
-
         // Setup metrics
         new MetricsLite(this, PLUGIN_ID);
+
+        // Register commands
+        new DefaultCommand("znpcs");
 
         // Default executor
         SCHEDULER = new SchedulerUtils(this);
 
+        // Bungee Utils
+        BUNGEE_UTILS = new BungeeUtils(this);
+
         // Setup netty again for online players
-        Bukkit.getOnlinePlayers().forEach(ServersNPC.this::setupNetty);
+        Bukkit.getOnlinePlayers().forEach(ZNPCUser::registerOrGet);
 
         // Init NPC task
         new NPCManagerTask(this);
@@ -155,19 +157,6 @@ public class ServersNPC extends JavaPlugin {
     }
 
     /**
-     * Setup netty for player.
-     *
-     * @param player The player.
-     */
-    public void setupNetty(Player player) {
-        try {
-            NPCManager.getNpcUsers().add(new ZNPCUser(this, player));
-        } catch (Exception exception) {
-            throw new RuntimeException("An exception occurred while trying to setup netty for player " + player.getName(), exception);
-        }
-    }
-
-    /**
      * Creates a new npc.
      *
      * @param id       The npc identifier.
@@ -176,7 +165,7 @@ public class ServersNPC extends JavaPlugin {
      * @param name     The npc skin name.
      * @return         The created zNPC.
      */
-    public ZNPC createNPC(int id, NPCType npcType, Location location, String name) {
+    public static ZNPC createNPC(int id, NPCType npcType, Location location, String name) {
         if (ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id))
             return null;
 
@@ -191,7 +180,7 @@ public class ServersNPC extends JavaPlugin {
      *
      * @param npcID The npc ID.
      */
-    public void deleteNPC(int npcID) {
+    public static void deleteNPC(int npcID) {
         ZNPC npc = ConfigTypes.NPC_LIST.stream().filter(npc1 -> npc1.getId() == npcID).findFirst().orElse(null);
 
         if (npc == null)
@@ -200,31 +189,5 @@ public class ServersNPC extends JavaPlugin {
         ConfigTypes.NPC_LIST.remove(npc);
 
         npc.deleteViewers();
-    }
-
-    /**
-     * Sends a player to a bungee server.
-     *
-     * @param player The player to send to the server.
-     * @param server The server name.
-     */
-    public void sendPlayerToServer(Player player, String server) {
-        ByteArrayOutputStream b = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(b);
-
-        try {
-            out.writeUTF("Connect");
-            out.writeUTF(server);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        player.sendPluginMessage(this, "BungeeCord", b.toByteArray());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public CommandsManager getCommandsManager() {
-        return commandsManager;
     }
 }

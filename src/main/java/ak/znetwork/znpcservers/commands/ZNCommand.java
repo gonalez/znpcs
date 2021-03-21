@@ -1,20 +1,21 @@
 package ak.znetwork.znpcservers.commands;
 
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
-import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
 import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
 import ak.znetwork.znpcservers.commands.impl.ZNCommandImpl;
 import ak.znetwork.znpcservers.commands.invoker.ZNCommandInvoker;
+import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
+import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.manager.ConfigManager;
+import ak.znetwork.znpcservers.types.ClassTypes;
+
 import org.bukkit.Bukkit;
+import org.bukkit.command.defaults.BukkitCommand;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import lombok.Getter;
+import java.util.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -22,7 +23,7 @@ import lombok.Getter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ZNCommand implements ZNCommandImpl {
+public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
 
     /**
      * A string whitespace.
@@ -30,45 +31,55 @@ public class ZNCommand implements ZNCommandImpl {
     private static final String WHITESPACE = " ";
 
     /**
-     * The command class instance.
+     * The bukkit command map instance.
      */
-    private final Object commandInstance;
+    private static final CommandMap COMMAND_MAP;
 
+    static {
+        try {
+            COMMAND_MAP = (CommandMap) ClassTypes.BUKKIT_COMMAND_MAP.get(Bukkit.getServer());
+        } catch (IllegalAccessException exception) {
+            // Should not happen....
+            throw new IllegalStateException("Cannot access command map.");
+        }
+
+    }
     /**
-     * A map that contains the subcommands of the current command.
+     * A map that contains the subcommands for the current command.
      */
-    @Getter private final HashMap<ZNCommandSub, ZNCommandInvoker<? extends CommandSender>> consumerSet;
+    private final Map<ZNCommandSub, ZNCommandInvoker> consumerSet;
 
     /**
      * Creates a new command.
-     *
-     * @param commandInstance The command class instance.
      */
-    public ZNCommand(Object commandInstance) {
-        this.commandInstance = commandInstance;
+    public ZNCommand(String command) {
+        super(command);
         this.consumerSet = new HashMap<>();
-
         this.load();
     }
 
     @Override
     public void load() {
-        for (Method method : commandInstance.getClass().getMethods()) {
+        // Register the command
+        COMMAND_MAP.register(getName(), this);
+
+        for (Method method : getClass().getMethods()) {
             if (method.isAnnotationPresent(ZNCommandSub.class)) {
                 ZNCommandSub cmdInfo = method.getAnnotation(ZNCommandSub.class);
-                consumerSet.put(cmdInfo, new ZNCommandInvoker<>(commandInstance, method, cmdInfo.permission()));
+                consumerSet.put(cmdInfo, new ZNCommandInvoker(this, method, cmdInfo.permission()));
             }
         }
     }
 
-    @Override
-    public <S extends ZNCommandSender> void execute(S commandSender, String[] args) throws CommandNotFoundException, CommandPermissionException, CommandExecuteException {
-        Optional<Map.Entry<ZNCommandSub, ZNCommandInvoker<? extends CommandSender>>> subCommandOptional = consumerSet.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
-        if (!subCommandOptional.isPresent())
-            throw new CommandNotFoundException("Command not found");
-
-        ZNCommandInvoker<S> command = (ZNCommandInvoker<S>) subCommandOptional.get().getValue();
-        command.execute(commandSender, loadArgs(subCommandOptional.get().getKey(), args));
+    /**
+     * Checks if a subcommand exists.
+     *
+     * @param subCommand The subCommand to check.
+     * @param input      The subCommand name.
+     * @return           {@code true} If subcommand found.
+     */
+    private boolean contains(ZNCommandSub subCommand, String input) {
+        return Arrays.stream(subCommand.aliases()).anyMatch(input::equalsIgnoreCase);
     }
 
     /**
@@ -98,13 +109,33 @@ public class ZNCommand implements ZNCommandImpl {
     }
 
     /**
-     * Checks if subcommand exists.
+     * Returns a set containing the subcommands on the map.
      *
-     * @param subCommand The subCommand to check.
-     * @param input      The subCommand name.
-     * @return           {@code true} If subcommand found.
+     * @return A set containing the subcommands on the map.
      */
-    private boolean contains(ZNCommandSub subCommand, String input) {
-        return Stream.of(subCommand.aliases()).anyMatch(s -> s.equalsIgnoreCase(input));
+    public Set<ZNCommandSub> getCommands() {
+        return consumerSet.keySet();
+    }
+
+    @Override
+    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+        Optional<Map.Entry<ZNCommandSub, ZNCommandInvoker>> subCommandOptional = consumerSet.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
+        if (!subCommandOptional.isPresent()) { // sub-command not found
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
+            return false;
+        }
+
+        try {
+            subCommandOptional.get().getValue().execute(new ZNCommandSender(sender), loadArgs(subCommandOptional.get().getKey(), args));
+        } catch (CommandExecuteException e) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_ERROR);
+
+            // Logs enabled
+            e.printStackTrace();
+        } catch (CommandPermissionException e) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.NO_PERMISSION);
+        }
+        return true;
+
     }
 }

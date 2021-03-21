@@ -899,6 +899,15 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
+    public static final Field BUKKIT_COMMAND_MAP = new ClassCacheImpl.Default.FieldLoader(new ClassCacheBuilder().
+            packageType(PackageType.CRAFT_BUKKIT).
+            className("CraftServer").
+            fieldName("commandMap")).
+    typeOf();
+
+    /**
+     * {@inheritDoc}
+     */
     private static final Object ENUM_CHAT_FORMAT = new ClassCacheImpl.Default.MultipleLoad(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat")).

@@ -1,5 +1,6 @@
 package ak.znetwork.znpcservers.npc.enums;
 
+import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
 import org.bukkit.Bukkit;
@@ -59,7 +60,7 @@ public enum NPCAction {
     SERVER {
         @Override
         public void run(ZNPCUser znpcUser, String actionValue) {
-            znpcUser.getServersNPC().sendPlayerToServer(znpcUser.toPlayer(), actionValue);
+            ServersNPC.BUNGEE_UTILS.sendPlayerToServer(znpcUser.toPlayer(), actionValue);
         }
     };
 

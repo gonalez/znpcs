@@ -1,11 +1,11 @@
 package ak.znetwork.znpcservers.commands.list;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.commands.ZNCommand;
 import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
 import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
 import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
 
 /**
@@ -35,7 +34,7 @@ import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class DefaultCommand {
+public class DefaultCommand extends ZNCommand {
 
     /**
      * A string whitespace.
@@ -43,24 +42,17 @@ public class DefaultCommand {
     private static final String WHITESPACE = " ";
 
     /**
-     * The plugin instance.
-     */
-    private final ServersNPC serversNPC;
-
-    /**
      * Creates a new command.
-     *
-     * @param serversNPC The plugin instance.
      */
-    public DefaultCommand(ServersNPC serversNPC) {
-        this.serversNPC = serversNPC;
+    public DefaultCommand(String command) {
+        super(command);
     }
 
     @ZNCommandSub(aliases = {}, name = "", permission = "")
     public void defaultCommand(ZNCommandSender sender, Map<String, String> args) {
         sender.sendMessage("&6&m------------------------------------------");
         sender.sendMessage("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)");
-        serversNPC.getCommandsManager().getZnCommands().forEach(znCommand -> znCommand.getConsumerSet().keySet().forEach(subCommand -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + subCommand.name() + " " + String.join(" ", subCommand.aliases())))));
+        getCommands().forEach(subCommand -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + subCommand.name() + " " + String.join(" ", subCommand.aliases()))));
         sender.sendMessage("&6&m------------------------------------------");
     }
 
@@ -92,12 +84,11 @@ public class DefaultCommand {
             return;
         }
 
-        String type = args.get("type");
+        String type = args.get("type").toUpperCase();
 
         try {
-            // All success!
-            serversNPC.createNPC(id,
-                    type != null ? NPCType.valueOf(type) : NPCType.PLAYER,
+            ServersNPC.createNPC(id,
+                    NPCType.valueOf(type),
                     sender.getPlayer().getLocation(),
                     name
             );
@@ -129,7 +120,7 @@ public class DefaultCommand {
             return;
         }
 
-        serversNPC.deleteNPC(id);
+        ServersNPC.deleteNPC(id);
 
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
@@ -482,7 +473,7 @@ public class DefaultCommand {
             return;
         }
 
-        ZNPCUser znpcUser = NPCManager.getNpcUsers().stream().filter(npcUser -> npcUser.getUuid().equals(sender.getPlayer().getUniqueId())).findFirst().orElse(null);
+        ZNPCUser znpcUser = ZNPCUser.registerOrGet(sender.getPlayer());
         if (znpcUser == null)
             return;
 

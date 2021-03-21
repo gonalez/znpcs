@@ -2,7 +2,6 @@ package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
-import ak.znetwork.znpcservers.manager.NPCManager;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
@@ -547,10 +546,10 @@ public class ZNPC {
      * Gets the game-profile for player.
      *
      * @param player The player.
-     * @return       The player game-profile or default npc game-profile if not found.
+     * @return       The player game-profile.
      */
     public GameProfile getGameProfileForPlayer(Player player) {
-        return NPCManager.getNpcUsers().stream().filter(npcUser -> npcUser.getUuid().equals(player.getUniqueId())).map(ZNPCUser::getGameProfile).findFirst().orElse(getGameProfile());
+        return ZNPCUser.registerOrGet(player).getGameProfile();
     }
 
     /**

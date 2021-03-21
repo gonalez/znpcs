@@ -20,7 +20,10 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -44,6 +47,11 @@ public class ZNPCUser {
      * The default wait time between each npc interact.
      */
     private static int DEFAULT_DELAY = 2;
+
+    /**
+     * A map containing the saved users.
+     */
+    private static final Map<UUID, ZNPCUser> USER_MAP = new HashMap<>();
 
     /**
      * The player network manager.
@@ -71,6 +79,11 @@ public class ZNPCUser {
     private final UUID uuid;
 
     /**
+     * The player game-profile.
+     */
+    private final GameProfile gameProfile;
+
+    /**
      * Determines if player is creating a npc path.
      */
     private boolean hasPath = false;
@@ -81,37 +94,25 @@ public class ZNPCUser {
     private long lastInteract = 0;
 
     /**
-     * The player game-profile.
-     */
-    private final GameProfile gameProfile;
-
-    /**
-     * The plugin instance.
-     */
-    private final ServersNPC serversNPC;
-
-    /**
      * Creates a new USER Player.
      *
-     * @param serversNPC The plugin instance.
-     * @param player     The user player.
-     * @throws Exception If the classes cannot be loaded.
+     * @param player The player.
      */
-    public ZNPCUser(ServersNPC serversNPC,
-                    Player player) throws Exception {
-        this.serversNPC = serversNPC;
+    public ZNPCUser(Player player) {
         this.uuid = player.getUniqueId();
 
-        this.actionDelay = HashBasedTable.create();
+        try {
+            this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));
+            this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
+            this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player));
 
-        this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));
-        this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
+            this.actionDelay = HashBasedTable.create();
+            this.executor = r -> ServersNPC.SCHEDULER.scheduleSyncDelayedTask(r, 2);
 
-        this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player));
-
-        this.executor = r -> this.serversNPC.getServer().getScheduler().scheduleSyncDelayedTask(serversNPC, r, 2);
-
-        this.injectNetty();
+            this.injectNetty();
+        } catch (IllegalAccessException | InvocationTargetException operationException) {
+            throw new AssertionError(operationException);
+        }
     }
 
     /**
@@ -140,6 +141,30 @@ public class ZNPCUser {
      */
     public Player toPlayer() {
         return Bukkit.getPlayer(uuid);
+    }
+
+    /**
+     * Returns the user instance for the given player.
+     *
+     * @param player The player to add/find.
+     * @return The user instance for the given player.
+     */
+    public static ZNPCUser registerOrGet(Player player) {
+        return USER_MAP.computeIfAbsent(player.getUniqueId(), u -> new ZNPCUser(player));
+    }
+
+    /**
+     * Finds and unregister the user for the given uuid.
+     *
+     * @param uuid The player uuid.
+     */
+    public static void unregister(UUID uuid) {
+        ZNPCUser znpcUser = USER_MAP.get(uuid);
+        if (znpcUser == null)
+            return;
+
+        znpcUser.ejectNetty();
+        USER_MAP.remove(uuid);
     }
 
     /**

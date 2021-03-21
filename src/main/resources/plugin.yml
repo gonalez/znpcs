@@ -3,6 +3,3 @@ main: ak.znetwork.znpcservers.ServersNPC
 version: ${project.version}
 api-version: 1.13
 softdepend: [ PlaceholderAPI ]
-
-commands:
-  znpcs:

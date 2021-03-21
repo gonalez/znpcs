@@ -87,10 +87,12 @@ public class ZNConfig implements ZNConfigImpl {
 
         try (BufferedReader reader = Files.newBufferedReader(path, CHARSET)) {
             JsonElement data = JSON_PARSER.parse(reader);
-            if (data == null) return;
+            if (data == null)
+                return;
 
             for (ZNConfigValue znConfigValue : ZNConfigValue.values()) {
-                if (znConfigValue.getConfigType() != configType) continue;
+                if (znConfigValue.getConfigType() != configType)
+                    continue;
 
                 JsonElement jsonElement = configValues.size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
                 if (jsonElement != null && !jsonElement.isJsonNull())
