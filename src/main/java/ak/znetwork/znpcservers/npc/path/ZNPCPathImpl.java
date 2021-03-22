@@ -80,7 +80,7 @@ public interface ZNPCPathImpl {
         ZLocation getLocation();
 
         /**
-         * {@inheritDoc}
+         * An abstract implementation of a {@link ZNPCPath}
          */
         abstract class AbstractPath implements ZNPCPathImpl.ZNPCPath {
 
@@ -195,7 +195,7 @@ public interface ZNPCPathImpl {
     }
 
     /**
-     * {@inheritDoc}
+     * An abstract implementation of a {@link ZNPCPathImpl}
      */
     abstract class AbstractTypeWriter implements ZNPCPathImpl {
 
@@ -225,7 +225,7 @@ public interface ZNPCPathImpl {
         private final List<ZLocation> locationList;
 
         /**
-         * Creates a new path for the given path file.
+         * Creates a new type path for the given path file.
          *
          * @param file The path File.
          */
@@ -235,7 +235,7 @@ public interface ZNPCPathImpl {
         }
 
         /**
-         * Creates a new path for the given path name.
+         * Creates a new type path for the given path name.
          *
          * @param pathName The path name.
          */
@@ -343,18 +343,23 @@ public interface ZNPCPathImpl {
             private BukkitTask bukkitTask;
 
             /**
-             * {@inheritDoc}
+             * Creates a new path for the given file.
+             *
+             * @param file The file.
              */
             public TypeMovement(File file) {
                 super(file);
             }
 
             /**
-             * {@inheritDoc}
+             * Creates a new type path for the given file name.
+             *
+             * @param fileName The file name.
+             * @param npcUser  The player that is creating the path.
              */
-            public TypeMovement(String pathName,
+            public TypeMovement(String fileName,
                                 ZNPCUser npcUser) {
-                super(pathName);
+                super(fileName);
                 this.npcUser = npcUser;
 
                 // Start path task
@@ -438,7 +443,7 @@ public interface ZNPCPathImpl {
             }
 
             /**
-             * Checks if a location can be added to path.
+             * Returns if the location can be added to the path.
              *
              * @param location The location to add.
              * @return {@code true} If location can be added.

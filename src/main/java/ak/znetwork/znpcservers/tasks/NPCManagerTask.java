@@ -3,11 +3,10 @@ package ak.znetwork.znpcservers.tasks;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.types.ConfigTypes;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.Optional;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
