@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
@@ -136,13 +137,15 @@ public class ZNPCUser {
      * @return The user instance for the given player.
      */
     public static ZNPCUser registerOrGet(Player player) {
-        return USER_MAP.computeIfAbsent(player.getUniqueId(), u -> {
-            try {
-                return new ZNPCUser(player);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new IllegalStateException("Cannot register player " + player.getName());
-            }
-        });
+        ZNPCUser findUser = USER_MAP.get(player.getUniqueId());
+        if (findUser != null)
+            return findUser;
+
+        try {
+            return USER_MAP.put(player.getUniqueId(), new ZNPCUser(player));
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new IllegalStateException("Cannot register player " + player.getName());
+        }
     }
 
     /**
