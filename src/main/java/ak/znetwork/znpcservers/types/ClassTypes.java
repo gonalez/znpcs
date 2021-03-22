@@ -3,7 +3,9 @@ package ak.znetwork.znpcservers.types;
 import ak.znetwork.znpcservers.cache.builder.ClassCacheBuilder;
 import ak.znetwork.znpcservers.cache.enums.PackageType;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
+
 import com.mojang.authlib.GameProfile;
+
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Constructor;
@@ -12,8 +14,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
- * Contains the constants for cache classes.
- *
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
@@ -27,7 +27,7 @@ public class ClassTypes {
     public static final Class<?> PACKET_PLAY_IN_USE_ENTITY_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayInUseEntity")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -35,7 +35,7 @@ public class ClassTypes {
     public static final Class<?> PACKET_PLAY_OUT_ENTITY_EQUIPMENT = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityEquipment")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -43,7 +43,7 @@ public class ClassTypes {
     public static final Class<?> ENUM_PLAYER_INFO_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutPlayerInfo$EnumPlayerInfoAction")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -51,7 +51,7 @@ public class ClassTypes {
     public static final Class<?> PACKET_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("Packet")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -59,7 +59,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("Entity")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -67,7 +67,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_LIVING = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityLiving")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -75,7 +75,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_PLAYER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPlayer")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -83,7 +83,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ARMOR_STAND_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityArmorStand")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -91,7 +91,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_BAT_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityBat")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -99,7 +99,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_BLAZE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityBlaze")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -107,7 +107,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_CAVE_SPIDER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityCaveSpider")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -115,7 +115,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_CHICKEN_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityChicken")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -123,7 +123,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_COW_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityCow")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -131,7 +131,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_CREEPER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityCreeper")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -139,7 +139,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ENDER_DRAGON_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityEnderDragon")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -147,7 +147,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ENDERMAN_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityEnderman")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -155,7 +155,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_HUMAN_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityHuman")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -163,7 +163,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ENDER_CRYSTAL_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityEnderCrystal")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -171,7 +171,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ENDERMITE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityEndermite")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -179,7 +179,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_GHAST_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityGhast")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -187,7 +187,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_IRON_GOLEM_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityIronGolem")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -195,7 +195,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_GIANT_ZOMBIE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityGiantZombie")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -203,7 +203,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_GUARDIAN_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityGuardian")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -211,7 +211,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_HORSE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityHorse")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -219,7 +219,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_LLAMA_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityLlama")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -227,7 +227,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_MAGMA_CUBE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityMagmaCube")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -235,7 +235,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_MUSHROOM_COW_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityMushroomCow")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -243,7 +243,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_OCELOT_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityOcelot")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -251,7 +251,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_PARROT_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityParrot")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -259,7 +259,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_PIG_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPig")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -267,7 +267,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_RABBIT_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityRabbit")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -275,7 +275,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_PIG_ZOMBIE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPigZombie")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -283,7 +283,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_POLAR_BEAR_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPolarBear")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -291,7 +291,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_PANDA_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPanda")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -299,7 +299,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SHEEP_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySheep")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -307,7 +307,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SNOWMAN_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySnowman")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -315,7 +315,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SHULKER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityShulker")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -323,7 +323,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SILVERFISH_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySilverfish")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -331,7 +331,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SKELETON_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySkeleton")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -339,7 +339,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SLIME_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySlime")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -347,7 +347,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SPIDER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySpider")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -355,7 +355,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_SQUID_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntitySquid")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -363,7 +363,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_VILLAGER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityVillager")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -371,7 +371,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_WITCH_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityWitch")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -379,7 +379,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_WITHER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityWither")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -387,7 +387,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_ZOMBIE_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityZombie")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -395,7 +395,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_WOLF_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityWolf")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -403,7 +403,7 @@ public class ClassTypes {
     public static final Class<?> ENTITY_TYPES_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityTypes")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -411,7 +411,7 @@ public class ClassTypes {
     public static final Class<?> ENUM_CHAT_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -419,7 +419,7 @@ public class ClassTypes {
     public static final Class<?> ENUM_ITEM_SLOT = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumItemSlot")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -427,7 +427,7 @@ public class ClassTypes {
     public static final Class<?> I_CHAT_BASE_COMPONENT = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("IChatBaseComponent")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -435,7 +435,7 @@ public class ClassTypes {
     public static final Class<?> ITEM_STACK_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("ItemStack")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -443,7 +443,7 @@ public class ClassTypes {
     public static final Class<?> DATA_WATCHER_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("DataWatcher")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -451,7 +451,7 @@ public class ClassTypes {
     public static final Class<?> DATA_WATCHER_OBJECT = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("DataWatcherObject")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -459,7 +459,7 @@ public class ClassTypes {
     public static final Class<?> DATA_WATCHER_SERIALIZER = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("DataWatcherSerializer")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -467,7 +467,7 @@ public class ClassTypes {
     public static final Class<?> WORLD_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("World")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -475,7 +475,7 @@ public class ClassTypes {
     public static final Class<?> CRAFT_ITEM_STACK_CLASS = new ClassCacheImpl.Default.ClassLoader(new ClassCacheBuilder().
             packageType(PackageType.CRAFT_BUKKIT).
             className("inventory.CraftItemStack")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -508,7 +508,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPlayer").
             parameterTypes(MINECRAFT_SERVER_CLASS, WORLD_SERVER_CLASS, GameProfile.class, PLAYER_INTERACT_MANAGER_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -517,7 +517,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutPlayerInfo").
             parameterTypes(ENUM_PLAYER_INFO_CLASS, Iterable.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -526,7 +526,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntity$PacketPlayOutEntityLook").
             parameterTypes(int.class, byte.class, byte.class, boolean.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -535,7 +535,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityHeadRotation").
             parameterTypes(ClassTypes.ENTITY_CLASS, byte.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -544,7 +544,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityTeleport").
             parameterTypes(ENTITY_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -553,7 +553,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityMetadata").
             parameterTypes(int.class, ClassTypes.DATA_WATCHER_CLASS, boolean.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -562,7 +562,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutNamedEntitySpawn").
             parameterTypes(ENTITY_HUMAN_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -571,7 +571,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityDestroy").
             parameterTypes(int[].class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -580,7 +580,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutSpawnEntityLiving").
             parameterTypes(ENTITY_LIVING)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -589,7 +589,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PlayerInteractManager").
             parameterTypes(WORLD_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -606,7 +606,7 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR = new ClassCacheImpl.Default.ConstructorLoader(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutScoreboardTeam")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -615,7 +615,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityEquipment").
             parameterTypes(int.class, int.class, ClassTypes.ITEM_STACK_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -624,7 +624,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityEquipment").
             parameterTypes(int.class, ClassTypes.ENUM_ITEM_SLOT, ClassTypes.ITEM_STACK_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -642,7 +642,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutEntityEquipment").
             parameterTypes(int.class, List.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -651,7 +651,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityArmorStand").
             parameterTypes(ClassTypes.WORLD_CLASS, double.class, double.class, double.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -660,7 +660,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("DataWatcherObject").
             parameterTypes(int.class, DATA_WATCHER_SERIALIZER)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -670,7 +670,7 @@ public class ClassTypes {
             className("inventory.CraftItemStack").
             methodName("asNMSCopy").
             parameterTypes(ItemStack.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -679,7 +679,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityHuman").
             methodName("getProfile")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -688,7 +688,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("Entity").
             methodName("getId")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -697,7 +697,7 @@ public class ClassTypes {
             packageType(PackageType.CRAFT_BUKKIT).
             className("entity.CraftPlayer").
             methodName("getHandle")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -706,7 +706,7 @@ public class ClassTypes {
             packageType(PackageType.CRAFT_BUKKIT).
             className("CraftWorld").
             methodName("getHandle")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -715,7 +715,7 @@ public class ClassTypes {
             packageType(PackageType.CRAFT_BUKKIT).
             className("CraftServer").
             methodName("getServer")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -725,7 +725,7 @@ public class ClassTypes {
             className("PlayerConnection").
             methodName("sendPacket").
             parameterTypes(PACKET_CLASS)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -735,7 +735,7 @@ public class ClassTypes {
             className("Entity").
             methodName("setCustomName").
             parameterTypes(String.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -745,7 +745,7 @@ public class ClassTypes {
             className("Entity").
             methodName("setCustomName").
             parameterTypes(I_CHAT_BASE_COMPONENT)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -755,7 +755,7 @@ public class ClassTypes {
             className("Entity").
             methodName("setCustomNameVisible").
             parameterTypes(boolean.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -765,7 +765,7 @@ public class ClassTypes {
             className("EntityArmorStand").
             methodName("setInvisible").
             parameterTypes(boolean.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -775,7 +775,7 @@ public class ClassTypes {
             className("Entity").
             methodName("setPositionRotation").
             parameterTypes(double.class, double.class, double.class, float.class, float.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -785,7 +785,7 @@ public class ClassTypes {
             className("DataWatcher").
             methodName("set").
             parameterTypes(DATA_WATCHER_OBJECT, Object.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -795,7 +795,7 @@ public class ClassTypes {
             className("DataWatcher").
             methodName("watch").
             parameterTypes(int.class, Object.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -804,7 +804,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("Entity").
             methodName("getDataWatcher")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -813,7 +813,7 @@ public class ClassTypes {
             className("EnumChatFormat").
             methodName("c").
             parameterTypes(String.class)).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -822,7 +822,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat").
             methodName("b")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -831,7 +831,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat").
             methodName("toString")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -840,7 +840,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("DataWatcherRegistry").
             fieldName("a")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -849,7 +849,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutPlayerInfo$EnumPlayerInfoAction").
             fieldName("ADD_PLAYER")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -858,7 +858,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayOutPlayerInfo$EnumPlayerInfoAction").
             fieldName("REMOVE_PLAYER")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -867,7 +867,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("EntityPlayer").
             fieldName("playerConnection")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -876,7 +876,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PlayerConnection").
             fieldName("networkManager")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -885,7 +885,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("NetworkManager").
             fieldName("channel")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -894,7 +894,7 @@ public class ClassTypes {
             packageType(PackageType.MINECRAFT_SERVER).
             className("PacketPlayInUseEntity").
             fieldName("a")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -903,7 +903,7 @@ public class ClassTypes {
             packageType(PackageType.CRAFT_BUKKIT).
             className("CraftServer").
             fieldName("commandMap")).
-    typeOf();
+            typeOf();
 
     /**
      * {@inheritDoc}
@@ -911,5 +911,5 @@ public class ClassTypes {
     private static final Object ENUM_CHAT_FORMAT = new ClassCacheImpl.Default.MultipleLoad(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat")).
-    typeOf();
+            typeOf();
 }
