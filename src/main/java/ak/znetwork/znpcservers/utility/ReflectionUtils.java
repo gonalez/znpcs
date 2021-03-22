@@ -44,7 +44,7 @@ public class ReflectionUtils {
     }
 
     /**
-     * Gets current bukkit version.
+     * Returns current bukkit version.
      *
      * @return The bukkit version name.
      */
@@ -53,7 +53,7 @@ public class ReflectionUtils {
     }
 
     /**
-     * Gets friendly current bukkit name version.
+     * Returns friendly current bukkit name version.
      *
      * @return The bukkit friendly version name.
      */

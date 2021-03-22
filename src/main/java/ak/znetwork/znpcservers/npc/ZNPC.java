@@ -16,13 +16,11 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.datafixers.util.Pair;
 
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -239,7 +237,7 @@ public class ZNPC {
         this.loadCustomization();
 
         if (getPathName() != null)
-            this.setPath(AbstractZNPCPath.find(getPathName()));
+            this.setPath(AbstractTypeWriter.find(getPathName()));
     }
 
     /**
@@ -543,7 +541,7 @@ public class ZNPC {
     }
 
     /**
-     * Gets the game-profile for player.
+     * Returns the game-profile for player.
      *
      * @param player The player.
      * @return       The player game-profile.
@@ -644,24 +642,25 @@ public class ZNPC {
     /**
      * Sets a new path for the npc.
      *
-     * @param pathReader The new path.
+     * @param typeWriter The new path.
      */
-    public void setPath(AbstractZNPCPath pathReader) {
-        if (pathReader == null) {
+    public void setPath(AbstractTypeWriter typeWriter) {
+        if (typeWriter == null) {
             setNpcPath(null);
             setPathName(DEFAULT_PATH);
         } else {
-            setNpcPath(new ZNPCPath(pathReader));
+            setNpcPath(typeWriter.getPath(this));
+            setPathName(typeWriter.getName());
         }
     }
 
     /**
-     * Gets the current location of the npc.
+     * Returns the current location of the npc.
      *
      * @return The npc location.
      */
     public Location getLocation() {
-        return getNpcPath() != null ? getNpcPath().getCurrentPathLocation().toBukkitLocation() : location.toBukkitLocation();
+        return getNpcPath() != null ? getNpcPath().getLocation().toBukkitLocation() : location.toBukkitLocation();
     }
 
     /**
@@ -678,6 +677,15 @@ public class ZNPC {
             // Return default glow-color
             return getGlowColor(GLOW_COLOR);
         }
+    }
+
+    /**
+     * Returns the path for the npc.
+     *
+     * @return The npc path.
+     */
+    public ZNPCPath getNpcPath() {
+        return npcPath;
     }
 
     /**
@@ -701,75 +709,6 @@ public class ZNPC {
                     LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + getId(), entry.getKey()));
                 }
             }
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Getter
-    public class ZNPCPath {
-
-        /**
-         * The npc path.
-         */
-        private final AbstractZNPCPath pathAbstract;
-
-        /**
-         * The current path location.
-         */
-        private ZLocation currentPathLocation;
-
-        /**
-         * The current path location.
-         */
-        private int currentEntryPath = 0;
-
-        /**
-         * Determines if path is running backwards or forwards.
-         */
-        private boolean pathReverse = false;
-
-        public ZNPCPath(AbstractZNPCPath pathAbstract) {
-            this.pathAbstract = pathAbstract;
-
-            setPathName(this.pathAbstract != null ? this.pathAbstract.getName() : DEFAULT_PATH);
-        }
-
-        /**
-         * Resolves the current npc path.
-         */
-        public void handlePath() {
-            final int currentEntry = currentEntryPath;
-
-            if (isReversePath()) {
-                if (currentEntry <= 0) pathReverse = false;
-                else if (currentEntry >= getPathAbstract().getLocationList().size() - 1) pathReverse = true;
-            }
-
-            currentPathLocation = (getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, currentEntry)));
-
-            if (!isPathReverse()) currentEntryPath = currentEntry + 1;
-            else currentEntryPath = currentEntry - 1;
-
-            updatePathLocation(currentPathLocation);
-        }
-
-        /**
-         * Updates the new npc location according to current path index.
-         *
-         * @param location The npc path location.
-         */
-        public void updatePathLocation(ZLocation location) {
-            int pathIndex = getPathAbstract().getLocationList().indexOf(currentPathLocation);
-
-            Vector vector = (isPathReverse() ? getPathAbstract().getLocationList().get(Math.max(0, Math.min(getPathAbstract().getLocationList().size() - 1, pathIndex + 1))) : getPathAbstract().getLocationList().get(Math.min(getPathAbstract().getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toBukkitLocation().toVector();
-            double yDiff = (location.getY() - vector.getY());
-
-            Location direction = currentPathLocation.toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
-
-            setLocation(direction);
-            lookAt(null, direction, true);
         }
     }
 }

@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
+import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractTypeWriter.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -499,7 +499,7 @@ public class DefaultCommand extends ZNCommand {
 
             String pathName = args.get("path");
 
-            foundNPC.setPath(AbstractZNPCPath.find(pathName));
+            foundNPC.setPath(AbstractTypeWriter.find(pathName));
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("create")) {
@@ -510,7 +510,7 @@ public class DefaultCommand extends ZNCommand {
                 return;
             }
 
-            boolean exists = AbstractZNPCPath.find(pathName) != null;
+            boolean exists = AbstractTypeWriter.find(pathName) != null;
 
             if (exists) {
                 sender.getPlayer().sendMessage(ChatColor.RED + "There is already a path with this name.");
@@ -523,16 +523,16 @@ public class DefaultCommand extends ZNCommand {
                 return;
             }
 
-            new ZNPCMovementPath(pathName, znpcUser);
+            new TypeMovement(pathName, znpcUser);
             sender.getPlayer().sendMessage(ChatColor.GREEN + "Done, now walk where you want the npc to, when u finish type /znpcs path -exit");
         } else if (args.containsKey("exit")) {
             znpcUser.setHasPath(false);
 
             sender.getPlayer().sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
         } else if (args.containsKey("list")) {
-            if (AbstractZNPCPath.getPaths().isEmpty())
+            if (AbstractTypeWriter.getPaths().isEmpty())
                 sender.getPlayer().sendMessage(ChatColor.RED + "No PATH found!");
-            else AbstractZNPCPath.getPaths().forEach(path -> sender.getPlayer().sendMessage(ChatColor.GREEN + path.getName()));
+            else AbstractTypeWriter.getPaths().forEach(path -> sender.getPlayer().sendMessage(ChatColor.GREEN + path.getName()));
         }
     }
 

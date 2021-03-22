@@ -38,7 +38,8 @@ public final class NPCManagerTask extends BukkitRunnable {
     public void run() {
         for (ZNPC npc : ConfigTypes.NPC_LIST) {
             if (npc.getNpcPath() != null) {
-                npc.getNpcPath().handlePath();
+                // Handle path
+                npc.getNpcPath().handle();
             }
 
             for (Player player : Bukkit.getOnlinePlayers()) {

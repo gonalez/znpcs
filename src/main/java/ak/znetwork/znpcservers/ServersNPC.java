@@ -23,14 +23,11 @@ import com.google.gson.GsonBuilder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
-import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractZNPCPath.*;
+import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractTypeWriter.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -142,7 +139,7 @@ public class ServersNPC extends JavaPlugin {
         for (File file : listFiles) {
             // Check if file is path
             if (file.getName().endsWith(".path")) {
-                ZNPCMovementPath pathAbstract = new ZNPCMovementPath(file);
+                TypeMovement pathAbstract = new TypeMovement(file);
                 // Load path..
                 pathAbstract.load();
             }

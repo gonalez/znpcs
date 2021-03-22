@@ -34,7 +34,7 @@ public interface ZNConfigImpl {
     void save() throws IOException;
 
     /**
-     * Gets the value from the configuration.
+     * Returns the value for the config value.
      */
     <T> T getValue(ZNConfigValue znConfigValue);
 }

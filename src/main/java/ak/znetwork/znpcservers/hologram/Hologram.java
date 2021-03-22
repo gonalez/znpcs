@@ -195,7 +195,7 @@ public class Hologram {
     }
 
     /**
-     * Gets the hologram lines separated.
+     * Returns the hologram lines separated.
      *
      * @return The hologram lines separated.
      */
@@ -204,7 +204,7 @@ public class Hologram {
     }
 
     /**
-     * Gets new hologram line for newer versions.
+     * Returns new hologram line for newer versions.
      *
      * @return The new hologram line.
      */

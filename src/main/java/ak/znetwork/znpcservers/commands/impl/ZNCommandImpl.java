@@ -59,7 +59,7 @@ public interface ZNCommandImpl {
         }
 
         /**
-         * Gets the command sender as player.
+         * Returns the command sender as player.
          *
          * If the sender command is not represented by Player.class,
          * The method will throw an IllegalStateException.
@@ -74,7 +74,7 @@ public interface ZNCommandImpl {
         }
 
         /**
-         * Gets the command sender.
+         * Returns the command sender.
          *
          * @return The command sender
          */

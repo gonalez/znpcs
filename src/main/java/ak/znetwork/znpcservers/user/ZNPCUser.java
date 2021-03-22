@@ -46,7 +46,7 @@ public class ZNPCUser {
     /**
      * The default wait time between each npc interact.
      */
-    private static int DEFAULT_DELAY = 2;
+    private static int DEFAULT_DELAY = 1;
 
     /**
      * A map containing the saved users.
@@ -54,24 +54,14 @@ public class ZNPCUser {
     private static final Map<UUID, ZNPCUser> USER_MAP = new HashMap<>();
 
     /**
-     * The player network manager.
-     */
-    private final Object networkManager;
-
-    /**
      * The player channel.
      */
     private final Channel channel;
 
     /**
-     * The executor to delegate interaction work of a npc.
+     * A map of cooldowns for each interacted NPC.
      */
-    private final Executor executor;
-
-    /**
-     * A collection of cooldowns for each interacted NPC.
-     */
-    private final HashBasedTable<Integer, Long, Integer> actionDelay;
+    private final Map<Integer, Long> actionDelay;
 
     /**
      * The player uuid.
@@ -98,21 +88,17 @@ public class ZNPCUser {
      *
      * @param player The player.
      */
-    public ZNPCUser(Player player) {
+    public ZNPCUser(Player player) throws InvocationTargetException, IllegalAccessException {
         this.uuid = player.getUniqueId();
 
-        try {
-            this.networkManager = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player)));
-            this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(networkManager);
-            this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player));
+        final Object playerHandle = ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player);
+        final Object playerNetwork = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(playerHandle));
 
-            this.actionDelay = HashBasedTable.create();
-            this.executor = r -> ServersNPC.SCHEDULER.scheduleSyncDelayedTask(r, 2);
+        this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(playerNetwork);
+        this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(playerHandle);
 
-            this.injectNetty();
-        } catch (IllegalAccessException | InvocationTargetException operationException) {
-            throw new AssertionError(operationException);
-        }
+        this.actionDelay = new HashMap<>();
+        this.injectNetty();
     }
 
     /**
@@ -135,7 +121,7 @@ public class ZNPCUser {
     }
 
     /**
-     * Gets player by user uuid.
+     * Returns player by user uuid.
      *
      * @return The player.
      */
@@ -150,7 +136,13 @@ public class ZNPCUser {
      * @return The user instance for the given player.
      */
     public static ZNPCUser registerOrGet(Player player) {
-        return USER_MAP.computeIfAbsent(player.getUniqueId(), u -> new ZNPCUser(player));
+        return USER_MAP.computeIfAbsent(player.getUniqueId(), u -> {
+            try {
+                return new ZNPCUser(player);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new IllegalStateException("Cannot register player " + player.getName());
+            }
+        });
     }
 
     /**
@@ -192,7 +184,7 @@ public class ZNPCUser {
                     return;
 
                 // The clicked entity id
-                int entityId = (int) ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.get(packet);
+                int entityId = ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.getInt(packet);
 
                 // Try find npc
                 ZNPC znpc = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
@@ -201,7 +193,7 @@ public class ZNPCUser {
 
                 lastInteract = System.currentTimeMillis();
 
-                executor.execute(() -> {
+                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
                     // Call NPC interact event
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), znpc));
 
@@ -211,25 +203,30 @@ public class ZNPCUser {
                     for (String string : znpc.getActions()) {
                         String[] actions = string.split(":");
 
-                        // Get npc action type
-                        NPCAction npcAction = NPCAction.valueOf(actions[0]);
-
-                        String actionValue = actions[1];
-                        // Run action for the provided actionValue
-                        npcAction.run(ZNPCUser.this, Utils.PLACEHOLDER_SUPPORT ?
-                                PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :
-                                actionValue
-                        );
-
                         // Check for action cooldown
                         if (actions.length > 2) {
                             int actionId = znpc.getActions().indexOf(string);
 
+                            int actionCooldown = Integer.parseInt(actions[actions.length - 1]);
+                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * actionCooldown)
+                                return;
+
                             // Set new action cooldown for user
-                            actionDelay.put(actionId, System.currentTimeMillis(), Integer.parseInt(actions[actions.length - 1]));
+                            actionDelay.put(actionId, System.currentTimeMillis());
                         }
+
+                        // Get npc action type
+                        NPCAction npcAction = NPCAction.valueOf(actions[0]);
+
+                        // Run action for the provided actionValue
+                        String actionValue = actions[1];
+
+                        npcAction.run(ZNPCUser.this, Utils.PLACEHOLDER_SUPPORT ?
+                                PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :
+                                actionValue
+                        );
                     }
-                });
+                }, DEFAULT_DELAY);
             }
         }
     }

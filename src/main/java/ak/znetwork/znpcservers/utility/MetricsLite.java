@@ -176,7 +176,7 @@ public class MetricsLite {
     }
 
     /**
-     * Gets the plugin specific data.
+     * Returns the plugin specific data.
      * This method is called using Reflection.
      *
      * @return The plugin specific data.
@@ -196,7 +196,7 @@ public class MetricsLite {
     }
 
     /**
-     * Gets the server specific data.
+     * Returns the server specific data.
      *
      * @return The server specific data.
      */

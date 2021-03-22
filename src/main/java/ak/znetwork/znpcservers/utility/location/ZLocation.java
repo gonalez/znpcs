@@ -73,7 +73,7 @@ public class ZLocation {
     }
 
     /**
-     * Gets the bukkit location.
+     * Returns the bukkit location.
      *
      * @return The bukkit-location.
      */

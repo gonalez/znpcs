@@ -75,7 +75,7 @@ public class SkinFetcher implements SkinFetcherImpl {
     }
 
     /**
-     * Gets the api server response.
+     * Returns the api server response.
      *
      * @return The http response.
      */
@@ -125,7 +125,7 @@ public class SkinFetcher implements SkinFetcherImpl {
     }
 
     /**
-     * Gets real data for skin api.
+     * Returns real data for skin api.
      *
      * @return The data for skin api.
      */
