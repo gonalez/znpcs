@@ -73,14 +73,14 @@ public class DefaultCommand extends ZNCommand {
         boolean foundNPC = ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id);
 
         if (foundNPC) {
-            sender.sendMessage(ChatColor.RED + "I have found an npc with this id, try putting a unique id..");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_FOUND);
             return;
         }
 
         String name = args.get("name");
 
         if (name.length() < 3 || name.length() > 16) {
-            sender.sendMessage(ChatColor.RED + "The name is too short or long, it must be in the range of (3 to 16) characters.");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NAME_LENGTH);
             return;
         }
 
@@ -128,7 +128,7 @@ public class DefaultCommand extends ZNCommand {
     @ZNCommandSub(aliases = {}, name = "list", permission = "znpcs.cmd.list")
     public void list(ZNCommandSender sender, Map<String, String> args) {
         if (ConfigTypes.NPC_LIST.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + "No NPC found.");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NO_NPC_FOUND);
         } else
             ConfigTypes.NPC_LIST.forEach(npc -> sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getTextFormatted(npc.getHologram().getLines()) + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)"));
     }
@@ -155,7 +155,6 @@ public class DefaultCommand extends ZNCommand {
         }
 
         String skin = args.get("skin");
-
         foundNPC.changeSkin(ZNPCSkin.forName(skin));
 
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
@@ -289,7 +288,7 @@ public class DefaultCommand extends ZNCommand {
         NPCType npcType = NPCType.valueOf(args.get("type").toUpperCase());
 
         if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
-            sender.sendMessage(ChatColor.RED + "NPC type not available for your current version.");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.UNSUPPORTED_ENTITY);
             return;
         }
 
@@ -343,8 +342,9 @@ public class DefaultCommand extends ZNCommand {
             } else {
                 boolean found = (!foundNPC.getActions().isEmpty() && (foundNPC.getActions().size() - 1) >= actionId);
 
-                if (!found) sender.sendMessage(ChatColor.RED + "The action (" + actionId + ") was not found.");
-                else {
+                if (!found) {
+                    sender.sendMessage(ChatColor.RED + "The action (" + actionId + ") was not found.");
+                } else {
                     foundNPC.getActions().remove(actionId.intValue());
                     ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
                 }
@@ -445,7 +445,7 @@ public class DefaultCommand extends ZNCommand {
             Method method = npcType.getCustomizationMethods().get(methodName);
 
             if ((value.length) - 1 < method.getParameterTypes().length) {
-                sender.sendMessage(ChatColor.RED + "Too few arguments");
+                ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.TOO_FEW_ARGUMENTS);
                 return;
             }
 
@@ -506,14 +506,14 @@ public class DefaultCommand extends ZNCommand {
             String pathName = args.get("create");
 
             if (pathName.length() < 3 || pathName.length() > 16) {
-                sender.sendMessage(ChatColor.RED + "The path name is too short or long, it must be in the range of (3 to 16) characters.");
+                ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NAME_LENGTH);
                 return;
             }
 
             boolean exists = AbstractTypeWriter.find(pathName) != null;
 
             if (exists) {
-                sender.getPlayer().sendMessage(ChatColor.RED + "There is already a path with this name.");
+                ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.PATH_FOUND);
                 return;
             }
 
@@ -524,14 +524,14 @@ public class DefaultCommand extends ZNCommand {
             }
 
             new TypeMovement(pathName, znpcUser);
-            sender.getPlayer().sendMessage(ChatColor.GREEN + "Done, now walk where you want the npc to, when u finish type /znpcs path -exit");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.START_PATH);
         } else if (args.containsKey("exit")) {
             znpcUser.setHasPath(false);
 
-            sender.getPlayer().sendMessage(ChatColor.RED + "You have exited the waypoint creation.");
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.EXIT_PATH);;
         } else if (args.containsKey("list")) {
             if (AbstractTypeWriter.getPaths().isEmpty())
-                sender.getPlayer().sendMessage(ChatColor.RED + "No PATH found!");
+                ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NO_PATH_FOUND);
             else AbstractTypeWriter.getPaths().forEach(path -> sender.getPlayer().sendMessage(ChatColor.GREEN + path.getName()));
         }
     }

@@ -189,7 +189,7 @@ public interface ClassCacheImpl {
          *
          * @return The loaded class type.
          */
-        protected abstract Object onLoad() throws Throwable;
+        protected abstract Object onLoad() throws Exception;
 
         /**
          * Initializes and loads the given class.
@@ -222,12 +222,8 @@ public interface ClassCacheImpl {
             }
 
             @Override
-            protected Method onLoad() {
-                try {
-                    return BUILDER_CLASS.getDeclaredMethod(getMethodName(), getParameterTypes());
-                } catch (NoSuchMethodException e) {
-                    throw new IllegalStateException("Cannot find method " + getMethodName());
-                }
+            protected Method onLoad() throws NoSuchMethodException {
+                return BUILDER_CLASS.getDeclaredMethod(getMethodName(), getParameterTypes());
             }
         }
 
@@ -244,14 +240,10 @@ public interface ClassCacheImpl {
             }
 
             @Override
-            protected Field onLoad() {
-                try {
-                    Field field = BUILDER_CLASS.getDeclaredField(getFieldName());
-                    field.setAccessible(true);
-                    return field;
-                } catch (NoSuchFieldException e) {
-                    throw new IllegalStateException("Cannot find field " + getFieldName());
-                }
+            protected Field onLoad() throws NoSuchFieldException {
+                Field field = BUILDER_CLASS.getDeclaredField(getFieldName());
+                field.setAccessible(true);
+                return field;
             }
         }
 
@@ -268,12 +260,8 @@ public interface ClassCacheImpl {
             }
 
             @Override
-            protected Constructor<?> onLoad() {
-                try {
-                    return BUILDER_CLASS.getDeclaredConstructor(getParameterTypes());
-                } catch (NoSuchMethodException e) {
-                    throw new IllegalStateException("Cannot find constructor for class " + getClassName());
-                }
+            protected Constructor<?> onLoad() throws NoSuchMethodException {
+                return BUILDER_CLASS.getDeclaredConstructor(getParameterTypes());
             }
         }
 
@@ -290,17 +278,13 @@ public interface ClassCacheImpl {
             }
 
             @Override
-            protected Field[] onLoad() {
+            protected Field[] onLoad() throws IllegalAccessException {
                 final Field[] fields = BUILDER_CLASS.getFields();
                 for (Field field : fields) {
                     if (!field.isEnumConstant())
                         continue;
 
-                    try {
-                        ClassCache.register(field.getName(), field.get(null), BUILDER_CLASS);
-                    } catch (IllegalAccessException e) {
-                        throw new IllegalStateException("Cannot load field " + field.getName());
-                    }
+                    ClassCache.register(field.getName(), field.get(null), BUILDER_CLASS);
                 }
                 return fields;
             }

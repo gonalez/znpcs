@@ -6,14 +6,13 @@ import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>

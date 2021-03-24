@@ -3,12 +3,7 @@ package ak.znetwork.znpcservers.configuration.enums;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-
-import lombok.Getter;
-
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -16,7 +11,6 @@ import lombok.Getter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public enum ZNConfigValue {
 
     // NPC
@@ -35,7 +29,16 @@ public enum ZNConfigValue {
     COMMAND_NOT_FOUND(ZNConfigType.MESSAGES, "&cThis command was not found.", String.class),
     COMMAND_ERROR(ZNConfigType.MESSAGES, "&cThere was an error executing the command, see the console for more information.", String.class),
     INVALID_NUMBER(ZNConfigType.MESSAGES, "&cHey!, The inserted number/id does not look like a number..", String.class),
-    NPC_NOT_FOUND(ZNConfigType.MESSAGES, "&cHey!, I couldnt find a npc with this id.", String.class);
+    NPC_NOT_FOUND(ZNConfigType.MESSAGES, "&cHey!, I couldnt find a npc with this id.", String.class),
+    TOO_FEW_ARGUMENTS(ZNConfigType.MESSAGES, "&cToo few arguments.", String.class),
+    START_PATH(ZNConfigType.MESSAGES, "&aDone, now walk where you want the npc to, when u finish type /znpcs path -exit.", String.class),
+    EXIT_PATH(ZNConfigType.MESSAGES, "&cYou have exited the waypoint creation.", String.class),
+    PATH_FOUND(ZNConfigType.MESSAGES, "&cThere is already a path with this name.", String.class),
+    NPC_FOUND(ZNConfigType.MESSAGES, "&cThere is already a npc with this id.", String.class),
+    NO_PATH_FOUND(ZNConfigType.MESSAGES, "&cNo path found.", String.class),
+    NO_NPC_FOUND(ZNConfigType.MESSAGES, "&cNo npc found.", String.class),
+    INVALID_NAME_LENGTH(ZNConfigType.MESSAGES, "&cThe name is too short or long, it must be in the range of (3 to 16) characters.", String.class),
+    UNSUPPORTED_ENTITY(ZNConfigType.MESSAGES, "&cEntity type not available for your current version.", String.class);
 
     /**
      * The configuration type.
@@ -65,5 +68,33 @@ public enum ZNConfigValue {
         this.configType = znConfigType;
         this.value = value;
         this.primitiveType = primitiveType;
+    }
+
+    /**
+     * Returns the configuration type.
+     *
+     * @return The configuration type.
+     */
+    public ZNConfigType getConfigType() {
+        return configType;
+    }
+
+
+    /**
+     * Returns the configuration value.
+     *
+     * @return The configuration value.
+     */
+    public Object getValue() {
+        return value;
+    }
+
+    /**
+     * Returns the configuration primitive type.
+     *
+     * @return The configuration primitive type.
+     */
+    public Class<?> getPrimitiveType() {
+        return primitiveType;
     }
 }
