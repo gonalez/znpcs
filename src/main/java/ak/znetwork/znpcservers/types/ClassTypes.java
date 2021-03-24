@@ -908,7 +908,7 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
-    private static final Object ENUM_CHAT_FORMAT = new ClassCacheImpl.Default.MultipleLoad(new ClassCacheBuilder().
+    private static final Field[] ENUM_CHAT_FORMAT = new ClassCacheImpl.Default.MultipleLoad(new ClassCacheBuilder().
             packageType(PackageType.MINECRAFT_SERVER).
             className("EnumChatFormat")).
             typeOf();
