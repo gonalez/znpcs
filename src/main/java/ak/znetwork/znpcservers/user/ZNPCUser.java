@@ -1,7 +1,6 @@
 package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
@@ -11,7 +10,6 @@ import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
-import com.google.common.collect.HashBasedTable;
 import com.mojang.authlib.GameProfile;
 
 import io.netty.channel.Channel;
@@ -26,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 import lombok.Data;
 
@@ -177,11 +174,6 @@ public class ZNPCUser {
             out.add(packet);
 
             if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
-                String useActionName = ReflectionUtils.getValue(packet, "action").toString();
-                // Only allow interact by right-click.
-                if (!useActionName.equalsIgnoreCase("INTERACT"))
-                    return;
-
                 // Check for interact wait time between npc
                 if (lastInteract > 0 && System.currentTimeMillis() - lastInteract <= 1000L * DEFAULT_DELAY)
                     return;
@@ -194,11 +186,12 @@ public class ZNPCUser {
                 if (znpc == null)
                     return;
 
+                String clickName = ReflectionUtils.getValue(packet, "action").toString();
                 lastInteract = System.currentTimeMillis();
 
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
                     // Call NPC interact event
-                    Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), znpc));
+                    Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), NPCInteractEvent.ClickType.forName(clickName), znpc));
 
                     if (znpc.getActions() == null || znpc.getActions().isEmpty())
                         return;

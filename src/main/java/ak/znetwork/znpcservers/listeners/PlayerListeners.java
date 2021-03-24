@@ -29,7 +29,6 @@ public class PlayerListeners implements Listener {
      */
     public PlayerListeners(ServersNPC serversNPC) {
         this.serversNPC = serversNPC;
-
         this.serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
     }
 

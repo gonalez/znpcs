@@ -490,9 +490,8 @@ public interface ZNPCPathImpl {
                 @Override
                 public void handle() {
                     final int currentEntry = currentEntryPath;
-                    final boolean reversePath = getNpc().isReversePath();;
 
-                    if (reversePath) {
+                    if (getNpc().isReversePath()) {
                         if (currentEntry <= 0) pathReverse = false;
                         else if (currentEntry >= getPath().getLocationList().size() - 1) pathReverse = true;
                     }

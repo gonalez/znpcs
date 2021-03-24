@@ -1,7 +1,5 @@
 package ak.znetwork.znpcservers.npc.enums;
 
-import lombok.Getter;
-
 /**
  * Determines a npc equipment place by the slot id.
  *
@@ -10,7 +8,6 @@ import lombok.Getter;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public enum NPCItemSlot {
 
     /**
@@ -63,5 +60,23 @@ public enum NPCItemSlot {
                 int slotNew) {
         this.slotOld = slotOld;
         this.slotNew = slotNew;
+    }
+
+    /**
+     * Returns the equipment id for newer versions.
+     *
+     * @return The equipment id for newer versions.
+     */
+    public int getSlotNew() {
+        return slotNew;
+    }
+
+    /**
+     * Returns The equipment id for oldest versions.
+     *
+     * @return The equipment id for oldest versions.
+     */
+    public int getSlotOld() {
+        return slotOld;
     }
 }
