@@ -32,8 +32,9 @@ public class NPCInteractEvent extends Event {
     private final ZNPC npc;
 
     /**
-     * @param player The player who clicked the npc.
-     * @param npc    The npc that was clicked.
+     * @param player    The player who clicked the npc.
+     * @param clickType The click type.
+     * @param npc       The npc that was clicked.
      */
     public NPCInteractEvent(Player player,
                             ClickType clickType,
@@ -88,6 +89,12 @@ public class NPCInteractEvent extends Event {
          */
         LEFT;
 
+        /**
+         * Locates a click type for the given action name.
+         *
+         * @param clickName The action name.
+         * @return The corresponding enum.
+         */
         public static ClickType forName(String clickName) {
             if (clickName.startsWith("INTERACT")) {
                 return RIGHT;
