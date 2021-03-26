@@ -129,7 +129,6 @@ public enum NPCType {
         this.id = id;
         this.holoHeight = holoHeight;
         this.customization = Arrays.asList(customization);
-
         this.customizationMethods = new HashMap<>();
     }
 
@@ -198,7 +197,7 @@ public enum NPCType {
      *
      * @param strings The array of strings to convert.
      * @param method  The customization method.
-     * @return        The converted array of primitive types.
+     * @return The converted array of primitive types.
      */
     public static Object[] arrayToPrimitive(String[] strings, Method method) {
         Class<?>[] methodParameterTypes = method.getParameterTypes();
@@ -220,9 +219,9 @@ public enum NPCType {
     /**
      * Change/updates the npc customization.
      *
-     * @param name       The method name.
-     * @param entity     The npc.
-     * @param values     The method values.
+     * @param name   The method name.
+     * @param entity The npc.
+     * @param values The method values.
      * @throws InvocationTargetException If method could not be invoked.
      */
     public void invokeMethod(String name, Object entity, Object[] values) throws InvocationTargetException, IllegalAccessException {
@@ -239,21 +238,15 @@ public enum NPCType {
     enum TypeProperty {
 
         STRING(String.class, String::toString),
-
         BOOLEAN(boolean.class, Boolean::parseBoolean),
-
         INT(int.class, Integer::parseInt),
-
         DOUBLE(double.class, Double::parseDouble),
-
         FLOAT(float.class, Float::parseFloat),
-
         SHORT(short.class, Short::parseShort),
-
         LONG(long.class, Long::parseLong);
 
         /**
-         * The primitive type
+         * The primitive type.
          */
         private final Class<?> primitiveType;
 

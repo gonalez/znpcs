@@ -3,8 +3,9 @@ package ak.znetwork.znpcservers.cache.builder;
 import ak.znetwork.znpcservers.cache.enums.PackageType;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
-import lombok.Getter;
 import org.apache.commons.lang.ArrayUtils;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>

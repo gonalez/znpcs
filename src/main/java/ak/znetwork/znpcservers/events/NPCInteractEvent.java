@@ -32,6 +32,8 @@ public class NPCInteractEvent extends Event {
     private final ZNPC npc;
 
     /**
+     * Creates a new interact event for a npc.
+     *
      * @param player    The player who clicked the npc.
      * @param clickType The click type.
      * @param npc       The npc that was clicked.
@@ -42,6 +44,19 @@ public class NPCInteractEvent extends Event {
         this.player = player;
         this.clickType = clickType;
         this.npc = npc;
+    }
+
+    /**
+     * Creates a new interact event for a npc.
+     *
+     * @param player    The player who clicked the npc.
+     * @param clickType The click type.
+     * @param npc       The npc that was clicked.
+     */
+    public NPCInteractEvent(Player player,
+                            String clickType,
+                            ZNPC npc) {
+        this(player, ClickType.forName(clickType), npc);
     }
 
     /**
@@ -92,16 +107,16 @@ public class NPCInteractEvent extends Event {
         /**
          * Locates a click type for the given action name.
          *
-         * @param clickName The action name.
+         * @param actionName The action name.
          * @return The corresponding enum.
          */
-        public static ClickType forName(String clickName) {
-            if (clickName.startsWith("INTERACT")) {
+        public static ClickType forName(String actionName) {
+            if (actionName.startsWith("INTERACT")) {
                 return RIGHT;
-            } else if (clickName.startsWith("ATTACK")) {
+            } else if (actionName.startsWith("ATTACK")) {
                 return LEFT;
             } else {
-                throw new IllegalArgumentException("Cannot find click type for " + clickName);
+                throw new IllegalArgumentException("Cannot find click type for " + actionName);
             }
         }
     }

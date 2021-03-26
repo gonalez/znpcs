@@ -5,7 +5,6 @@ import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
-import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -37,7 +36,7 @@ import lombok.Data;
 public class ZNPCUser {
 
     /**
-     * The name of the NPC Interact channel.
+     * The name of the NPC interact channel.
      */
     private static final String CHANNEL_NAME = "npc_interact";
 
@@ -52,11 +51,6 @@ public class ZNPCUser {
     private static final Map<UUID, ZNPCUser> USER_MAP = new HashMap<>();
 
     /**
-     * The player channel.
-     */
-    private final Channel channel;
-
-    /**
      * A map of cooldowns for each interacted NPC.
      */
     private final Map<Integer, Long> actionDelay;
@@ -67,9 +61,14 @@ public class ZNPCUser {
     private final UUID uuid;
 
     /**
+     * The player channel.
+     */
+    private Channel channel;
+
+    /**
      * The player game-profile.
      */
-    private final GameProfile gameProfile;
+    private GameProfile gameProfile;
 
     /**
      * Determines if player is creating a npc path.
@@ -82,40 +81,40 @@ public class ZNPCUser {
     private long lastInteract = 0;
 
     /**
-     * Creates a new USER Player.
+     * Creates a new user for the given uuid.
      *
-     * @param player The player.
+     * @param uuid The player uuid.
      */
-    public ZNPCUser(Player player) throws InvocationTargetException, IllegalAccessException {
-        this.uuid = player.getUniqueId();
-
-        final Object playerHandle = ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(player);
-        final Object playerNetwork = ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(playerHandle));
-
-        this.channel = (Channel) ClassTypes.CHANNEL_FIELD.get(playerNetwork);
-        this.gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(playerHandle);
-
-        this.actionDelay = new HashMap<>();
-        this.injectNetty();
+    public ZNPCUser(UUID uuid) {
+        this.uuid = uuid;
+        actionDelay = new HashMap<>();
+        init();
     }
 
     /**
-     * Injects NPC channel to player channel.
+     * Registers the NPC channel for the current user channel.
      */
-    public void injectNetty() {
-        ejectNetty();
+    private void init() {
+        try {
+            final Object playerHandle = ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(toPlayer());
 
-        channel.pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
+            gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(playerHandle);
+
+            channel = (Channel) ClassTypes.CHANNEL_FIELD.get(ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(playerHandle)));
+            channel.pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Cannot initialize user", e);
+        }
     }
 
     /**
-     * Unregisters the NPC channel for player.
+     * Unregisters the NPC channel for the current user.
      */
     public void ejectNetty() {
         if (!channel.pipeline().names().contains(CHANNEL_NAME))
             return;
 
-        channel.eventLoop().execute(() -> channel.pipeline().remove(CHANNEL_NAME));
+        channel.pipeline().remove(CHANNEL_NAME);
     }
 
     /**
@@ -128,35 +127,41 @@ public class ZNPCUser {
     }
 
     /**
-     * Returns the user instance for the given player.
+     * Returns the user instance for the given uuid.
      *
-     * @param player The player to add/find.
-     * @return The user instance for the given player.
+     * @param uuid The uuid.
+     * @return The user instance.
      */
-    public static ZNPCUser registerOrGet(Player player) {
-        ZNPCUser findUser = USER_MAP.get(player.getUniqueId());
+    public static ZNPCUser registerOrGet(UUID uuid) {
+        ZNPCUser findUser = USER_MAP.get(uuid);
         if (findUser != null)
             return findUser;
 
-        try {
-            return USER_MAP.put(player.getUniqueId(), new ZNPCUser(player));
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new IllegalStateException("Cannot register player " + player.getName());
-        }
+        return USER_MAP.put(uuid, new ZNPCUser(uuid));
     }
 
     /**
-     * Finds and unregister the user for the given uuid.
+     * Returns the user instance for the given player.
      *
-     * @param uuid The player uuid.
+     * @param player The player.
+     * @return The user instance.
      */
-    public static void unregister(UUID uuid) {
-        ZNPCUser znpcUser = USER_MAP.get(uuid);
+    public static ZNPCUser registerOrGet(Player player) {
+        return registerOrGet(player.getUniqueId());
+    }
+
+    /**
+     * Unregisters the user for the given player.
+     *
+     * @param player The player.
+     */
+    public static void unregister(Player player) {
+        ZNPCUser znpcUser = USER_MAP.get(player.getUniqueId());
         if (znpcUser == null)
             return;
 
         znpcUser.ejectNetty();
-        USER_MAP.remove(uuid);
+        USER_MAP.remove(player.getUniqueId());
     }
 
     /**
@@ -182,8 +187,8 @@ public class ZNPCUser {
                 int entityId = ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.getInt(packet);
 
                 // Try find npc
-                ZNPC znpc = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getEntityId() == entityId).findFirst().orElse(null);
-                if (znpc == null)
+                ZNPC npc = ZNPC.all().stream().filter(znpc -> znpc.getEntityID() == entityId).findFirst().orElse(null);
+                if (npc == null)
                     return;
 
                 String clickName = ReflectionUtils.getValue(packet, "action").toString();
@@ -191,19 +196,20 @@ public class ZNPCUser {
 
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
                     // Call NPC interact event
-                    Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), NPCInteractEvent.ClickType.forName(clickName), znpc));
+                    Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), clickName, npc));
 
-                    if (znpc.getActions() == null || znpc.getActions().isEmpty())
+                    final List<String> actions = npc.getNpcPojo().getActions();
+                    if (actions == null || actions.isEmpty())
                         return;
 
-                    for (String string : znpc.getActions()) {
-                        String[] actions = string.split(":");
+                    for (String string : actions) {
+                        String[] action = string.split(":");
 
                         // Check for action cooldown
-                        if (actions.length > 2) {
-                            int actionId = znpc.getActions().indexOf(string);
+                        if (action.length > 2) {
+                            int actionId = npc.getNpcPojo().getActions().indexOf(string);
 
-                            int actionCooldown = Integer.parseInt(actions[actions.length - 1]);
+                            int actionCooldown = Integer.parseInt(action[action.length - 1]);
                             if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * actionCooldown)
                                 return;
 
@@ -212,10 +218,10 @@ public class ZNPCUser {
                         }
 
                         // Get npc action type
-                        NPCAction npcAction = NPCAction.valueOf(actions[0]);
+                        NPCAction npcAction = NPCAction.valueOf(action[0]);
 
                         // Run action for the provided actionValue
-                        String actionValue = actions[1];
+                        String actionValue = action[1];
 
                         npcAction.run(ZNPCUser.this, Utils.PLACEHOLDER_SUPPORT ?
                                 PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :

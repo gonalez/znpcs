@@ -112,7 +112,7 @@ public class ZNConfig implements ZNConfigImpl {
             return;
 
         try (BufferedWriter writer = Files.newBufferedWriter(path, CHARSET)) {
-            ServersNPC.GSON.toJson(configValues.size() == 1 ? configValues.values().iterator().next() : configType, writer);
+            ServersNPC.GSON.toJson(configValues.size() == 1 ? configValues.values().iterator().next() : configValues, writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

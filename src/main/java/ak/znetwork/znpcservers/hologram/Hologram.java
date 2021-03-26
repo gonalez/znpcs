@@ -48,18 +48,15 @@ public class Hologram {
     private Location location;
 
     /**
-     * Creates a new hologram.
+     * Creates a new hologram for the given npc.
      *
-     * @param npc      The npc.
-     * @param location The hologram location.
+     * @param npc The npc.
      */
-    public Hologram(ZNPC npc,
-                    Location location) {
+    public Hologram(ZNPC npc) {
         this.npc = npc;
-        this.location = location;
-
-        this.entityArmorStands = new ArrayList<>();
-        this.createHologram();
+        this.location = npc.getLocation();
+        entityArmorStands = new ArrayList<>();
+        createHologram();
     }
 
     /**
@@ -72,7 +69,7 @@ public class Hologram {
             entityArmorStands.clear();
 
             double y = 0;
-            for (String line : getLines()) {
+            for (String line : npc.getNpcPojo().getHologramLines()) {
                 Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
 
                 ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() >= 1);
@@ -95,7 +92,7 @@ public class Hologram {
     }
 
     /**
-     * Spawn hologram for player.
+     * Spawn the hologram for the given player.
      *
      * @param player The player to show the hologram.
      */
@@ -113,7 +110,7 @@ public class Hologram {
     }
 
     /**
-     * Delete/hide hologram for player.
+     * Deletes the hologram for the given player.
      *
      * @param player The player to remove the hologram.
      */
@@ -133,18 +130,16 @@ public class Hologram {
      * Updates the hologram text.
      */
     public void updateNames(Player player) {
-        for (int i = 0; i < getLines().length; i++) {
-            if (i >= entityArmorStands.size())
-                break;
-
+        final List<String> npcLines = npc.getNpcPojo().getHologramLines();
+        for (int i = 0; i < npcLines.size(); i++) {
             Object armorStand = entityArmorStands.get(i);
             try {
-                String line = getLines()[i].replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
+                String line = npcLines.get(i).replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
 
                 if (Utils.versionNewer(13))
-                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, Utils.color(getLines()[i])));
+                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, Utils.color(npcLines.get(i))));
                 else
-                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, getLines()[i]) : line));
+                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, npcLines.get(i)) : line));
 
                 Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(armorStand);
 
@@ -173,7 +168,7 @@ public class Hologram {
     /**
      * Sets & updates the hologram location.
      *
-     * @param location the new location.
+     * @param location The new location.
      */
     public void setLocation(Location location, double height) {
         this.location = location = location.clone().add(0, height, 0);
@@ -194,16 +189,7 @@ public class Hologram {
     }
 
     /**
-     * Returns the hologram lines separated.
-     *
-     * @return The hologram lines separated.
-     */
-    public String[] getLines() {
-        return npc.getLines().split(":");
-    }
-
-    /**
-     * Returns new hologram line for newer versions.
+     * Returns a new hologram line for newer versions.
      *
      * @return The new hologram line.
      */

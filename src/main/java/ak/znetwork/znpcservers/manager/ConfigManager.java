@@ -3,6 +3,7 @@ package ak.znetwork.znpcservers.manager;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 
@@ -39,21 +40,21 @@ public class ConfigManager {
     }
 
     /**
-     * Get configuration by type (ZNConfigType).
+     * Returns the configuration for the given config type.
      *
      * @param type The configuration type.
-     * @return     Configuration.
+     * @return The configuration.
      */
     public static ZNConfig getByType(ZNConfigType type) {
         return CONFIG_IMMUTABLE_MAP.get(type.name());
     }
 
     /**
-     * The configuration values.
+     * Returns the configuration values.
      *
      * @return The configurations in the map.
      */
-    public static ImmutableCollection<ZNConfig> getConfigurations() {
+    public static ImmutableCollection<ZNConfig> all() {
         return CONFIG_IMMUTABLE_MAP.values();
     }
 }

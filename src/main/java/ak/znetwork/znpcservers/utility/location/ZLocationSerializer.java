@@ -10,7 +10,7 @@ import com.google.gson.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ZLocationSerialize implements JsonSerializer<ZLocation>, JsonDeserializer<ZLocation> {
+public class ZLocationSerializer implements JsonSerializer<ZLocation>, JsonDeserializer<ZLocation> {
 
     @Override
     public JsonElement serialize(ZLocation src, Type typeOfSrc, JsonSerializationContext context) {

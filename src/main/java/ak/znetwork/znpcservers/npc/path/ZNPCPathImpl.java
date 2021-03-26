@@ -25,8 +25,6 @@ import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import lombok.Setter;
-
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
@@ -38,14 +36,14 @@ public interface ZNPCPathImpl {
     /**
      * Reads all the path attributes.
      *
-     * @throws IOException If an I/O error occurs
+     * @throws IOException If an I/O error occurs.
      */
     void initialize(DataInputStream dataInputStream) throws IOException;
 
     /**
      * Writes all the path attributes.
      *
-     * @throws IOException If an I/O error occurs
+     * @throws IOException If an I/O error occurs.
      */
     void write(DataOutputStream dataOutputStream) throws IOException;
 
@@ -97,7 +95,7 @@ public interface ZNPCPathImpl {
             /**
              * The current path location.
              */
-            @Setter private ZLocation location;
+            private ZLocation location;
 
             /**
              * Creates a new path handler for an npc.
@@ -129,6 +127,15 @@ public interface ZNPCPathImpl {
                 return typeWriter;
             }
 
+            /**
+             * Sets the path location.
+             *
+             * @param location The location to set.
+             */
+            public void setLocation(ZLocation location) {
+                this.location = location;
+            }
+
             @Override
             public ZLocation getLocation() {
                 return location;
@@ -158,7 +165,7 @@ public interface ZNPCPathImpl {
         /**
          * Returns an output stream to write a path.
          *
-         * @throws IOException If an I/O error occurs
+         * @throws IOException If an I/O error occurs.
          */
         public DataOutputStream getOutputStream() throws IOException {
             return new DataOutputStream(new FileOutputStream(file));
@@ -167,7 +174,7 @@ public interface ZNPCPathImpl {
         /**
          * Returns an input stream to read a path.
          *
-         * @throws IOException If an I/O error occurs
+         * @throws IOException If an I/O error occurs.
          */
         public DataInputStream getInputStream() throws IOException {
             return new DataInputStream(new FileInputStream(file));
@@ -491,7 +498,7 @@ public interface ZNPCPathImpl {
                 public void handle() {
                     final int currentEntry = currentEntryPath;
 
-                    if (getNpc().isReversePath()) {
+                    if (getNpc().getNpcPojo().isReversePath()) {
                         if (currentEntry <= 0) pathReverse = false;
                         else if (currentEntry >= getPath().getLocationList().size() - 1) pathReverse = true;
                     }

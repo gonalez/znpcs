@@ -39,7 +39,7 @@ public final class ZNPCSkin {
      * Creates a new skin cache.
      *
      * @param values The skin values.
-     * @return       A skin class with the values.
+     * @return A skin class with the given values.
      */
     public static ZNPCSkin forValues(String...values) {
         return new ZNPCSkin(values);
@@ -48,8 +48,19 @@ public final class ZNPCSkin {
     /**
      * Creates a new skin cache.
      *
+     * @param skin The skin value.
+     * @param signature The skin signature.
+     * @return A skin class with the given values.
+     */
+    public static ZNPCSkin forSkin(String skin, String signature) {
+        return new ZNPCSkin(skin, signature);
+    }
+
+    /**
+     * Creates a new skin cache.
+     *
      * @param skin The skin name or url.
-     * @return     A skin class with the fetched values.
+     * @return A skin class with the fetched values.
      */
     public static ZNPCSkin forName(String skin) {
         try {

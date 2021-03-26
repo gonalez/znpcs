@@ -1,8 +1,9 @@
 package ak.znetwork.znpcservers.utility.location;
 
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>

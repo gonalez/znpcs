@@ -11,17 +11,17 @@ import ak.znetwork.znpcservers.utility.ReflectionUtils;
 public enum PackageType {
 
     /**
-     * Default package
+     * Default package.
      */
     DEFAULT(""),
 
     /**
-     * Craft Bukkit package
+     * Craft Bukkit package.
      */
     CRAFT_BUKKIT("org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage()),
 
     /**
-     * Minecraft Server package
+     * Minecraft Server package.
      */
     MINECRAFT_SERVER("net.minecraft.server." + ReflectionUtils.getBukkitPackage());
 

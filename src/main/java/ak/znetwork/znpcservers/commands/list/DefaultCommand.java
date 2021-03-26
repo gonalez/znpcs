@@ -9,6 +9,7 @@ import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.NPCAction;
 import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
+import ak.znetwork.znpcservers.npc.enums.NPCToggle;
 import ak.znetwork.znpcservers.npc.enums.NPCType;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
@@ -19,7 +20,7 @@ import com.google.common.primitives.Ints;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -77,7 +78,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        String name = args.get("name");
+        String name = args.get("name").trim();
 
         if (name.length() < 3 || name.length() > 16) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NAME_LENGTH);
@@ -121,7 +122,6 @@ public class DefaultCommand extends ZNCommand {
         }
 
         ServersNPC.deleteNPC(id);
-
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 
@@ -129,8 +129,9 @@ public class DefaultCommand extends ZNCommand {
     public void list(ZNCommandSender sender, Map<String, String> args) {
         if (ConfigTypes.NPC_LIST.isEmpty()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NO_NPC_FOUND);
-        } else
-            ConfigTypes.NPC_LIST.forEach(npc -> sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getTextFormatted(npc.getHologram().getLines()) + " &7(&e" + npc.getLocation().getWorld().getName() + " " + npc.getLocation().getBlockX() + " " + npc.getLocation().getBlockY() + " " + npc.getLocation().getBlockZ() + "&7)"));
+        } else {
+            ConfigTypes.NPC_LIST.forEach(npc -> sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString() + " &7(&e" + npc.getLocation().getWorld() + " " + npc.getLocation().getX() + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
+        }
     }
 
     @ZNCommandSub(aliases = {"-id", "-skin"}, name = "skin", permission = "znpcs.cmd.skin")
@@ -147,7 +148,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -160,9 +161,9 @@ public class DefaultCommand extends ZNCommand {
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 
-    @ZNCommandSub(aliases = {"-id", "-hand", "-offhand", "-helmet", "-chestplate", "-leggings", "-boots"}, name = "equip", permission = "znpcs.cmd.equip")
+    @ZNCommandSub(aliases = {"-id", "-slot"}, name = "equip", permission = "znpcs.cmd.equip")
     public void equip(ZNCommandSender sender, Map<String, String> args) {
-        if (args.size() < 1) {
+        if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
             return;
         }
@@ -174,21 +175,20 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
-        args.forEach((key, value) -> {
-            NPCItemSlot npcItemSlot = NPCItemSlot.valueOf(key.toUpperCase());
-            Material material = Material.getMaterial(value.toUpperCase());
+        String slot = args.get("slot").toUpperCase();
 
-            if (material != null) {
-                foundNPC.equip(null, npcItemSlot, material);
-            }
-        });
+        NPCItemSlot npcItemSlot = NPCItemSlot.valueOf(slot);
+
+        ItemStack itemStack = sender.getPlayer().getInventory().getItemInMainHand();
+        foundNPC.getNpcPojo().getNpcEquip().put(npcItemSlot, itemStack);
+        foundNPC.updateEquipment();
 
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
@@ -207,7 +207,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -219,12 +219,12 @@ public class DefaultCommand extends ZNCommand {
             List<String> stringList = Lists.reverse(Arrays.asList(lines.split(WHITESPACE)));
 
             // Update lines
-            foundNPC.setLines(foundNPC.getTextFormatted(stringList.toArray(new String[0])));
+            foundNPC.getNpcPojo().setHologramLines(stringList);
             foundNPC.getHologram().createHologram();
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.getId(), exception);
+            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.getNpcPojo().getId(), exception);
         }
     }
 
@@ -242,7 +242,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -250,8 +250,8 @@ public class DefaultCommand extends ZNCommand {
         }
 
         try {
-            if (foundNPC.isHasLookAt()) {
-                foundNPC.setHasLookAt(!foundNPC.isHasLookAt());
+            if (foundNPC.getNpcPojo().isHasLookAt()) {
+                foundNPC.getNpcPojo().setHasLookAt(!foundNPC.getNpcPojo().isHasLookAt());
             }
 
             Location location = sender.getPlayer().getLocation().clone();
@@ -278,7 +278,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -315,13 +315,14 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
+        final List<String> actions = foundNPC.getNpcPojo().getActions();
         if (args.containsKey("add")) {
             String[] split = args.get("add").split(WHITESPACE);
 
@@ -331,7 +332,7 @@ public class DefaultCommand extends ZNCommand {
             }
 
             NPCAction npcAction = NPCAction.valueOf(split[0].toUpperCase());
-            foundNPC.getActions().add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
+            actions.add(npcAction.name() + ":" + String.join(" ", Arrays.copyOfRange(split, 1, split.length)));
 
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } else if (args.containsKey("remove")) {
@@ -340,12 +341,12 @@ public class DefaultCommand extends ZNCommand {
             if (actionId == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
             } else {
-                boolean found = (!foundNPC.getActions().isEmpty() && (foundNPC.getActions().size() - 1) >= actionId);
+                boolean found = (!foundNPC.getNpcPojo().getActions().isEmpty() && (actions.size() - 1) >= actionId);
 
                 if (!found) {
                     sender.sendMessage(ChatColor.RED + "The action (" + actionId + ") was not found.");
                 } else {
-                    foundNPC.getActions().remove(actionId.intValue());
+                    actions.remove(actionId.intValue());
                     ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
                 }
             }
@@ -361,25 +362,27 @@ public class DefaultCommand extends ZNCommand {
             if (actionId == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
             } else {
-                boolean found = (!foundNPC.getActions().isEmpty() && (foundNPC.getActions().size() - 1) >= actionId);
+                boolean found = (!actions.isEmpty() && (actions.size() - 1) >= actionId);
 
                 if (!found) sender.sendMessage(ChatColor.RED + "The action (" + actionId + ") was not found.");
                 else {
                     int action = Integer.parseInt(split[0]);
                     int seconds = Integer.parseInt(split[1]);
 
-                    foundNPC.getActions().set(action, String.join(":", Arrays.copyOfRange(foundNPC.getActions().get(action).split(":"), 0, 2)) + ":" + seconds);
+                    actions.set(action, String.join(":", Arrays.copyOfRange(actions.get(action).split(":"), 0, 2)) + ":" + seconds);
                     ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
                 }
             }
         } else if (args.containsKey("list")) {
-            if (foundNPC.getActions().isEmpty()) sender.sendMessage(ChatColor.GREEN + "No actions found.");
-            else
-                foundNPC.getActions().forEach(s -> sender.sendMessage("&8(&a" + foundNPC.getActions().indexOf(s) + "&8) &6" + s));
+            if (actions.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "No actions found.");
+            } else {
+                actions.forEach(s -> sender.sendMessage("&8(&a" + actions.indexOf(s) + "&8) &6" + s));
+            }
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-holo", "-name", "-glow", "-mirror", "-look", "-pathreverse"}, name = "toggle", permission = "znpcs.cmd.toggle")
+    @ZNCommandSub(aliases = {"-id", "-type", "-value"}, name = "toggle", permission = "znpcs.cmd.toggle")
     public void toggle(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -393,20 +396,17 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
             return;
         }
 
-        try {
-            if (args.containsKey("holo")) foundNPC.toggleHolo();
-            else if (args.containsKey("glow")) foundNPC.toggleGlow(args.get("glow"), true);
-            else if (args.containsKey("mirror")) foundNPC.setHasMirror(!foundNPC.isHasMirror());
-            else if (args.containsKey("look")) foundNPC.setHasLookAt(!foundNPC.isHasLookAt());
-            else if (args.containsKey("pathreverse")) foundNPC.setReversePath(!foundNPC.isReversePath());
+        NPCToggle npcToggle = NPCToggle.valueOf(args.get("type").toUpperCase());
 
+        try {
+            npcToggle.toggle(foundNPC, args.get("value"));
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
             throw new CommandExecuteException("An error occurred while changing toggle command", exception);
@@ -427,7 +427,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -436,7 +436,7 @@ public class DefaultCommand extends ZNCommand {
 
         String[] value = args.get("customize").split(WHITESPACE);
 
-        NPCType npcType = foundNPC.getNpcType();
+        NPCType npcType = foundNPC.getNpcPojo().getNpcType();
 
         String methodName = value[0];
         if (npcType.getCustomizationMethods().containsKey(methodName)) {
@@ -490,7 +490,7 @@ public class DefaultCommand extends ZNCommand {
                 return;
             }
 
-            ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+            ZNPC foundNPC = ZNPC.find(id);
 
             if (foundNPC == null) {
                 ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
@@ -550,7 +550,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        ZNPC foundNPC = ConfigTypes.NPC_LIST.stream().filter(npc -> npc.getId() == id).findFirst().orElse(null);
+        ZNPC foundNPC = ZNPC.find(id);
 
         if (foundNPC == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);

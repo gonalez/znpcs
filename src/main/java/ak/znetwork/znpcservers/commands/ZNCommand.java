@@ -47,15 +47,15 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
     /**
      * A map that contains the subcommands for the current command.
      */
-    private final Map<ZNCommandSub, ZNCommandInvoker> consumerSet;
+    private final Map<ZNCommandSub, ZNCommandInvoker> subCommands;
 
     /**
      * Creates a new command.
      */
     public ZNCommand(String command) {
         super(command);
-        this.consumerSet = new HashMap<>();
-        this.load();
+        subCommands = new HashMap<>();
+        load();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
         for (Method method : getClass().getMethods()) {
             if (method.isAnnotationPresent(ZNCommandSub.class)) {
                 ZNCommandSub cmdInfo = method.getAnnotation(ZNCommandSub.class);
-                consumerSet.put(cmdInfo, new ZNCommandInvoker(this, method, cmdInfo.permission()));
+                subCommands.put(cmdInfo, new ZNCommandInvoker(this, method, cmdInfo.permission()));
             }
         }
     }
@@ -76,7 +76,7 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
      *
      * @param subCommand The subCommand to check.
      * @param input      The subCommand name.
-     * @return           {@code true} If subcommand found.
+     * @return {@code true} If subcommand found.
      */
     private boolean contains(ZNCommandSub subCommand, String input) {
         return Arrays.stream(subCommand.aliases()).anyMatch(input::equalsIgnoreCase);
@@ -87,7 +87,7 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
      *
      * @param subCommand The subcommand.
      * @param args       The subcommand arguments.
-     * @return           A map with the subcommand arguments for the provided values.
+     * @return A map with the subcommand arguments for the provided values.
      */
     private Map<String, String> loadArgs(ZNCommandSub subCommand, String[] args) {
         Map<String, String> argsMap = new HashMap<>();
@@ -114,12 +114,12 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
      * @return A set containing the subcommands on the map.
      */
     public Set<ZNCommandSub> getCommands() {
-        return consumerSet.keySet();
+        return subCommands.keySet();
     }
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        Optional<Map.Entry<ZNCommandSub, ZNCommandInvoker>> subCommandOptional = consumerSet.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
+        Optional<Map.Entry<ZNCommandSub, ZNCommandInvoker>> subCommandOptional = subCommands.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
         if (!subCommandOptional.isPresent()) { // sub-command not found
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
             return false;

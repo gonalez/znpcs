@@ -17,25 +17,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 public final class NPCManagerTask extends BukkitRunnable {
 
     /**
-     * The plugin instance.
-     */
-    private final ServersNPC serversNPC;
-
-    /**
      * Creates a new task for all NPC.
      * This task will handle each npc.
      *
      * @param serversNPC The plugin instance.
      */
     public NPCManagerTask(ServersNPC serversNPC) {
-        this.serversNPC = serversNPC;
-
-        this.runTaskTimerAsynchronously(this.serversNPC, 60L, 1L);
+        this.runTaskTimerAsynchronously(serversNPC, 60L, 1L);
     }
 
     @Override
     public void run() {
-        for (ZNPC npc : ConfigTypes.NPC_LIST) {
+        for (ZNPC npc : ZNPC.all()) {
             if (npc.getNpcPath() != null) {
                 // Handle path
                 npc.getNpcPath().handle();
@@ -51,7 +44,7 @@ public final class NPCManagerTask extends BukkitRunnable {
                         npc.spawn(player);
                     }
 
-                    if (npc.isHasLookAt()) {
+                    if (npc.getNpcPojo().isHasLookAt()) {
                         npc.lookAt(player, player.getLocation(), false);
                     }
 

@@ -3,6 +3,7 @@ package ak.znetwork.znpcservers.tasks;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
 import ak.znetwork.znpcservers.manager.ConfigManager;
+
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -16,11 +17,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 public final class NPCSaveTask extends BukkitRunnable {
 
     /**
-     * The plugin instance.
-     */
-    private final ServersNPC serversNPC;
-
-    /**
      * Initialization of the task to save NPCs.
      *
      * @param serversNPC The plugin instance.
@@ -28,13 +24,11 @@ public final class NPCSaveTask extends BukkitRunnable {
      */
     public NPCSaveTask(ServersNPC serversNPC,
                        int seconds) {
-        this.serversNPC = serversNPC;
-
         this.runTaskTimer(serversNPC, 100L, seconds);
     }
 
     @Override
     public void run() {
-        ConfigManager.getConfigurations().forEach(ZNConfig::save);
+        ConfigManager.all().forEach(ZNConfig::save);
     }
 }

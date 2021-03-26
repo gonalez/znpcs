@@ -1,17 +1,11 @@
 package ak.znetwork.znpcservers.commands.impl;
 
-import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
-import ak.znetwork.znpcservers.commands.exception.CommandNotFoundException;
-import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -22,7 +16,7 @@ import lombok.Getter;
 public interface ZNCommandImpl {
 
     /**
-     * Loads the command (subcommands).
+     * Loads the command subcommands..
      */
     void load();
 
@@ -45,7 +39,6 @@ public interface ZNCommandImpl {
          */
         public ZNCommandSender(CommandSender commandSender) {
             this.commandSender = commandSender;
-
             this.type = commandSender instanceof Player ? SenderType.PLAYER : SenderType.CONSOLE;
         }
 
@@ -89,12 +82,12 @@ public interface ZNCommandImpl {
         enum SenderType {
 
             /**
-             * Represents when the command has been executed by a player.
+             * Represents when a command has been executed by a player.
              */
             PLAYER,
 
             /**
-             * Represents when the command has been executed by console.
+             * Represents when a command has been executed by console.
              */
             CONSOLE
         }

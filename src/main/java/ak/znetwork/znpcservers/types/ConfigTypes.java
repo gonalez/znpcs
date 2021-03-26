@@ -6,6 +6,7 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 
 import java.util.List;
 
@@ -37,12 +38,12 @@ public class ConfigTypes {
     /**
      * Represents the npc list.
      */
-    public static final List<ZNPC> NPC_LIST = ConfigManager.getByType(ZNConfigType.DATA).getValue(ZNConfigValue.NPC_LIST);
+    public static final List<ZNPCPojo> NPC_LIST = ConfigManager.getByType(ZNConfigType.DATA).getValue(ZNConfigValue.NPC_LIST);
 
     static {
-        // Init all saved NPC...
+        // Initialize all saved NPC...
         ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
-                NPC_LIST.forEach(ZNPC::init),
+                NPC_LIST.forEach(ZNPC::new),
                 25
         );
     }
