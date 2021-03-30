@@ -3,11 +3,9 @@ package ak.znetwork.znpcservers.user;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.NPCAction;
+import ak.znetwork.znpcservers.npc.model.ZNPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
-import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
-import ak.znetwork.znpcservers.utility.Utils;
 
 import com.mojang.authlib.GameProfile;
 
@@ -198,35 +196,25 @@ public class ZNPCUser {
                     // Call NPC interact event
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), clickName, npc));
 
-                    final List<String> actions = npc.getNpcPojo().getActions();
+                    final List<ZNPCAction> actions = npc.getNpcPojo().getClickActions();
                     if (actions == null || actions.isEmpty())
                         return;
 
-                    for (String string : actions) {
-                        String[] action = string.split(":");
+                    for (ZNPCAction npcAction : actions) {
+                        final String action = npcAction.getAction();
 
                         // Check for action cooldown
-                        if (action.length > 2) {
-                            int actionId = npc.getNpcPojo().getActions().indexOf(string);
+                        if (npcAction.getDelay() > 0) {
+                            int actionId = npc.getNpcPojo().getClickActions().indexOf(npcAction);
 
-                            int actionCooldown = Integer.parseInt(action[action.length - 1]);
-                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * actionCooldown)
+                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * npcAction.getDelay())
                                 return;
 
                             // Set new action cooldown for user
                             actionDelay.put(actionId, System.currentTimeMillis());
                         }
 
-                        // Get npc action type
-                        NPCAction npcAction = NPCAction.valueOf(action[0]);
-
-                        // Run action for the provided actionValue
-                        String actionValue = action[1];
-
-                        npcAction.run(ZNPCUser.this, Utils.PLACEHOLDER_SUPPORT ?
-                                PlaceholderUtils.getWithPlaceholders(toPlayer(), actionValue) :
-                                actionValue
-                        );
+                        npcAction.run(ZNPCUser.this, action);
                     }
                 }, DEFAULT_DELAY);
             }

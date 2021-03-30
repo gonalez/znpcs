@@ -127,7 +127,8 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     /**
      * {@inheritDoc}
      */
-    private String toBukkitClass(String className) {
-        return String.format(packageType.getPackageName() + ".%s", className);
+    protected String toBukkitClass(String className) {
+        return packageType == PackageType.DEFAULT ? className :
+                String.format(packageType.getPackageName() + ".%s", className);
     }
 }

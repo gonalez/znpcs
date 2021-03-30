@@ -88,11 +88,6 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Load entity type cache
-        for (NPCType npcType : NPCType.values()) {
-            npcType.load();
-        }
-
         // Load paths
         loadAllPaths();
 
@@ -145,9 +140,9 @@ public class ServersNPC extends JavaPlugin {
         for (File file : listFiles) {
             // Check if file is path
             if (file.getName().endsWith(".path")) {
-                TypeMovement pathAbstract = new TypeMovement(file);
+                AbstractTypeWriter abstractTypeWriter = AbstractTypeWriter.forFile(file, TypeWriter.MOVEMENT);
                 // Load path..
-                pathAbstract.load();
+                abstractTypeWriter.load();
             }
         }
     }

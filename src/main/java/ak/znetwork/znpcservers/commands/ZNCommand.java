@@ -93,15 +93,15 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
         Map<String, String> argsMap = new HashMap<>();
         for (int i = 1; i <= args.length; i++) {
             String input = args[i - 1];
-
             if (contains(subCommand, input)) {
                 StringBuilder value = new StringBuilder();
-
                 for (int text = i; text < args.length;) {
-                    if (!contains(subCommand, args[text++])) value.append(args[i++]).append(WHITESPACE);
-                    else break;
+                    if (!contains(subCommand, args[text++])) {
+                        value.append(args[i++]).append(WHITESPACE);
+                    } else {
+                        break;
+                    }
                 }
-
                 argsMap.put(input.replace("-", ""), value.substring(0, Math.max(0, value.length() - 1)));
             }
         }
@@ -120,7 +120,8 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
         Optional<Map.Entry<ZNCommandSub, ZNCommandInvoker>> subCommandOptional = subCommands.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
-        if (!subCommandOptional.isPresent()) { // sub-command not found
+        if (!subCommandOptional.isPresent()) {
+            // Sub-command not found
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender, ZNConfigValue.COMMAND_NOT_FOUND);
             return false;
         }

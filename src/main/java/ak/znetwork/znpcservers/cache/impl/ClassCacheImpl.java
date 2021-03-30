@@ -194,12 +194,12 @@ public interface ClassCacheImpl {
         /**
          * Initializes and loads the given class.
          */
-        public static class ClassLoader extends Default {
+        public static class ClazzLoader extends Default {
 
             /**
              * Creates a new class loader for the given builder.
              */
-            public ClassLoader(ClassCacheBuilder cacheBuilder) {
+            public ClazzLoader(ClassCacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }
 
@@ -266,27 +266,25 @@ public interface ClassCacheImpl {
         }
 
         /**
-         * Initializes and loads the enums for the given class.
+         * Initializes and loads the enum constants for the given class.
          */
-        public static class MultipleLoad extends Default {
+        public static class EnumLoader extends Default {
 
             /**
              * Creates a new multiple field loader for the given builder.
              */
-            public MultipleLoad(ClassCacheBuilder cacheBuilder) {
+            public EnumLoader(ClassCacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }
 
             @Override
-            protected Field[] onLoad() throws IllegalAccessException {
-                final Field[] fields = BUILDER_CLASS.getFields();
-                for (Field field : fields) {
-                    if (!field.isEnumConstant())
-                        continue;
-
-                    ClassCache.register(field.getName(), field.get(null), BUILDER_CLASS);
+            protected Enum<?>[] onLoad() {
+                Enum<?>[] enumConstants = (Enum<?>[]) BUILDER_CLASS.getEnumConstants();
+                for (Enum<?> enumConstant : enumConstants) {
+                    // Register value
+                    ClassCache.register(enumConstant.name(), enumConstant, BUILDER_CLASS);
                 }
-                return fields;
+                return enumConstants;
             }
         }
     }

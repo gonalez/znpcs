@@ -70,7 +70,7 @@ public class ZNPCPojo {
     /**
      * The actions to be executed when the npc is clicked.
      */
-    private final List<String> actions;
+    private final List<ZNPCAction> clickActions;
 
     /**
      * The npc equipment values.
@@ -111,8 +111,9 @@ public class ZNPCPojo {
      */
     protected ZNPCPojo() {
         hologramLines = Collections.singletonList("/znpcs lines");
-        actions = new ArrayList<>();
+        clickActions = new ArrayList<>();
         npcEquip = new HashMap<>();
         customizationMap = new HashMap<>();
     }
+
 }

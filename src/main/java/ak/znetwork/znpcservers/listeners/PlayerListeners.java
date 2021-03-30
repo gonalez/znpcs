@@ -34,7 +34,6 @@ public class PlayerListeners implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         ZNPCUser.unregister(event.getPlayer());
-
         ZNPC.all().forEach(npc -> npc.delete(event.getPlayer(), true));
     }
 }

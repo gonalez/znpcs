@@ -71,8 +71,9 @@ public class ZNConfig implements ZNConfigImpl {
         this.path = path;
 
         try {
-            if (!path.toFile().exists())
+            if (!path.toFile().exists()) {
                 Files.createFile(path);
+            }
 
             this.load();
         } catch (IOException e) {
@@ -108,8 +109,9 @@ public class ZNConfig implements ZNConfigImpl {
 
     @Override
     public void save() {
-        if (System.currentTimeMillis() - START_TIME < 1000 * 10)
+        if (System.currentTimeMillis() - START_TIME < 1000 * 10) {
             return;
+        }
 
         try (BufferedWriter writer = Files.newBufferedWriter(path, CHARSET)) {
             ServersNPC.GSON.toJson(configValues.size() == 1 ? configValues.values().iterator().next() : configValues, writer);

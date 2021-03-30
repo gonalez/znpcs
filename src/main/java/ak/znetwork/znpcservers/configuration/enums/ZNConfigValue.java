@@ -37,8 +37,13 @@ public enum ZNConfigValue {
     NPC_FOUND(ZNConfigType.MESSAGES, "&cThere is already a npc with this id.", String.class),
     NO_PATH_FOUND(ZNConfigType.MESSAGES, "&cNo path found.", String.class),
     NO_NPC_FOUND(ZNConfigType.MESSAGES, "&cNo npc found.", String.class),
+    NO_ACTION_FOUND(ZNConfigType.MESSAGES, "&cNo action found.", String.class),
+    METHOD_NOT_FOUND(ZNConfigType.MESSAGES, "&cNo method found.", String.class),
     INVALID_NAME_LENGTH(ZNConfigType.MESSAGES, "&cThe name is too short or long, it must be in the range of (3 to 16) characters.", String.class),
-    UNSUPPORTED_ENTITY(ZNConfigType.MESSAGES, "&cEntity type not available for your current version.", String.class);
+    UNSUPPORTED_ENTITY(ZNConfigType.MESSAGES, "&cEntity type not available for your current version.", String.class),
+    INCORRECT_USAGE_PATH_SET(ZNConfigType.MESSAGES, "&cUsage: -set <npc_id> -path <path_name>", String.class),
+    INCORRECT_USAGE_ACTION_ADD(ZNConfigType.MESSAGES, "&cUsage: <SERVER:CMD:MESSAGE:CONSOLE> <actionValue>", String.class),
+    INCORRECT_USAGE_ACTION_DELAY(ZNConfigType.MESSAGES, "&cUsage: <actionID> <delayInSeconds>", String.class);
 
     /**
      * The configuration type.

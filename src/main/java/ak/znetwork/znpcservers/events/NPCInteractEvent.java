@@ -67,17 +67,28 @@ public class NPCInteractEvent extends Event {
     }
 
     /**
-     * Returns the click type.
-     */
-    public ClickType getClickType() {
-        return clickType;
-    }
-
-    /**
      * Returns the npc that was clicked.
      */
     public ZNPC getNpc() {
         return npc;
+    }
+
+    /**
+     * Returns if the npc was interacted with right click
+     *
+     * @return {@code true} If if the npc was interacted with right click
+     */
+    public boolean isRightClick() {
+        return clickType == ClickType.RIGHT;
+    }
+
+    /**
+     * Returns if the npc was interacted with left click
+     *
+     * @return {@code true} If if the npc was interacted with left click
+     */
+    public boolean isLeftClick() {
+        return clickType == ClickType.LEFT;
     }
 
     @Override
@@ -92,7 +103,7 @@ public class NPCInteractEvent extends Event {
     /**
      * Determines the click type when an npc is interacted.
      */
-    public enum ClickType {
+    enum ClickType {
 
         /**
          * Represents when an npc is right-clicked.

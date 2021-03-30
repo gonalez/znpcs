@@ -128,7 +128,7 @@ public interface ZNPCPathImpl {
             }
 
             /**
-             * Sets the path location.
+             * Sets the new path location.
              *
              * @param location The location to set.
              */
@@ -222,6 +222,11 @@ public interface ZNPCPathImpl {
         private static final int PATH_DELAY = 1;
 
         /**
+         * The path type.
+         */
+        private final TypeWriter typeWriter;
+
+        /**
          * The path file.
          */
         private final File file;
@@ -236,7 +241,8 @@ public interface ZNPCPathImpl {
          *
          * @param file The path File.
          */
-        public AbstractTypeWriter(File file) {
+        public AbstractTypeWriter(TypeWriter typeWriter, File file) {
+            this.typeWriter = typeWriter;
             this.file = file;
             this.locationList = new ArrayList<>();
         }
@@ -244,10 +250,11 @@ public interface ZNPCPathImpl {
         /**
          * Creates a new type path for the given path name.
          *
+         * @param typeWriter The path type.
          * @param pathName The path name.
          */
-        public AbstractTypeWriter(String pathName) {
-            this(new File(ServersNPC.PATH_FOLDER, pathName + ".path"));
+        public AbstractTypeWriter(TypeWriter typeWriter, String pathName) {
+            this(typeWriter, new File(ServersNPC.PATH_FOLDER, pathName + ".path"));
         }
 
         /**
@@ -273,6 +280,28 @@ public interface ZNPCPathImpl {
                 write(writer);
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, String.format("Path %s could not be created", getName()), e);
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public static AbstractTypeWriter forCreation(String pathName, ZNPCUser user, TypeWriter typeWriter) {
+            if (typeWriter == TypeWriter.MOVEMENT) {
+                return new TypeMovement(pathName, user);
+            } else {
+                throw new IllegalStateException("Cannot find type writer for: " + typeWriter.name());
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public static AbstractTypeWriter forFile(File file, TypeWriter typeWriter) {
+            if (typeWriter == TypeWriter.MOVEMENT) {
+                return new TypeMovement(file);
+            } else {
+                throw new IllegalStateException("Cannot find type writer for: " + typeWriter.name());
             }
         }
 
@@ -332,7 +361,14 @@ public interface ZNPCPathImpl {
         /**
          * {@inheritDoc}
          */
-        public static class TypeMovement extends AbstractTypeWriter {
+        public enum TypeWriter {
+            MOVEMENT
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        private static class TypeMovement extends AbstractTypeWriter {
 
             /**
              * The maximum locations that the path can have.
@@ -355,7 +391,7 @@ public interface ZNPCPathImpl {
              * @param file The file.
              */
             public TypeMovement(File file) {
-                super(file);
+                super(TypeWriter.MOVEMENT, file);
             }
 
             /**
@@ -366,7 +402,7 @@ public interface ZNPCPathImpl {
              */
             public TypeMovement(String fileName,
                                 ZNPCUser npcUser) {
-                super(fileName);
+                super(TypeWriter.MOVEMENT, fileName);
                 this.npcUser = npcUser;
 
                 // Start path task
@@ -410,8 +446,6 @@ public interface ZNPCPathImpl {
 
                     boolean last = !locationIterator.hasNext();
                     if (last) {
-                        npcUser.setHasPath(false);
-
                         // Register the path...
                         register(this);
                     }
@@ -456,15 +490,15 @@ public interface ZNPCPathImpl {
              * @return {@code true} If location can be added.
              */
             protected boolean isValid(Location location) {
-                if (getLocationList().isEmpty())
+                if (getLocationList().isEmpty()) {
                     return true;
+                }
 
                 ZLocation last = getLocationList().get(getLocationList().size() - 1);
 
                 double xDiff = Math.abs(last.getX() - location.getX());
                 double yDiff = Math.abs(last.getY() - location.getY());
                 double zDiff = Math.abs(last.getZ() - location.getZ());
-
                 return (xDiff + yDiff + zDiff) > 0.01;
             }
 
@@ -523,7 +557,6 @@ public interface ZNPCPathImpl {
                     double yDiff = (location.getY() - vector.getY());
 
                     Location direction = getLocation().toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
-
                     getNpc().setLocation(direction);
                     getNpc().lookAt(null, direction, true);
                 }

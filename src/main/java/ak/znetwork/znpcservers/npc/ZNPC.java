@@ -92,7 +92,7 @@ public class ZNPC {
     /**
      * Cache reflection variables.
      */
-    private Object glowColor, dataWatcherRegistryEnum, tabConstructor, nmsEntity;
+    private Object glowColor, dataWatcherRegistryEnum, tabConstructor, nmsEntity, bukkitEntity;
 
     /**
      * The current profile of the npc.
@@ -141,21 +141,22 @@ public class ZNPC {
      * @param color The npc glow color.
      */
     public void toggleGlow(String color) {
-        if (!Utils.versionNewer(9))
+        if (!Utils.versionNewer(9)) {
             throw new UnsupportedOperationException("Version not supported");
+        }
 
         try {
             Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity);
             ClassTypes.SET_DATA_WATCHER_METHOD.invoke(npcDataWatcher, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(0, dataWatcherRegistryEnum), (npcPojo.isHasGlow() ? (byte) 0x40 : (byte) 0x0));
 
-            Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, npcDataWatcher, true);
-            viewers.forEach(player -> ReflectionUtils.sendPacket(player, packet));
+            // Update npc data
+            updateMetaData();
 
             glowColor = getGlowColor(color);
             npcPojo.setGlowName(color);
 
             // Update new glow color for current npc viewers
-            viewers.forEach(this::toggleName);
+            viewers.forEach(this::updateScoreboard);
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
             throw new AssertionError(operationException);
         }
@@ -271,7 +272,9 @@ public class ZNPC {
     public void changeType(NPCType npcType) {
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
+
             nmsEntity = (npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, gameProfile, (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            bukkitEntity = (ClassTypes.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
 
             if (npcType == NPCType.PLAYER) {
                 tabConstructor = (ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.ADD_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
@@ -301,12 +304,11 @@ public class ZNPC {
      */
     public void spawn(Player player) {
         // Update the npc scoreboard for player
-        toggleName(player);
+        updateScoreboard(player);
 
         try {
             // Check if npc type is player
             boolean npcIsPlayer = npcPojo.getNpcType() == NPCType.PLAYER;
-            Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity);
 
             if (npcIsPlayer) {
                 if (npcPojo.isHasMirror()) {
@@ -319,9 +321,6 @@ public class ZNPC {
 
             ReflectionUtils.sendPacket(player, npcIsPlayer ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(nmsEntity) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(nmsEntity));
 
-            if (npcIsPlayer)
-                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, npcDataWatcher, true));
-
             if (npcPojo.isHasToggleHolo())
                 hologram.spawn(player);
 
@@ -332,7 +331,7 @@ public class ZNPC {
             entityID = ((Integer) ClassTypes.GET_ENTITY_ID.invoke(nmsEntity));
 
             // Update npc data
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, npcDataWatcher, true));
+            updateMetaData();
 
             // Add player to viewers list
             viewers.add(player);
@@ -390,7 +389,7 @@ public class ZNPC {
      * @param player The player to delete the npc for.
      */
     public void delete(Player player, boolean removeViewer) {
-        if (!getViewers().contains(player))
+        if (!viewers.contains(player))
             return;
 
         try {
@@ -441,9 +440,9 @@ public class ZNPC {
     }
 
     /**
-     * Toggles the npc name.
+     * Updates the npc scoreboard team for the given player.
      */
-    public void toggleName(Player player) {
+    public void updateScoreboard(Player player) {
         deleteScoreboard(player);
 
         try {
@@ -479,7 +478,7 @@ public class ZNPC {
      */
     public void updateEquipment() {
         for (Entry<NPCItemSlot, ItemStack> items : getNpcPojo().getNpcEquip().entrySet()) {
-            getViewers().forEach(player -> equip(player, items.getKey(), items.getValue()));
+            viewers.forEach(player -> equip(player, items.getKey(), items.getValue()));
         }
     }
 
@@ -493,7 +492,6 @@ public class ZNPC {
         Iterator<Player> iterator = viewers.iterator();
         do {
             delete(iterator.next(), Boolean.FALSE);
-
             iterator.remove();
         } while (iterator.hasNext());
     }
@@ -512,16 +510,8 @@ public class ZNPC {
         }
     }
 
-    /**
-     * Sends customization packet for all npc viewers.
-     *
-     * @param name   The method name.
-     * @param values The method values.
-     */
-    public void customize(String name, String[] values) {
+    public void updateMetaData() {
         try {
-            npcPojo.getCustomizationMap().put(name, values);
-
             Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity), true);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, customizationPacket));
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -572,14 +562,15 @@ public class ZNPC {
     /**
      * Loads the customization for the npc.
      */
-    private void loadCustomization() {
+    protected void loadCustomization() {
         for (Map.Entry<String, String[]> entry : npcPojo.getCustomizationMap().entrySet()) {
-            if (npcPojo.getNpcType().getCustomizationMethods().containsKey(entry.getKey())) {
-                try {
-                    npcPojo.getNpcType().invokeMethod(entry.getKey(), nmsEntity, NPCType.arrayToPrimitive(entry.getValue(), npcPojo.getNpcType().getCustomizationMethods().get(entry.getKey())));
-                } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + npcPojo.getId(), entry.getKey()));
-                }
+            String methodName = entry.getKey();
+            try {
+                npcPojo.getNpcType().updateCustomization(
+                        this, methodName, entry.getValue()
+                );
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + npcPojo.getId(), methodName));
             }
         }
     }
