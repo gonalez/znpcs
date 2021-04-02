@@ -59,11 +59,6 @@ public class SkinFetcher implements SkinFetcherImpl {
     private final SkinAPI skinAPI;
 
     /**
-     * The json url response.
-     */
-    private JsonObject response;
-
-    /**
      * Creates a new skin fetcher.
      * With all the builder provided types.
      *

@@ -131,10 +131,13 @@ public interface ClassCacheImpl {
         Builder parameterTypes(Class<?>... parameters);
     }
 
+
     /**
-     * {@inheritDoc}
+     * An abstract implementation of {@code ClassCacheBuilder}.
+     *
+     * @param <T> The loaded type.
      */
-    abstract class Default extends ClassCacheBuilder {
+    abstract class Default<T> extends ClassCacheBuilder {
 
         /**
          * The logger.
@@ -161,13 +164,12 @@ public interface ClassCacheImpl {
         /**
          * Returns the loaded type.
          *
-         * @param <T> The class type.
          * @return The loaded class.
          */
-        public <T> T typeOf() {
+        public T typeOf() {
             try {
                 BUILDER_CLASS = Class.forName(getClassName());
-                return (T) onLoad();
+                return onLoad();
             } catch (Throwable throwable) {
                 // Skip class...
                 log(
@@ -179,6 +181,8 @@ public interface ClassCacheImpl {
 
         /**
          * Sends debug message to console.
+         *
+         * @param message The message to send.
          */
         private void log(String message) {
             LOGGER.log(Level.WARNING, message);
@@ -189,12 +193,12 @@ public interface ClassCacheImpl {
          *
          * @return The loaded class type.
          */
-        protected abstract Object onLoad() throws Exception;
+        protected abstract T onLoad() throws Exception;
 
         /**
          * Initializes and loads the given class.
          */
-        public static class ClazzLoader extends Default {
+        public static class ClazzLoader extends Default<Class<?>> {
 
             /**
              * Creates a new class loader for the given builder.
@@ -212,7 +216,7 @@ public interface ClassCacheImpl {
         /**
          * Initializes and loads the given method.
          */
-        public static class MethodLoader extends Default {
+        public static class MethodLoader extends Default<Method> {
 
             /**
              * Creates a new method loader for the given builder.
@@ -230,7 +234,7 @@ public interface ClassCacheImpl {
         /**
          * Initializes and loads the given field.
          */
-        public static class FieldLoader extends Default {
+        public static class FieldLoader extends Default<Field> {
 
             /**
              * Creates a new field loader for the given builder.
@@ -250,7 +254,7 @@ public interface ClassCacheImpl {
         /**
          * Initializes and loads the given constructor.
          */
-        public static class ConstructorLoader extends Default {
+        public static class ConstructorLoader extends Default<Constructor<?>> {
 
             /**
              * Creates a new constructor loader for the given builder.
@@ -268,7 +272,7 @@ public interface ClassCacheImpl {
         /**
          * Initializes and loads the enum constants for the given class.
          */
-        public static class EnumLoader extends Default {
+        public static class EnumLoader extends Default<Enum<?>[]> {
 
             /**
              * Creates a new multiple field loader for the given builder.

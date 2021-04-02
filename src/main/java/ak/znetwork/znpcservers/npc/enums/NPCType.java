@@ -44,17 +44,16 @@ public enum NPCType {
     HORSE(ClassTypes.ENTITY_HORSE_CLASS, 0, "setStyle", "setAge", "setColor", "setVariant"),
     LLAMA(ClassTypes.ENTITY_LLAMA_CLASS, 0, "setAge"),
     MAGMA_CUBE(ClassTypes.ENTITY_MAGMA_CUBE_CLASS, -1.25, "setSize"),
-    MUSHROOM_COW(ClassTypes.ENTITY_MUSHROOM_COW_CLASS, "MOOSHROOM", -1, -0.25, "setAge"),
+    MUSHROOM_COW(ClassTypes.ENTITY_MUSHROOM_COW_CLASS, -0.25, "setAge"),
     OCELOT(ClassTypes.ENTITY_OCELOT_CLASS, -1, "setCatType", "setAge"),
     PARROT(ClassTypes.ENTITY_PARROT_CLASS, -1.5, "setVariant"),
     PIG(ClassTypes.ENTITY_PIG_CLASS, -1, "setAge"),
     PANDA(ClassTypes.ENTITY_PANDA_CLASS, -0.6, "setAge", "setMainGene", "setHiddenGene"),
     RABBIT(ClassTypes.ENTITY_RABBIT_CLASS, -1, "setRabbitType"),
-    PIG_ZOMBIE(ClassTypes.ENTITY_PIG_ZOMBIE_CLASS, "ZOMBIFIED_PIGLIN", -1, 0),
     POLAR_BEAR(ClassTypes.ENTITY_POLAR_BEAR_CLASS, -0.5),
     SHEEP(ClassTypes.ENTITY_SHEEP_CLASS, -0.5, "setAge", "setSheared", "setColor"),
     SILVERFISH(ClassTypes.ENTITY_SILVERFISH_CLASS, -1.5),
-    SNOWMAN(ClassTypes.ENTITY_SNOWMAN_CLASS, "SNOW_GOLEM", -1, 0, "setHasPumpkin", "setDerp"),
+    SNOWMAN(ClassTypes.ENTITY_SNOWMAN_CLASS, 0, "setHasPumpkin", "setDerp"),
     SKELETON(ClassTypes.ENTITY_SKELETON_CLASS, 0),
     SHULKER(ClassTypes.ENTITY_SHULKER_CLASS, 0),
     SLIME(ClassTypes.ENTITY_SLIME_CLASS, -1.25, "setSize"),
@@ -65,7 +64,7 @@ public enum NPCType {
     WITHER(ClassTypes.ENTITY_WITHER_CLASS, 1.75),
     ZOMBIE(ClassTypes.ENTITY_ZOMBIE_CLASS, 0, "setBaby"),
     WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor"),
-    ENDER_CRYSTAL(ClassTypes.ENTITY_ENDER_CRYSTAL_CLASS, 51, 0);
+    END_CRYSTAL(ClassTypes.ENTITY_ENDER_CRYSTAL_CLASS, "ENDER_CRYSTAL", 51, 0);
 
     /**
      * A empty string.
@@ -103,23 +102,28 @@ public enum NPCType {
     private final CustomizationProcessor customizationProcessor;
 
     /**
-     * The bukkit entity type.
-     */
-    private Object entityType;
-
-    /**
      * The entity spawn packet.
      */
-    private Constructor<?> constructor = null;
+    private final Constructor<?> constructor;
+
+    /**
+     * The bukkit entity type.
+     */
+    private EntityType bukkitEntityType;
+
+    /**
+     * The nms entity type.
+     */
+    private Object nmsEntityType;
 
     /**
      * Creates a new Entity type.
      *
-     * @param entityClass   The entity class.
-     * @param newName       The entity name for newer versions.
-     * @param id            The bukkit entity ID;
-     * @param holoHeight    The hologram height for the entity.
-     * @param methods       The customization methods for the entity.
+     * @param entityClass The entity class.
+     * @param newName     The entity name for newer versions.
+     * @param id          The bukkit entity ID;
+     * @param holoHeight  The hologram height for the entity.
+     * @param methods     The customization methods for the entity.
      */
     NPCType(Class<?> entityClass,
             String newName,
@@ -130,23 +134,10 @@ public enum NPCType {
         this.newName = newName;
         this.id = id;
         this.holoHeight = holoHeight;
-        this.customizationProcessor = entityClass == null ? null : new CustomizationProcessor(EntityType.valueOf(name()).getEntityClass(), Arrays.asList(methods));
-        load();
-    }
-
-    /**
-     * Creates a new Entity type.
-     *
-     * @param entityClass   The entity class.
-     * @param id            The bukkit entity ID;
-     * @param holoHeight    The hologram height for the entity.
-     * @param customization The customization methods for the entity.
-     */
-    NPCType(Class<?> entityClass,
-            int id,
-            double holoHeight,
-            String... customization) {
-        this(entityClass, EMPTY_STRING, id, holoHeight, customization);
+        this.customizationProcessor = entityClass == null ? null : new CustomizationProcessor(this.bukkitEntityType =
+                EntityType.valueOf(newName.length() > 0 ? newName : name()),
+                Arrays.asList(methods));
+        this.constructor = load();
     }
 
     /**
@@ -165,31 +156,21 @@ public enum NPCType {
     /**
      * Loads the npc type.
      */
-    public void load() {
+    private Constructor<?> load() {
         if (entityClass == null ||
                 entityClass.isAssignableFrom(ClassTypes.ENTITY_PLAYER_CLASS)) {
             // The entity type is not available for the current version so don't load it
-            return;
+            return null;
         }
+
         try {
             if (Utils.versionNewer(14)) {
-                try {
-                    entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(name()).get(null);
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    try {
-                        entityType = ClassTypes.ENTITY_TYPES_CLASS.getField(newName).get(null);
-                    } catch (IllegalAccessException | NoSuchFieldException operationException) {
-                        throw new AssertionError(operationException);
-                    }
-                } finally {
-                    if (entityType != null) {
-                        constructor = entityClass.getConstructor(entityType.getClass(), ClassTypes.WORLD_CLASS);
-                    }
-                }
-            } else {
-                constructor = entityClass.getConstructor(ClassTypes.WORLD_CLASS);
+                // Get nms entityType for bukkit entity type
+                nmsEntityType = ClassTypes.ENTITY_TYPES_CLASS.getField(bukkitEntityType.getKey().getKey().toUpperCase()).get(null);
+                return entityClass.getConstructor(ClassTypes.ENTITY_TYPES_CLASS, ClassTypes.WORLD_CLASS);
             }
-        } catch (NoSuchMethodException noSuchMethodException) {
+            return entityClass.getConstructor(ClassTypes.WORLD_CLASS);
+        } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException noSuchMethodException) {
             throw new AssertionError(noSuchMethodException);
         }
     }

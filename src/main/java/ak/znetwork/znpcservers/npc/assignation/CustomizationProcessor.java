@@ -4,12 +4,14 @@ import ak.znetwork.znpcservers.cache.builder.ClassCacheBuilder;
 import ak.znetwork.znpcservers.cache.enums.PackageType;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -27,7 +29,18 @@ public class CustomizationProcessor {
     /**
      * A map containing the loaded provided entity methods.
      */
-    private final ImmutableMap<String, Method> methods;
+    private final Map<String, Method> methods;
+
+    /**
+     * Creates a new customization processor for an entity type.
+     *
+     * @param entityType The entity type.
+     * @param methodsName The methods to load.
+     */
+    public CustomizationProcessor(EntityType entityType,
+                                  Iterable<String> methodsName) {
+        this(entityType.getEntityClass(), methodsName);
+    }
 
     /**
      * Creates a new customization processor for an entity type.
@@ -35,8 +48,8 @@ public class CustomizationProcessor {
      * @param entityClass The bukkit entity type class.
      * @param methodsName The methods to load.
      */
-    public CustomizationProcessor(Class<? extends Entity> entityClass,
-                                  Iterable<String> methodsName) {
+    protected CustomizationProcessor(Class<? extends Entity> entityClass,
+                                     Iterable<String> methodsName) {
         this.entityClass = entityClass;
         this.methods = getMethods(methodsName);
     }
@@ -47,11 +60,11 @@ public class CustomizationProcessor {
      * @param iterable The method names.
      * @return A map of all loaded methods that were provided.
      */
-    protected ImmutableMap<String, Method> getMethods(Iterable<String> iterable) {
-        ImmutableMap.Builder<String, Method> builder =
-                ImmutableMap.builder();
+    protected Map<String, Method> getMethods(Iterable<String> iterable) {
+        Map<String, Method> builder = new HashMap<>();
         for (Method method : entityClass.getMethods()) {
-            if (!Iterables.contains(iterable, method.getName())) {
+            if (builder.containsKey(method.getName()) ||
+                    !Iterables.contains(iterable, method.getName())) {
                 // Only load provided methods..
                 continue;
             }
@@ -69,7 +82,7 @@ public class CustomizationProcessor {
             }
             builder.put(method.getName(), method);
         }
-        return builder.build();
+        return builder;
     }
 
     /**
@@ -87,7 +100,7 @@ public class CustomizationProcessor {
      *
      * @return A map containing the loaded provided entity methods.
      */
-    public ImmutableMap<String, Method> getMethods() {
+    public Map<String, Method> getMethods() {
         return methods;
     }
 }
