@@ -16,6 +16,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -35,11 +36,6 @@ public class ZNConfig implements ZNConfigImpl {
     private static final JsonParser JSON_PARSER = new JsonParser();
 
     /**
-     * The class start time.
-     */
-    private static final long START_TIME = System.currentTimeMillis();
-
-    /**
      * The charset.
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -57,7 +53,7 @@ public class ZNConfig implements ZNConfigImpl {
     /**
      * A map that contains the configuration values.
      */
-    private Map<ZNConfigValue, Object> configValues;
+    private final Map<ZNConfigValue, Object> configValues;
 
     /**
      * Creates a new configuration.
@@ -69,60 +65,57 @@ public class ZNConfig implements ZNConfigImpl {
                     Path path) {
         this.configType = znConfigType;
         this.path = path;
-
-        try {
-            if (!path.toFile().exists()) {
-                Files.createFile(path);
-            }
-
-            this.load();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        this.configValues = Arrays.stream(ZNConfigValue.values()).filter(znConfigValue ->
+                znConfigValue.getConfigType() == configType).
+                collect(Collectors.toMap(key -> key, ZNConfigValue::getValue));
+        load();
     }
 
     @Override
     public void load() {
-        // Set default configuration values
-        configValues = Arrays.stream(ZNConfigValue.values()).filter(znConfigValue -> znConfigValue.getConfigType() == this.configType).collect(Collectors.toMap(key -> key, ZNConfigValue::getValue));
+        synchronized (path) {
+            try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
+                JsonElement data = JSON_PARSER.parse(reader);
+                if (data == null) {
+                    // No data found
+                    return;
+                }
 
-        try (BufferedReader reader = Files.newBufferedReader(path, CHARSET)) {
-            JsonElement data = JSON_PARSER.parse(reader);
-            if (data == null)
-                return;
-
-            for (ZNConfigValue znConfigValue : ZNConfigValue.values()) {
-                if (znConfigValue.getConfigType() != configType)
-                    continue;
-
-                JsonElement jsonElement = configValues.size() == 1 ? data : (data.isJsonObject() ? data.getAsJsonObject().get(znConfigValue.name()) : null);
-                if (jsonElement != null && !jsonElement.isJsonNull())
-                    configValues.put(znConfigValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, znConfigValue.getValue().getClass(), znConfigValue.getPrimitiveType())));
+                for (ZNConfigValue configValue : configValues.keySet()) {
+                    JsonElement jsonElement = configValues.size() == 1 ?
+                            data : data.isJsonObject() ?
+                            data.getAsJsonObject().get(configValue.name()) : null;
+                    if (jsonElement != null && !jsonElement.isJsonNull()) {
+                        configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
+                    }
+                }
+            } catch (NoSuchFileException e) {
+                // File not found, create the configuration with
+                // The default provided values.
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to read config: " + configType.name());
+            } finally {
+                // Save configuration to file
+                save();
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
-
-        // Save to file
-        save();
     }
 
     @Override
     public void save() {
-        if (System.currentTimeMillis() - START_TIME < 1000 * 10) {
-            return;
-        }
-
-        try (BufferedWriter writer = Files.newBufferedWriter(path, CHARSET)) {
-            ServersNPC.GSON.toJson(configValues.size() == 1 ? configValues.values().iterator().next() : configValues, writer);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        synchronized (path) {
+            try (Writer writer = Files.newBufferedWriter(path, CHARSET)) {
+                ServersNPC.GSON.toJson(configValues.size() == 1 ?
+                        configValues.values().iterator().next() : configValues, writer);
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to save config: " + configType.name());
+            }
         }
     }
 
     @Override
-    public void sendMessage(CommandSender player, ZNConfigValue znConfigValue) {
-        player.sendMessage(Utils.color(getValue(znConfigValue)));
+    public void sendMessage(CommandSender sender, ZNConfigValue znConfigValue) {
+        sender.sendMessage(Utils.color(getValue(znConfigValue)));
     }
 
     @Override
