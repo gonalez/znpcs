@@ -19,6 +19,7 @@ import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -182,8 +183,7 @@ public class ZNPC {
     public void setLocation(Location location) {
         try {
             if (getNpcPath() == null) {
-                npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getBlockY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
-
+                npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
                 lookAt(null, location, true);
             }
 
@@ -389,12 +389,14 @@ public class ZNPC {
      * @param player The player to delete the npc for.
      */
     public void delete(Player player, boolean removeViewer) {
-        if (!viewers.contains(player))
+        if (!viewers.contains(player)) {
             return;
+        }
 
         try {
-            if (npcPojo.getNpcType() == NPCType.PLAYER)
+            if (npcPojo.getNpcType() == NPCType.PLAYER) {
                 hideFromTab(player);
+            }
 
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{entityID}));
             hologram.delete(player);
@@ -486,8 +488,9 @@ public class ZNPC {
      * Deletes the NPC for current viewers.
      */
     public void deleteViewers() {
-        if (viewers.isEmpty())
+        if (viewers.isEmpty()) {
             return;
+        }
 
         Iterator<Player> iterator = viewers.iterator();
         do {
@@ -540,7 +543,9 @@ public class ZNPC {
      * @return The npc location.
      */
     public Location getLocation() {
-        return getNpcPath() != null ? getNpcPath().getLocation().toBukkitLocation() : npcPojo.getLocation().toBukkitLocation();
+        return getNpcPath() != null ?
+                getNpcPath().getLocation().toBukkitLocation() :
+                npcPojo.getLocation().toBukkitLocation();
     }
 
     /**
@@ -592,8 +597,9 @@ public class ZNPC {
      */
     public static void unregister(int id) {
         ZNPC znpc = find(id);
-        if (znpc == null)
+        if (znpc == null) {
             return;
+        }
 
         NPC_MAP.remove(id);
         znpc.deleteViewers();

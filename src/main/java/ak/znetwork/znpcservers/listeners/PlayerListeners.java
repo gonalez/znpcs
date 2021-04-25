@@ -1,7 +1,6 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
 import org.bukkit.event.EventHandler;
@@ -34,6 +33,5 @@ public class PlayerListeners implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         ZNPCUser.unregister(event.getPlayer());
-        ZNPC.all().forEach(npc -> npc.delete(event.getPlayer(), true));
     }
 }

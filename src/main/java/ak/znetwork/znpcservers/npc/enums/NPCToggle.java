@@ -58,13 +58,6 @@ public enum NPCToggle {
         public void toggle(ZNPC npc, String value) {
             npc.getNpcPojo().setHasLookAt(!npc.getNpcPojo().isHasLookAt());
         }
-    },
-
-    PATH_REVERSE {
-        @Override
-        public void toggle(ZNPC npc, String value) {
-            npc.getNpcPojo().setReversePath(!npc.getNpcPojo().isReversePath());
-        }
     };
 
     /**

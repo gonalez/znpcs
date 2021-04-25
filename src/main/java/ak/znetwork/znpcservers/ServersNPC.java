@@ -134,8 +134,9 @@ public class ServersNPC extends JavaPlugin {
      */
     public void loadAllPaths() {
         File[] listFiles = PATH_FOLDER.listFiles();
-        if (listFiles == null)
+        if (listFiles == null) {
             return;
+        }
 
         for (File file : listFiles) {
             // Check if file is path
@@ -165,8 +166,9 @@ public class ServersNPC extends JavaPlugin {
      */
     public static ZNPC createNPC(int id, NPCType npcType, Location location, String name) {
         final ZNPC find = ZNPC.find(id);
-        if (find != null)
-            return ZNPC.find(id);
+        if (find != null) {
+            return find;
+        }
 
         ZNPCPojo pojo = new ZNPCPojo(id, Collections.singletonList(name), ZNPCSkin.forName(name), new ZLocation(location), npcType);
         ConfigTypes.NPC_LIST.add(pojo);
@@ -181,8 +183,9 @@ public class ServersNPC extends JavaPlugin {
      */
     public static void deleteNPC(int npcID) {
         ZNPC npc = ZNPC.find(npcID);
-        if (npc == null)
+        if (npc == null) {
             return;
+        }
 
         ZNPC.unregister(npcID);
         ConfigTypes.NPC_LIST.remove(npc.getNpcPojo());

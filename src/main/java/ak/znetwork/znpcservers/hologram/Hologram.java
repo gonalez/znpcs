@@ -72,12 +72,12 @@ public class Hologram {
             for (String line : npc.getNpcPojo().getHologramLines()) {
                 Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
 
-                ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() >= 1);
-                if (Utils.versionNewer(13))
+                ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() > 0);
+                if (Utils.versionNewer(13)) {
                     ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(null, Utils.color(line)));
-                else
+                } else {
                     ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(line));
-
+                }
                 ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
 
                 entityArmorStands.add(armorStand);
@@ -136,10 +136,11 @@ public class Hologram {
             try {
                 String line = npcLines.get(i).replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
 
-                if (Utils.versionNewer(13))
+                if (Utils.versionNewer(13)) {
                     ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, Utils.color(npcLines.get(i))));
-                else
+                } else {
                     ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, npcLines.get(i)) : line));
+                }
 
                 Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(armorStand);
 

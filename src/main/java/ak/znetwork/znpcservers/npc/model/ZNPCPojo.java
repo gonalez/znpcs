@@ -30,7 +30,7 @@ public class ZNPCPojo {
     /**
      * Toggle variables.
      */
-    private boolean hasGlow, hasLookAt, hasMirror, isReversePath = false;
+    private boolean hasGlow, hasLookAt, hasMirror;
 
     /**
      * Toggle variables.

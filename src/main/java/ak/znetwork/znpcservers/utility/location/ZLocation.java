@@ -3,6 +3,8 @@ package ak.znetwork.znpcservers.utility.location;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
+import org.bukkit.util.Vector;
+
 import lombok.Getter;
 
 /**
@@ -79,8 +81,9 @@ public class ZLocation {
      * @return The bukkit-location.
      */
     public Location toBukkitLocation() {
-        if (locationCache != null)
+        if (locationCache != null) {
             return locationCache;
+        }
 
         return locationCache = new Location(Bukkit.getWorld(world),
                 x,
@@ -89,5 +92,12 @@ public class ZLocation {
                 yaw,
                 pitch
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public Vector toVector() {
+        return toBukkitLocation().toVector();
     }
 }

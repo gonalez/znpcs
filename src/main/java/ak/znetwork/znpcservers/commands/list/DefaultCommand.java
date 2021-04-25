@@ -15,6 +15,7 @@ import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
+import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -246,14 +247,12 @@ public class DefaultCommand extends ZNCommand {
         }
 
         try {
-            final Location location = sender.getPlayer().getLocation().clone();
-            foundNPC.setLocation(location.getBlock().getType().name().contains("STEP") ? location.subtract(0, 0.5, 0) : location);
+            foundNPC.setLocation(sender.getPlayer().getLocation());
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
             throw new CommandExecuteException("An error occurred while moving npc", exception);
         }
     }
-
 
     @ZNCommandSub(aliases = {"-id", "-type"}, name = "type", permission = "znpcs.cmd.type")
     public void changeType(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {

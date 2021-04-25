@@ -155,8 +155,12 @@ public class ZNPCUser {
      */
     public static void unregister(Player player) {
         ZNPCUser znpcUser = USER_MAP.get(player.getUniqueId());
-        if (znpcUser == null)
+        if (znpcUser == null) {
             return;
+        }
+
+        // Delete all npc for given player
+        ZNPC.all().forEach(npc -> npc.delete(player, true));
 
         znpcUser.ejectNetty();
         USER_MAP.remove(player.getUniqueId());

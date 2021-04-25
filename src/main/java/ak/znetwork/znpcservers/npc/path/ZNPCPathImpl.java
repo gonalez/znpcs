@@ -499,6 +499,7 @@ public interface ZNPCPathImpl {
                 double xDiff = Math.abs(last.getX() - location.getX());
                 double yDiff = Math.abs(last.getY() - location.getY());
                 double zDiff = Math.abs(last.getZ() - location.getZ());
+
                 return (xDiff + yDiff + zDiff) > 0.01;
             }
 
@@ -530,19 +531,21 @@ public interface ZNPCPathImpl {
 
                 @Override
                 public void handle() {
-                    final int currentEntry = currentEntryPath;
+                    updatePathLocation(getPath().getLocationList().get(currentEntryPath = getNextLocation()));
 
-                    if (getNpc().getNpcPojo().isReversePath()) {
-                        if (currentEntry <= 0) pathReverse = false;
-                        else if (currentEntry >= getPath().getLocationList().size() - 1) pathReverse = true;
+                    final int nextIndex = getNextLocation();
+                    if (nextIndex < 1)  {
+                        pathReverse = false;
+                    } else if (nextIndex >= getPath().getLocationList().size() - 1)  {
+                        pathReverse = true;
                     }
+                }
 
-                    setLocation(getPath().getLocationList().get(Math.min(getPath().getLocationList().size() - 1, currentEntry)));
-
-                    if (!pathReverse) currentEntryPath = currentEntry + 1;
-                    else currentEntryPath = currentEntry - 1;
-
-                    updatePathLocation(getLocation());
+                /**
+                 * @inheritDoc
+                 */
+                private int getNextLocation() {
+                    return pathReverse ? currentEntryPath - 1 : currentEntryPath + 1;
                 }
 
                 /**
@@ -551,13 +554,17 @@ public interface ZNPCPathImpl {
                  * @param location The npc path location.
                  */
                 protected void updatePathLocation(ZLocation location) {
-                    int pathIndex = getPath().getLocationList().indexOf(getLocation());
+                    setLocation(location);
 
-                    Vector vector = (pathReverse ? getPath().getLocationList().get(Math.max(0, Math.min(getPath().getLocationList().size() - 1, pathIndex + 1))) : getPath().getLocationList().get(Math.min(getPath().getLocationList().size() - 1, (Math.max(0, pathIndex - 1))))).toBukkitLocation().toVector();
-                    double yDiff = (location.getY() - vector.getY());
+                    final ZLocation next = getPath().getLocationList().get(getNextLocation());
+                    // Y diff
+                    Vector vector = next.toVector().add(new Vector(0, location.getY() - next.getY(), 0));
 
-                    Location direction = getLocation().toBukkitLocation().clone().setDirection(location.toBukkitLocation().clone().subtract(vector.clone().add(new Vector(0, yDiff, 0))).toVector());
+                    Location direction = next.toBukkitLocation().clone().setDirection(location.toVector().subtract(vector).
+                            multiply(new Vector(-1, 0, -1))); // Reverse
                     getNpc().setLocation(direction);
+
+                    // Look at next location
                     getNpc().lookAt(null, direction, true);
                 }
             }
