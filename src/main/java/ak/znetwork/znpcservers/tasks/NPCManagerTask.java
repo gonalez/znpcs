@@ -29,9 +29,9 @@ public final class NPCManagerTask extends BukkitRunnable {
     @Override
     public void run() {
         for (ZNPC npc : ZNPC.all()) {
-            if (npc.getNpcPath() != null) {
-                // Handle path
-                npc.getNpcPath().handle();
+            boolean hasPath = npc.getNpcPath() != null;
+            if (hasPath) {
+                npc.getNpcPath().handle(); // Handle path
             }
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -44,7 +44,8 @@ public final class NPCManagerTask extends BukkitRunnable {
                         npc.spawn(player);
                     }
 
-                    if (npc.getNpcPojo().isHasLookAt()) {
+                    if (npc.getNpcPojo().isHasLookAt()
+                            && !hasPath) {
                         npc.lookAt(player, player.getLocation(), false);
                     }
 

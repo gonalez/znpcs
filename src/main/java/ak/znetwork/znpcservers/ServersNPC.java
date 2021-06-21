@@ -11,7 +11,7 @@ import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.NPCType;
+import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
@@ -74,6 +74,7 @@ public class ServersNPC extends JavaPlugin {
             registerTypeAdapter(ZLocation.class, new ZLocationSerializer()).
             registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer()).
             setPrettyPrinting().
+            disableHtmlEscaping().
             create();
 
     /**
@@ -164,7 +165,7 @@ public class ServersNPC extends JavaPlugin {
      * @param name     The npc skin name.
      * @return The created zNPC.
      */
-    public static ZNPC createNPC(int id, NPCType npcType, Location location, String name) {
+    public static ZNPC createNPC(int id, TypeZNPC npcType, Location location, String name) {
         final ZNPC find = ZNPC.find(id);
         if (find != null) {
             return find;

@@ -1,7 +1,6 @@
 package ak.znetwork.znpcservers.cache.impl;
 
 import ak.znetwork.znpcservers.cache.builder.ClassCacheBuilder;
-import ak.znetwork.znpcservers.cache.enums.PackageType;
 
 import org.bukkit.Bukkit;
 
@@ -108,12 +107,17 @@ public interface ClassCacheImpl {
         /**
          * The package of the class.
          */
-        Builder packageType(PackageType packageType);
+        Builder packageType(String packageName);
 
         /**
          * The class name.
          */
         Builder className(String className);
+
+        /**
+         * The class name.
+         */
+        Builder className(Class<?> clazz);
 
         /**
          * The method name.
@@ -153,7 +157,7 @@ public interface ClassCacheImpl {
          * {@inheritDoc}
          */
         protected Default(ClassCacheBuilder cacheBuilder) {
-            super(cacheBuilder.getPackageType(),
+            super(cacheBuilder.getPackageName(),
                     cacheBuilder.getClassName(),
                     cacheBuilder.getMethodName(),
                     cacheBuilder.getFieldName(),
@@ -265,7 +269,9 @@ public interface ClassCacheImpl {
 
             @Override
             protected Constructor<?> onLoad() throws NoSuchMethodException {
-                return BUILDER_CLASS.getDeclaredConstructor(getParameterTypes());
+                Constructor<?> constructor = BUILDER_CLASS.getDeclaredConstructor(getParameterTypes());
+                constructor.setAccessible(true);
+                return constructor;
             }
         }
 

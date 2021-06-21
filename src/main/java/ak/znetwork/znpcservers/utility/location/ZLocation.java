@@ -1,11 +1,14 @@
 package ak.znetwork.znpcservers.utility.location;
 
+import ak.znetwork.znpcservers.types.ClassTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import org.bukkit.util.Vector;
 
 import lombok.Getter;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -92,6 +95,13 @@ public class ZLocation {
                 yaw,
                 pitch
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public Object getNMSWorld() throws InvocationTargetException, IllegalAccessException {
+        return ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(toBukkitLocation().getWorld());
     }
 
     /**

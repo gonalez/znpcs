@@ -1,6 +1,5 @@
 package ak.znetwork.znpcservers.cache.builder;
 
-import ak.znetwork.znpcservers.cache.enums.PackageType;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -27,14 +26,14 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     private static final Class<?>[] EMPTY_ARRAY = ArrayUtils.EMPTY_CLASS_ARRAY;
 
     /**
-     * The class package.
-     */
-    private final PackageType packageType;
-
-    /**
      * The class name.
      */
-    private final String className, methodName, fieldName;
+    private final String packageName, className, methodName, fieldName;
+
+    /**
+     * The class.
+     */
+    private final Class<?> clazz;
 
     /**
      * The class parameters.
@@ -45,7 +44,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
      * Creates a new empty classCache builder.
      */
     public ClassCacheBuilder() {
-        this(PackageType.DEFAULT,
+        this(EMPTY_STRING,
                 EMPTY_STRING,
                 EMPTY_STRING,
                 EMPTY_STRING,
@@ -56,27 +55,28 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     /**
      * Creates a new classCache builder.
      *
-     * @param packageType     The class package.
-     * @param className       The class name.
-     * @param methodName      The class method name.
-     * @param fieldName       The class field name.
-     * @param parameterTypes  The class parameters.
+     * @param packageType    The class package.
+     * @param className      The class name.
+     * @param methodName     The class method name.
+     * @param fieldName      The class field name.
+     * @param parameterTypes The class parameters.
      */
-    protected ClassCacheBuilder(PackageType packageType,
+    protected ClassCacheBuilder(String packageType,
                                 String className,
                                 String methodName,
                                 String fieldName,
                                 Class<?>... parameterTypes) {
-        this.packageType = packageType;
+        this.packageName = packageType;
         this.className = className;
         this.methodName = methodName;
         this.fieldName = fieldName;
         this.parameterTypes = parameterTypes;
+        this.clazz = null;
     }
 
     @Override
-    public ClassCacheBuilder packageType(PackageType packageType) {
-        return new ClassCacheBuilder(packageType,
+    public ClassCacheBuilder packageType(String packageName) {
+        return new ClassCacheBuilder(packageName,
                 className,
                 methodName,
                 fieldName,
@@ -86,7 +86,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
 
     @Override
     public ClassCacheBuilder className(String className) {
-        return new ClassCacheBuilder(packageType,
+        return new ClassCacheBuilder(packageName,
                 toBukkitClass(className),
                 methodName,
                 fieldName,
@@ -95,8 +95,18 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     }
 
     @Override
+    public ClassCacheBuilder className(Class<?> clazz) {
+        return new ClassCacheBuilder(packageName,
+                clazz == null ? EMPTY_STRING : clazz.getName(),
+                methodName,
+                fieldName,
+                parameterTypes
+        );
+    }
+
+    @Override
     public ClassCacheBuilder methodName(String methodName) {
-        return new ClassCacheBuilder(packageType,
+        return new ClassCacheBuilder(packageName,
                 className,
                 methodName,
                 fieldName,
@@ -106,7 +116,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
 
     @Override
     public ClassCacheBuilder fieldName(String fieldName) {
-        return new ClassCacheBuilder(packageType,
+        return new ClassCacheBuilder(packageName,
                 className,
                 methodName,
                 fieldName,
@@ -116,7 +126,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
 
     @Override
     public ClassCacheBuilder parameterTypes(Class<?>... parameterTypes) {
-        return new ClassCacheBuilder(packageType,
+        return new ClassCacheBuilder(packageName,
                 className,
                 methodName,
                 fieldName,
@@ -128,7 +138,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
      * {@inheritDoc}
      */
     protected String toBukkitClass(String className) {
-        return packageType == PackageType.DEFAULT ? className :
-                String.format(packageType.getPackageName() + ".%s", className);
+        return packageName.length() > 0 ? String.format(packageName + ".%s", className) :
+                className;
     }
 }

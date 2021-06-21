@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc.assignation;
 
 import ak.znetwork.znpcservers.cache.builder.ClassCacheBuilder;
-import ak.znetwork.znpcservers.cache.enums.PackageType;
+import ak.znetwork.znpcservers.cache.impl.PackageImpl;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
 import com.google.common.collect.Iterables;
@@ -75,7 +75,7 @@ public class CustomizationProcessor {
                     // Create a new cache for the constants on the enum class,
                     // for later use.
                     new ClassCacheImpl.Default.EnumLoader(new ClassCacheBuilder().
-                            packageType(PackageType.DEFAULT).
+                            packageType(PackageImpl.TypePackage.DEFAULT.getPackageName()).
                             className(parameter.getTypeName())).
                             typeOf();
                 }

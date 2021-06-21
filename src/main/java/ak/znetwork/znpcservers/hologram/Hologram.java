@@ -10,7 +10,6 @@ import ak.znetwork.znpcservers.utility.Utils;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,8 +84,9 @@ public class Hologram {
                 y+=HOLOGRAM_SPACE;
             }
 
+            setLocation(location, 0);
             npc.getViewers().forEach(this::spawn);
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -101,9 +101,8 @@ public class Hologram {
             try {
                 Object entityPlayerPacketSpawn = ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(entityArmorStand);
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+            } catch (ReflectiveOperationException operationException) {
                 delete(player);
-
                 throw new AssertionError(operationException);
             }
         });
@@ -119,8 +118,8 @@ public class Hologram {
             try {
                 int armorStandId = (int) ClassTypes.GET_ENTITY_ID.invoke(entityArmorStand);
 
-                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{armorStandId}));
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(Utils.BUKKIT_VERSION > 16 ? armorStandId : new int[]{armorStandId}));
+            } catch (ReflectiveOperationException operationException) {
                 throw new AssertionError(operationException);
             }
         });
@@ -146,7 +145,7 @@ public class Hologram {
 
                 int entity_id = (Integer) ClassTypes.GET_ENTITY_ID.invoke(armorStand);
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entity_id, dataWatcherObject, true));
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+            } catch (ReflectiveOperationException operationException) {
                 throw new AssertionError(operationException);
             }
         }
@@ -160,7 +159,7 @@ public class Hologram {
             try {
                 Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(o);
                 npc.getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+            } catch (ReflectiveOperationException operationException) {
                 throw new AssertionError("An exception occurred while trying to update location for hologram", operationException);
             }
         });
@@ -175,7 +174,7 @@ public class Hologram {
         this.location = location = location.clone().add(0, height, 0);
 
         try {
-            double y = 0;
+            double y = npc.getNpcPojo().getHologramHeight();
             for (Object o : entityArmorStands) {
                 ClassTypes.SET_LOCATION_METHOD.invoke(o, location.getX(), (location.getY() - 0.15) + y,
                         location.getZ(), location.getYaw(), location.getPitch());
@@ -184,7 +183,7 @@ public class Hologram {
             }
 
             updateLocation();
-        } catch (IllegalAccessException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -200,7 +199,7 @@ public class Hologram {
                     PlaceholderUtils.getWithPlaceholders(player, text) :
                     text.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE)
             );
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }

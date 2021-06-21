@@ -6,6 +6,7 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.enums.NamingType;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 
 import java.util.List;
@@ -34,6 +35,11 @@ public class ConfigTypes {
      * Represents how often the NPCs will be saved.
      */
     public static final int SAVE_DELAY = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.SAVE_NPCS_DELAY_SECONDS);
+
+    /**
+     * Represents the npc name in tab-list.
+     */
+    public static final NamingType NAMING_METHOD = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.NAMING_METHOD);
 
     /**
      * Represents the npc list.

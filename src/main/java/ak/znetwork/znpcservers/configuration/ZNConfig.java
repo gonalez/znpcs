@@ -82,11 +82,18 @@ public class ZNConfig implements ZNConfigImpl {
                 }
 
                 for (ZNConfigValue configValue : configValues.keySet()) {
-                    JsonElement jsonElement = configValues.size() == 1 ?
+                    final boolean single = configValues.size() == 1;
+                    JsonElement jsonElement = single ?
                             data : data.isJsonObject() ?
                             data.getAsJsonObject().get(configValue.name()) : null;
                     if (jsonElement != null && !jsonElement.isJsonNull()) {
-                        configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
+                        if (
+                                !single
+                                && configValue.getPrimitiveType().isEnum()) {
+                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, configValue.getPrimitiveType()));
+                        } else {
+                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
+                        }
                     }
                 }
             } catch (NoSuchFileException e) {

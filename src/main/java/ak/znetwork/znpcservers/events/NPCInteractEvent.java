@@ -1,5 +1,6 @@
 package ak.znetwork.znpcservers.events;
 
+import ak.znetwork.znpcservers.events.enums.ClickType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 
 import org.bukkit.entity.Player;
@@ -98,37 +99,5 @@ public class NPCInteractEvent extends Event {
 
     public static HandlerList getHandlerList() {
         return handlerList;
-    }
-
-    /**
-     * Determines the click type when an npc is interacted.
-     */
-    enum ClickType {
-
-        /**
-         * Represents when an npc is right-clicked.
-         */
-        RIGHT,
-
-        /**
-         * Represents when an npc is left-clicked.
-         */
-        LEFT;
-
-        /**
-         * Locates a click type for the given action name.
-         *
-         * @param actionName The action name.
-         * @return The corresponding enum.
-         */
-        public static ClickType forName(String actionName) {
-            if (actionName.startsWith("INTERACT")) {
-                return RIGHT;
-            } else if (actionName.startsWith("ATTACK")) {
-                return LEFT;
-            } else {
-                throw new IllegalArgumentException("Cannot find click type for " + actionName);
-            }
-        }
     }
 }

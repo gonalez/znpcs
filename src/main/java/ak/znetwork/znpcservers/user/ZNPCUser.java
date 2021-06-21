@@ -2,10 +2,10 @@ package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
+import ak.znetwork.znpcservers.events.enums.ClickType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.model.ZNPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
-import ak.znetwork.znpcservers.utility.ReflectionUtils;
 
 import com.mojang.authlib.GameProfile;
 
@@ -109,8 +109,9 @@ public class ZNPCUser {
      * Unregisters the NPC channel for the current user.
      */
     public void ejectNetty() {
-        if (!channel.pipeline().names().contains(CHANNEL_NAME))
+        if (!channel.pipeline().names().contains(CHANNEL_NAME)) {
             return;
+        }
 
         channel.pipeline().remove(CHANNEL_NAME);
     }
@@ -131,11 +132,7 @@ public class ZNPCUser {
      * @return The user instance.
      */
     public static ZNPCUser registerOrGet(UUID uuid) {
-        ZNPCUser findUser = USER_MAP.get(uuid);
-        if (findUser != null)
-            return findUser;
-
-        return USER_MAP.put(uuid, new ZNPCUser(uuid));
+        return USER_MAP.computeIfAbsent(uuid, u -> new ZNPCUser(uuid));
     }
 
     /**
@@ -175,25 +172,28 @@ public class ZNPCUser {
 
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, Object packet, List<Object> out) throws Exception {
-            if (channel == null)
+            if (channel == null) {
                 throw new IllegalStateException("Channel is NULL!");
+            }
 
             out.add(packet);
 
             if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
                 // Check for interact wait time between npc
-                if (lastInteract > 0 && System.currentTimeMillis() - lastInteract <= 1000L * DEFAULT_DELAY)
+                if (lastInteract > 0 && System.currentTimeMillis() - lastInteract <= 1000L * DEFAULT_DELAY) {
                     return;
+                }
 
                 // The clicked entity id
                 int entityId = ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.getInt(packet);
 
                 // Try find npc
                 ZNPC npc = ZNPC.all().stream().filter(znpc -> znpc.getEntityID() == entityId).findFirst().orElse(null);
-                if (npc == null)
+                if (npc == null) {
                     return;
+                }
 
-                String clickName = ReflectionUtils.getValue(packet, "action").toString();
+                ClickType clickName = ClickType.forName(npc.getPacketClass().getClickType(packet).toString());
                 lastInteract = System.currentTimeMillis();
 
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
@@ -201,24 +201,29 @@ public class ZNPCUser {
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), clickName, npc));
 
                     final List<ZNPCAction> actions = npc.getNpcPojo().getClickActions();
-                    if (actions == null || actions.isEmpty())
+                    if (actions == null || actions.isEmpty()) {
                         return;
+                    }
 
                     for (ZNPCAction npcAction : actions) {
-                        final String action = npcAction.getAction();
+                        if (npcAction.getClickType() != ClickType.DEFAULT
+                        && clickName != npcAction.getClickType()) {
+                            // ...
+                            continue;
+                        }
 
                         // Check for action cooldown
                         if (npcAction.getDelay() > 0) {
                             int actionId = npc.getNpcPojo().getClickActions().indexOf(npcAction);
 
-                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * npcAction.getDelay())
-                                return;
+                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * npcAction.getDelay()) {
+                                continue;
+                            }
 
                             // Set new action cooldown for user
                             actionDelay.put(actionId, System.currentTimeMillis());
                         }
-
-                        npcAction.run(ZNPCUser.this, action);
+                        npcAction.run(ZNPCUser.this, npcAction.getAction());
                     }
                 }, DEFAULT_DELAY);
             }

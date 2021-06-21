@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.npc.skin;
 
 import java.net.URL;
 
+import ak.znetwork.znpcservers.utility.Utils;
 import lombok.Getter;
 
 import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
@@ -33,6 +34,13 @@ public final class ZNPCSkin {
     protected ZNPCSkin(String... values) {
         this.value = values[0];
         this.signature = values[1];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public int getLayerIndex() {
+        return SkinLayerValues.findLayerByVersion(Utils.BUKKIT_VERSION);
     }
 
     /**
@@ -71,6 +79,55 @@ public final class ZNPCSkin {
                     skin).toSkinFetcher().getProfile());
         } catch (Exception e) {
             return new ZNPCSkin(SkinBuilder.withData(SkinAPI.PROFILE_API, skin).toSkinFetcher().getProfile());
+        }
+    }
+
+    /**
+     * Used to find skin layer index by its version.
+     */
+    enum SkinLayerValues {
+        V8(8, 12),
+        V9(10, 13),
+        V14(14, 15),
+        V16(16, 16),
+        V17(17, 17);
+
+        /**
+         * The minimum required version.
+         */
+        final int minVersion;
+
+        /**
+         * The layer index.
+         */
+        final int layerValue;
+
+        /**
+         * Creates a new layer identification.
+         *
+         * @param minVersion The minimum required version.
+         * @param layerValue The layer index.
+         */
+        SkinLayerValues(int minVersion,
+                        int layerValue) {
+            this.minVersion = minVersion;
+            this.layerValue = layerValue;
+        }
+
+        /**
+         * Find a layer index by its version.
+         *
+         * @param minVersion The minimum required version.
+         * @return The layer index.
+         */
+        public static int findLayerByVersion(int minVersion) {
+            int value = V9.layerValue;
+            for (SkinLayerValues skinLayerValue : values()) {
+                if (minVersion >= skinLayerValue.minVersion) {
+                    value = skinLayerValue.layerValue;
+                }
+            }
+            return value;
         }
     }
 }

@@ -8,7 +8,7 @@ import ak.znetwork.znpcservers.npc.ZNPC;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public enum NPCToggle {
+public enum ToggleFunction {
 
     /**
      * Determines if a hologram of an npc should be seen.

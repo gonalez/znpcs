@@ -8,7 +8,7 @@ package ak.znetwork.znpcservers.npc.enums;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public enum NPCItemSlot {
+public enum ItemSlot {
 
     /**
      * Represents the helmet of the npc.
@@ -56,8 +56,8 @@ public enum NPCItemSlot {
      * @param slotOld The equipment id for oldest versions.
      * @param slotNew The equipment id for newer versions.
      */
-    NPCItemSlot(int slotOld,
-                int slotNew) {
+    ItemSlot(int slotOld,
+             int slotNew) {
         this.slotOld = slotOld;
         this.slotNew = slotNew;
     }

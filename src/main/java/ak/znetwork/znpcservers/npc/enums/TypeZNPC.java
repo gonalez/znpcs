@@ -12,6 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Optional;
 
 import lombok.Getter;
 
@@ -24,7 +25,7 @@ import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.ClassCache;
  * @since 07/02/2020
  */
 @Getter
-public enum NPCType {
+public enum TypeZNPC {
 
     PLAYER(ClassTypes.ENTITY_PLAYER_CLASS, 0),
     ARMOR_STAND(ClassTypes.ENTITY_ARMOR_STAND_CLASS, 0, "setSmall", "setArms"),
@@ -125,11 +126,11 @@ public enum NPCType {
      * @param holoHeight  The hologram height for the entity.
      * @param methods     The customization methods for the entity.
      */
-    NPCType(Class<?> entityClass,
-            String newName,
-            int id,
-            double holoHeight,
-            String... methods) {
+    TypeZNPC(Class<?> entityClass,
+             String newName,
+             int id,
+             double holoHeight,
+             String... methods) {
         this.entityClass = entityClass;
         this.newName = newName;
         this.id = id;
@@ -147,9 +148,9 @@ public enum NPCType {
      * @param holoHeight    The hologram height for the entity.
      * @param customization The customization methods for the entity.
      */
-    NPCType(Class<?> entityClass,
-            double holoHeight,
-            String... customization) {
+    TypeZNPC(Class<?> entityClass,
+             double holoHeight,
+             String... customization) {
         this(entityClass, EMPTY_STRING, DEFAULT_ID, holoHeight, customization);
     }
 
@@ -165,12 +166,12 @@ public enum NPCType {
 
         try {
             if (Utils.versionNewer(14)) {
-                // Get nms entityType for bukkit entity type
-                nmsEntityType = ClassTypes.ENTITY_TYPES_CLASS.getField(bukkitEntityType.getKey().getKey().toUpperCase()).get(null);
+                // Get nms-entityType for bukkit entity type
+                nmsEntityType = ((Optional<?>)ClassTypes.ENTITY_TYPES_A_METHOD.invoke(null, bukkitEntityType.getKey().getKey().toLowerCase())).get();
                 return entityClass.getConstructor(ClassTypes.ENTITY_TYPES_CLASS, ClassTypes.WORLD_CLASS);
             }
             return entityClass.getConstructor(ClassTypes.WORLD_CLASS);
-        } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException noSuchMethodException) {
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException noSuchMethodException) {
             throw new AssertionError(noSuchMethodException);
         }
     }

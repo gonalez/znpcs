@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc.model;
 
-import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.NPCType;
+import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 
@@ -38,6 +38,11 @@ public class ZNPCPojo {
     private boolean hasToggleHolo = true;
 
     /**
+     * NPC name y height.
+     */
+    private double hologramHeight;
+
+    /**
      * The skin value & signature.
      */
     private String skin, signature;
@@ -60,7 +65,7 @@ public class ZNPCPojo {
     /**
      * The npc entity type.
      */
-    private NPCType npcType;
+    private TypeZNPC npcType;
 
     /**
      * The hologram lines.
@@ -75,7 +80,7 @@ public class ZNPCPojo {
     /**
      * The npc equipment values.
      */
-    private final Map<NPCItemSlot, ItemStack> npcEquip;
+    private final Map<ItemSlot, ItemStack> npcEquip;
 
     /**
      * The npc customizations values.
@@ -95,7 +100,7 @@ public class ZNPCPojo {
                     List<String> lines,
                     ZNPCSkin npcSkin,
                     ZLocation location,
-                    NPCType npcType) {
+                    TypeZNPC npcType) {
         this();
         this.id = id;
         this.hologramLines = lines;
@@ -115,5 +120,4 @@ public class ZNPCPojo {
         npcEquip = new HashMap<>();
         customizationMap = new HashMap<>();
     }
-
 }

@@ -7,23 +7,22 @@ import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.NPCToggle;
-import ak.znetwork.znpcservers.npc.enums.NPCType;
+import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.enums.ToggleFunction;
+import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
 import ak.znetwork.znpcservers.npc.model.ZNPCAction;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
-import ak.znetwork.znpcservers.utility.Utils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -58,11 +57,18 @@ public class DefaultCommand extends ZNCommand {
     public void defaultCommand(ZNCommandSender sender, Map<String, String> args) {
         sender.sendMessage("&6&m------------------------------------------");
         sender.sendMessage("&a&lZNPCS ZNETWORK &8(&6https://www.spigotmc.org/resources/znpcs-1-8-1-16-bungeecord-serversnpcs-open-source.80940/&8)");
-        getCommands().forEach(subCommand -> sender.sendMessage(ChatColor.YELLOW + ("/znpcs " + subCommand.name() + " " + String.join(" ", subCommand.aliases()))));
+        getCommands().forEach(sender::sendMessage);
         sender.sendMessage("&6&m------------------------------------------");
     }
 
-    @ZNCommandSub(aliases = {"-id", "-type", "-name"}, name = "create", permission = "znpcs.cmd.create")
+    @ZNCommandSub(
+            aliases = {"-id", "-type", "-name"},
+            name = "create",
+            permission = "znpcs.cmd.create",
+            help = {
+                    " &f&l* &e/znpcs create -id 1 -type PLAYER -name Qentin"
+            }
+    )
     public void createNPC(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 3) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -94,7 +100,7 @@ public class DefaultCommand extends ZNCommand {
 
         try {
             ServersNPC.createNPC(id,
-                    NPCType.valueOf(type),
+                    TypeZNPC.valueOf(type),
                     sender.getPlayer().getLocation(),
                     name
             );
@@ -105,7 +111,14 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id"}, name = "delete", permission = "znpcs.cmd.delete")
+    @ZNCommandSub(
+            aliases = {"-id"},
+            name = "delete",
+            permission = "znpcs.cmd.delete",
+            help = {
+                    " &f&l* &e/znpcs delete -id 1"
+            }
+    )
     public void deleteNPC(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -130,7 +143,11 @@ public class DefaultCommand extends ZNCommand {
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 
-    @ZNCommandSub(aliases = {}, name = "list", permission = "znpcs.cmd.list")
+    @ZNCommandSub(
+            aliases = {},
+            name = "list",
+            permission = "znpcs.cmd.list"
+    )
     public void list(ZNCommandSender sender, Map<String, String> args) {
         if (ConfigTypes.NPC_LIST.isEmpty()) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NO_NPC_FOUND);
@@ -139,7 +156,14 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-skin"}, name = "skin", permission = "znpcs.cmd.skin")
+    @ZNCommandSub(
+            aliases = {"-id", "-skin"},
+            name = "skin",
+            permission = "znpcs.cmd.skin",
+            help = {
+                    " &f&l* &e/znpcs skin -id 1 -skin Notch"
+            }
+    )
     public void setSkin(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -164,7 +188,15 @@ public class DefaultCommand extends ZNCommand {
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 
-    @ZNCommandSub(aliases = {"-id", "-slot"}, name = "equip", permission = "znpcs.cmd.equip")
+    @ZNCommandSub(
+            aliases = {"-id", "-slot"},
+            name = "equip",
+            permission = "znpcs.cmd.equip",
+            help = {
+                    " &f&l* &e/znpcs equip -id 1 -slot [HAND,OFFHAND,HELMET,CHESTPLATE,LEGGINGS,BOOTS]",
+                    "&8(You need to have the item in your hand.)"
+            }
+    )
     public void equip(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -185,16 +217,19 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        String slot = args.get("slot").toUpperCase();
-
-        foundNPC.getNpcPojo().getNpcEquip().put(NPCItemSlot.valueOf(slot),
-                sender.getPlayer().getInventory().getItemInMainHand());
         // Update new equip for npc viewers
-        foundNPC.updateEquipment();
+        foundNPC.updateEquipment(ItemSlot.valueOf(args.get("slot").toUpperCase()), sender.getPlayer().getInventory().getItemInMainHand());
         ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 
-    @ZNCommandSub(aliases = {"-id", "-lines"}, name = "lines", permission = "znpcs.cmd.lines")
+    @ZNCommandSub(
+            aliases = {"-id", "-lines"},
+            name = "lines",
+            permission = "znpcs.cmd.lines",
+            help = {
+                    " &f&l* &e/znpcs lines -id 1 -lines First Second Third-Space"
+            }
+    )
     public void changeLines(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -225,7 +260,14 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id"}, name = "move", permission = "znpcs.cmd.move")
+    @ZNCommandSub(
+            aliases = {"-id"},
+            name = "move",
+            permission = "znpcs.cmd.move",
+            help = {
+                    " &f&l* &e/znpcs move -id 1"
+            }
+    )
     public void move(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -248,13 +290,22 @@ public class DefaultCommand extends ZNCommand {
 
         try {
             foundNPC.setLocation(sender.getPlayer().getLocation());
+            foundNPC.setLastMove(System.currentTimeMillis()); // Fix
+
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception exception) {
             throw new CommandExecuteException("An error occurred while moving npc", exception);
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-type"}, name = "type", permission = "znpcs.cmd.type")
+    @ZNCommandSub(
+            aliases = {"-id", "-type"},
+            name = "type",
+            permission = "znpcs.cmd.type",
+            help = {
+                    " &f&l* &e/znpcs type -id 1 -type ZOMBIE"
+            }
+    )
     public void changeType(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -275,9 +326,9 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        NPCType npcType = NPCType.valueOf(args.get("type").toUpperCase());
+        TypeZNPC npcType = TypeZNPC.valueOf(args.get("type").toUpperCase());
 
-        if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
+        if (npcType != TypeZNPC.PLAYER && npcType.getConstructor() == null) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.UNSUPPORTED_ENTITY);
             return;
         }
@@ -290,7 +341,15 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-add", "-remove", "-cooldown", "-list"}, name = "action", permission = "znpcs.cmd.action")
+    @ZNCommandSub(
+            aliases = {"-id", "-add", "-remove", "-cooldown", "-list"},
+            name = "action",
+            permission = "znpcs.cmd.action",
+            help = {
+                    " &f&l* &e/znpcs action -id 1 -add SERVER skywars",
+                    " &f&l* &e/znpcs action -id 1 -add CMD spawn"
+            }
+    )
     public void action(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -363,7 +422,14 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-type", "-value"}, name = "toggle", permission = "znpcs.cmd.toggle")
+    @ZNCommandSub(
+            aliases = {"-id", "-type", "-value"},
+            name = "toggle",
+            permission = "znpcs.cmd.toggle",
+            help = {
+                    " &f&l* &e/znpcs toggle -id 1 -type look"
+            }
+    )
     public void toggle(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -384,7 +450,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        NPCToggle npcToggle = NPCToggle.valueOf(args.get("type").toUpperCase());
+        ToggleFunction npcToggle = ToggleFunction.valueOf(args.get("type").toUpperCase());
 
         try {
             npcToggle.toggle(foundNPC, args.get("value"));
@@ -394,7 +460,11 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id", "-customize"}, name = "customize", permission = "znpcs.cmd.customize")
+    @ZNCommandSub(
+            aliases = {"-id", "-customize"},
+            name = "customize",
+            permission = "znpcs.cmd.customize"
+    )
     public void customize(ZNCommandSender sender, Map<String, String> args) throws Exception {
         if (args.size() < 2) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -415,7 +485,7 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        NPCType npcType = foundNPC.getNpcPojo().getNpcType();
+        TypeZNPC npcType = foundNPC.getNpcPojo().getNpcType();
 
         List<String> customizeOptions = SPACE_SPLITTER.splitToList(args.get("customize"));
         String methodName = customizeOptions.get(0);
@@ -430,6 +500,7 @@ public class DefaultCommand extends ZNCommand {
 
             try {
                 String[] values = Iterables.toArray(split, String.class);
+
                 npcType.updateCustomization(foundNPC, methodName, values);
                 foundNPC.getNpcPojo().getCustomizationMap().put(methodName, values);
 
@@ -445,7 +516,11 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-set", "-create", "-exit", "-id", "-path", "-list"}, name = "path", permission = "znpcs.cmd.path")
+    @ZNCommandSub(
+            aliases = {"-set", "-create", "-exit", "-id", "-path", "-list"},
+            name = "path",
+            permission = "znpcs.cmd.path"
+    )
     public void path(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -511,7 +586,11 @@ public class DefaultCommand extends ZNCommand {
         }
     }
 
-    @ZNCommandSub(aliases = {"-id"}, name = "teleport", permission = "znpcs.cmd.teleport")
+    @ZNCommandSub(
+            aliases = {"-id"},
+            name = "teleport",
+            permission = "znpcs.cmd.teleport"
+    )
     public void teleport(ZNCommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
@@ -534,5 +613,43 @@ public class DefaultCommand extends ZNCommand {
 
         // Teleport player to npc location
         sender.getPlayer().teleport(foundNPC.getLocation());
+    }
+
+    @ZNCommandSub(
+            aliases = {"-id", "-height"},
+            name = "height",
+            permission = "znpcs.cmd.height"
+    )
+    public void changeHologramHeight(ZNCommandSender sender, Map<String, String> args) throws CommandExecuteException {
+        if (args.size() < 2) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INCORRECT_USAGE);
+            return;
+        }
+
+        Integer id = Ints.tryParse(args.get("id"));
+
+        if (id == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
+            return;
+        }
+
+        ZNPC foundNPC = ZNPC.find(id);
+
+        if (foundNPC == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.NPC_NOT_FOUND);
+            return;
+        }
+
+        Double givenHeight = Doubles.tryParse(args.get("height"));
+
+        if (givenHeight == null) {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.INVALID_NUMBER);
+            return;
+        }
+
+        foundNPC.getNpcPojo().setHologramHeight(givenHeight);
+        foundNPC.getHologram().createHologram(); // Update hologram
+
+        ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
     }
 }

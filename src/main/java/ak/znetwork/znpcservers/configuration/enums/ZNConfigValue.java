@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.configuration.enums;
 
 import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.npc.enums.NamingType;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public enum ZNConfigValue {
     REPLACE_SYMBOL(ZNConfigType.CONFIG, "-", String.class), // Replace spaces symbol , default = " ' "
     SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG, 60 * (10), Integer.class), // Save NPC delay (10 minutes)
     MAX_PATH_LOCATIONS(ZNConfigType.CONFIG, 500, Integer.class),
+    NAMING_METHOD(ZNConfigType.CONFIG, NamingType.DEFAULT, NamingType.class),
 
     // Messages
     NO_PERMISSION(ZNConfigType.MESSAGES, "&cYou do not have permission to execute this command.", String.class),

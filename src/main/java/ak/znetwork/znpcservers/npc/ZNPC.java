@@ -2,11 +2,13 @@ package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
+import ak.znetwork.znpcservers.npc.enums.NamingType;
+import ak.znetwork.znpcservers.npc.packets.PacketsImpl;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
-import ak.znetwork.znpcservers.npc.enums.NPCItemSlot;
-import ak.znetwork.znpcservers.npc.enums.NPCType;
+import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -15,25 +17,21 @@ import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map.Entry;
 
 import lombok.Getter;
 
-import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.*;
 import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.*;
 
 /**
@@ -61,14 +59,19 @@ public class ZNPC {
     private static final String PROFILE_TEXTURES = "textures";
 
     /**
-     * The team name in the npc scoreboard.
-     */
-    private static final String TEAM_NAME = "a";
-
-    /**
      * The team mode id in the npc scoreboard.
      */
     private static final String TEAM_MODE = Utils.versionNewer(9) ? "i" : "h";
+
+    /**
+     * A string whitespace.
+     */
+    private static final String WHITESPACE = " ";
+
+    /**
+     * Tab-list prefix for npc.
+     */
+    private static final String START_PREFIX = ChatColor.DARK_GRAY + "[ZNPC]" + WHITESPACE;
 
     /**
      * The npc pojo.
@@ -84,6 +87,26 @@ public class ZNPC {
      * A set of players who can see the npc.
      */
     private final HashSet<Player> viewers;
+
+    /**
+     * The npc tab-name.
+     */
+    private final String npcName;
+
+    /**
+     * Current npc skin.
+     */
+    private final ZNPCSkin znpcSkin;
+
+    /**
+     * Last npc move.
+     */
+    private long lastMove = -1;
+
+    /**
+     * Packets by version.
+     */
+    private PacketsImpl.Default packetClass;
 
     /**
      * The bukkit entity id.
@@ -114,6 +137,8 @@ public class ZNPC {
         this.npcPojo = npcModel;
         viewers = new HashSet<>();
         hologram = new Hologram(this);
+        npcName = NamingType.DEFAULT.resolve(this);
+        znpcSkin = ZNPCSkin.forValues(npcModel.getSkin(), npcModel.getSignature());
         init();
     }
 
@@ -125,40 +150,59 @@ public class ZNPC {
         // Register NPC in map
         NPC_MAP.put(getNpcPojo().getId(), this);
 
-        this.gameProfile = new GameProfile(UUID.randomUUID(), "zNPC_" + npcPojo.getId());
+        this.gameProfile = new GameProfile(UUID.randomUUID(), START_PREFIX + npcName);
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, npcPojo.getSkin(), npcPojo.getSignature()));
 
+        this.packetClass = PacketsImpl.Default.getByVersion(this, Utils.BUKKIT_VERSION); // ....
+
         this.changeType(npcPojo.getNpcType());
-        this.loadCustomization();
+        this.updateProfile(gameProfile.getProperties());
+
+        this.setLocation(getNpcPojo().getLocation().toBukkitLocation());
 
         if (npcPojo.getPathName() != null) {
             this.setPath(AbstractTypeWriter.find(npcPojo.getPathName()));
+        }
+
+        this.npcPojo.getNpcEquip().forEach(this::updateEquipment);
+
+        // Load npc customizations
+        for (Map.Entry<String, String[]> entry : npcPojo.getCustomizationMap().entrySet()) {
+            try {
+                npcPojo.getNpcType().updateCustomization(this, entry.getKey(), entry.getValue());
+            } catch (ReflectiveOperationException operationException) {
+                LOGGER.log(Level.WARNING,
+                        String.format("Skipping customization (%s) for npc " + npcPojo.getId(), entry.getKey())
+                );
+            }
         }
     }
 
     /**
      * Sets / Updates the npc glow.
      *
-     * @param color The npc glow color.
+     * @param color The npc glow color NAME.
      */
     public void toggleGlow(String color) {
         if (!Utils.versionNewer(9)) {
-            throw new UnsupportedOperationException("Version not supported");
+            throw new UnsupportedOperationException("Version not supported.");
         }
 
         try {
             Object npcDataWatcher = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity);
             ClassTypes.SET_DATA_WATCHER_METHOD.invoke(npcDataWatcher, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(0, dataWatcherRegistryEnum), (npcPojo.isHasGlow() ? (byte) 0x40 : (byte) 0x0));
 
-            // Update npc data
-            updateMetaData();
+            color = color == null ? "WHITE" : color;
 
-            glowColor = getGlowColor(color);
+            glowColor = ClassTypes.ENUM_CHAT_FORMAT_FIND.invoke(null, color);
             npcPojo.setGlowName(color);
 
-            // Update new glow color for current npc viewers
-            viewers.forEach(this::updateScoreboard);
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+            // Update scoreboard packets
+            packetClass.update();
+
+            // Update npc data
+            updateMetaData();
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -170,7 +214,7 @@ public class ZNPC {
         try {
             Object npcTeleportPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(nmsEntity);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, npcTeleportPacket));
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -182,48 +226,20 @@ public class ZNPC {
      */
     public void setLocation(Location location) {
         try {
+            if (getLocation().getWorld() != location || packetClass.playerSpawnPacket == null) {
+                packetClass.spawnPlayerPacket(new ZLocation(location).getNMSWorld());
+            }
+
             if (getNpcPath() == null) {
-                npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
                 lookAt(null, location, true);
+                npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
             }
 
             ClassTypes.SET_LOCATION_METHOD.invoke(nmsEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
             updateLocation();
 
             hologram.setLocation(location, npcPojo.getNpcType().getHoloHeight());
-        } catch (IllegalAccessException | InvocationTargetException operationException) {
-            throw new AssertionError(operationException);
-        }
-    }
-
-    /**
-     * Equip the npc.
-     *
-     * @param player    The player to send the new npc equipment.
-     * @param slot      The item slot.
-     * @param itemStack The item to equip.
-     */
-    public void equip(Player player, NPCItemSlot slot, ItemStack itemStack) {
-        try {
-            Object item = ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, itemStack);
-
-            Object equipPacket;
-            if (!Utils.versionNewer(9)) {
-                equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(entityID, slot.getSlotOld(), item);
-            } else {
-                if (Utils.versionNewer(16)) {
-                    List<Pair<?, ?>> pairs = (List<Pair<?, ?>>) ReflectionUtils.getValue(ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT.newInstance(), "b");
-                    pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item));
-
-                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW.newInstance(entityID, pairs);
-                } else {
-                    equipPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD.newInstance(entityID, ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[slot.getSlotNew()], item);
-                }
-            }
-
-            if (player != null) ReflectionUtils.sendPacket(player, equipPacket);
-            else viewers.forEach(players -> ReflectionUtils.sendPacket(players, equipPacket));
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchFieldException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -256,10 +272,9 @@ public class ZNPC {
 
             if (Utils.versionNewer(9)) {
                 dataWatcherRegistryEnum = ClassTypes.DATA_WATCHER_REGISTER_ENUM_FIELD.get(null);
-
-                ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(Utils.versionNewer(16) ? 16 : Utils.BUKKIT_VERSION <= 13 ? 13 : 15, dataWatcherRegistryEnum), (byte) 127);
+                ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(znpcSkin.getLayerIndex(), dataWatcherRegistryEnum), (byte) 127);
             } else ClassTypes.WATCH_DATA_WATCHER_METHOD.invoke(dataWatcherObject, 10, (byte) 127);
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -269,30 +284,41 @@ public class ZNPC {
      *
      * @param npcType The new entity type.
      */
-    public void changeType(NPCType npcType) {
+    public void changeType(TypeZNPC npcType) {
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-
-            nmsEntity = (npcType == NPCType.PLAYER ? ClassTypes.PLAYER_CONSTRUCTOR.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, gameProfile, (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld)) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            boolean isPlayer = npcType == TypeZNPC.PLAYER;
+            if (packetClass.playerSpawnPacket == null && isPlayer) {
+                packetClass.spawnPlayerPacket(nmsWorld);
+            }
+            nmsEntity = (isPlayer ? packetClass.playerSpawnPacket : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
             bukkitEntity = (ClassTypes.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
 
-            if (npcType == NPCType.PLAYER) {
+            if (isPlayer) {
                 tabConstructor = (ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.ADD_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
 
                 // Fix second layer skin for entity player
                 setSecondLayerSkin();
+
+                // Glow
+                if (getNpcPojo().isHasGlow() &&
+                        Utils.versionNewer(9)) {
+                    toggleGlow(npcPojo.getGlowName());
+                }
             }
 
             npcPojo.setNpcType(npcType);
-
             setLocation(getLocation());
+
+            // Update packets
+            packetClass.update();
 
             // Update new type for viewers
             deleteViewers();
 
             // Update new entity id
             entityID = ((Integer) ClassTypes.GET_ENTITY_ID.invoke(nmsEntity));
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -303,14 +329,15 @@ public class ZNPC {
      * @param player The player to spawn the npc.
      */
     public void spawn(Player player) {
-        // Update the npc scoreboard for player
-        updateScoreboard(player);
-
         try {
             // Check if npc type is player
-            boolean npcIsPlayer = npcPojo.getNpcType() == NPCType.PLAYER;
+            boolean npcIsPlayer = npcPojo.getNpcType() == TypeZNPC.PLAYER;
 
             if (npcIsPlayer) {
+                // SB
+                ReflectionUtils.sendPacket(player, packetClass.scoreboardDelete);
+                ReflectionUtils.sendPacket(player, packetClass.scoreboardSpawn);
+
                 if (npcPojo.isHasMirror()) {
                     // Set npc skin to player skin
                     updateProfile(getGameProfileForPlayer(player).getProperties());
@@ -318,38 +345,45 @@ public class ZNPC {
 
                 ReflectionUtils.sendPacket(player, tabConstructor);
             }
-
             ReflectionUtils.sendPacket(player, npcIsPlayer ? ClassTypes.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(nmsEntity) : ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(nmsEntity));
 
-            if (npcPojo.isHasToggleHolo())
+            if (npcPojo.isHasToggleHolo()) {
                 hologram.spawn(player);
-
-            if (npcPojo.isHasGlow() && Utils.versionNewer(9))
-                toggleGlow(npcPojo.getGlowName());
+            }
 
             // Update the npc bukkit id
             entityID = ((Integer) ClassTypes.GET_ENTITY_ID.invoke(nmsEntity));
 
-            // Update npc data
-            updateMetaData();
-
             // Add player to viewers list
             viewers.add(player);
 
+            // Update npc data
+            updateMetaData();
+
             // Update npc equipment
-            updateEquipment();
+            sendEquipPacket(player);
 
             // Fix npc rotation
-            lookAt(player, npcPojo.getLocation().toBukkitLocation(), true);
+            lookAt(player, getLocation(), true);
 
             if (npcIsPlayer)
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
-                        hideFromTab(player),
+                                hideFromTab(player),
                         60
                 );
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public void sendEquipPacket(Player player) {
+        if (packetClass.equipPackets.isEmpty()) {
+            return;
+        }
+        packetClass.equipPackets.forEach((slot, o) -> ReflectionUtils.sendPacket(player, o));
     }
 
     /**
@@ -360,25 +394,7 @@ public class ZNPC {
     public void hideFromTab(Player player) {
         try {
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.REMOVE_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
-            throw new AssertionError(operationException);
-        }
-    }
-
-    /**
-     * Deletes the npc scoreboard for the given player.
-     *
-     * @param player The player to delete the scoreboard for.
-     */
-    public void deleteScoreboard(Player player) {
-        try {
-            Object packetPlayOutScoreboardTeam = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.newInstance();
-
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_NAME, gameProfile.getName());
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_MODE, 1);
-
-            ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
-        } catch (IllegalAccessException | NoSuchFieldException | InstantiationException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -394,17 +410,17 @@ public class ZNPC {
         }
 
         try {
-            if (npcPojo.getNpcType() == NPCType.PLAYER) {
+            if (npcPojo.getNpcType() == TypeZNPC.PLAYER) {
                 hideFromTab(player);
             }
 
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(new int[]{entityID}));
+            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(Utils.BUKKIT_VERSION > 16 ? entityID : new int[]{entityID}));
             hologram.delete(player);
 
             if (removeViewer) {
                 viewers.remove(player);
             }
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -415,9 +431,13 @@ public class ZNPC {
      * @param location The location to look.
      */
     public void lookAt(Player player, Location location, boolean rotation) {
-        Location direction = (rotation ? location : npcPojo.getLocation().toBukkitLocation().clone().setDirection(location.clone().subtract(npcPojo.getLocation().toBukkitLocation().clone()).toVector()));
+        if (System.currentTimeMillis() - lastMove < 1000 * 3) { // ...
+            return;
+        }
 
         try {
+            Location direction = (rotation ? location : npcPojo.getLocation().toBukkitLocation().clone().setDirection(location.clone().subtract(npcPojo.getLocation().toBukkitLocation().clone()).toVector()));
+
             Object lookPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR.newInstance(entityID, (byte) (direction.getYaw() * 256.0F / 360.0F), (byte) (direction.getPitch() * 256.0F / 360.0F), true);
             Object headRotationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR.newInstance(nmsEntity, (byte) (direction.getYaw() * 256.0F / 360.0F));
 
@@ -426,7 +446,7 @@ public class ZNPC {
             } else {
                 viewers.forEach(players -> ReflectionUtils.sendPacket(players, headRotationPacket));
             }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
@@ -442,45 +462,22 @@ public class ZNPC {
     }
 
     /**
-     * Updates the npc scoreboard team for the given player.
-     */
-    public void updateScoreboard(Player player) {
-        deleteScoreboard(player);
-
-        try {
-            final boolean V9 = Utils.versionNewer(9);
-            final boolean V13 = Utils.versionNewer(13);
-
-            final String profileName = gameProfile.getName();
-
-            Object packetPlayOutScoreboardTeam = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR.newInstance();
-
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_NAME, profileName);
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "b", V13 ? hologram.getStringNewestVersion(null, profileName) : profileName);
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "e", "never");
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, TEAM_MODE, 0);
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "j" : "i", 0);
-            ReflectionUtils.setValue(packetPlayOutScoreboardTeam, V9 ? "h" : "g", Collections.singletonList(profileName));
-
-            if (V9 && npcPojo.isHasGlow() && glowColor != null) {
-                Object enumPrefix = ClassTypes.ENUM_CHAT_TO_STRING_METHOD.invoke(glowColor);
-
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "g", V13 ? glowColor : ClassTypes.GET_ENUM_CHAT_ID_METHOD.invoke(glowColor));
-                ReflectionUtils.setValue(packetPlayOutScoreboardTeam, "c", V13 ? ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(enumPrefix) : enumPrefix);
-            }
-
-            ReflectionUtils.sendPacket(player, packetPlayOutScoreboardTeam);
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchFieldException operationException) {
-            throw new AssertionError(operationException);
-        }
-    }
-
-    /**
      * Updates the npc equipment for current viewers.
      */
-    public void updateEquipment() {
-        for (Entry<NPCItemSlot, ItemStack> items : getNpcPojo().getNpcEquip().entrySet()) {
-            viewers.forEach(player -> equip(player, items.getKey(), items.getValue()));
+    public void updateEquipment(ItemSlot slot, ItemStack stack) {
+        try {
+            npcPojo.getNpcEquip().put(slot, stack);
+
+            if (Utils.BUKKIT_VERSION >= 16) {
+                packetClass.getEquipPacket();
+            } else {
+                packetClass.getEquipPacket(slot, stack);
+            }
+
+            // Update for all viewers
+            viewers.forEach(this::sendEquipPacket);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -503,21 +500,29 @@ public class ZNPC {
      * Updates the npc game-profile.
      */
     public void updateProfile(PropertyMap propertyMap) {
+        if (npcPojo.getNpcType() != TypeZNPC.PLAYER) {
+            return;
+        }
+
         try {
             Object gameProfileObj = ClassTypes.GET_PROFILE_METHOD.invoke(nmsEntity);
 
-            ReflectionUtils.setValue(gameProfileObj, "id", UUID.randomUUID());
+            ReflectionUtils.setValue(gameProfileObj, "name", gameProfile.getName());
+            ReflectionUtils.setValue(gameProfileObj, "id", gameProfile.getId());
             ReflectionUtils.setValue(gameProfileObj, "properties", propertyMap);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException operationException) {
+        } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public void updateMetaData() {
         try {
             Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity), true);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, customizationPacket));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             throw new AssertionError(e);
         }
     }
@@ -549,35 +554,10 @@ public class ZNPC {
     }
 
     /**
-     * Locates the enum for the given color name, if no such
-     * enum is found, default glow color (@WHITE) will be returned.
-     *
-     * @param glowName The glow color name.
-     * @return The glow color enum.
+     * @inheritDoc
      */
-    public Object getGlowColor(String glowName) {
-        try {
-            return ClassCache.find(glowName, ClassTypes.ENUM_CHAT_CLASS);
-        } catch (NullPointerException e) {
-            // Return default glow-color
-            return getGlowColor("WHITE");
-        }
-    }
-
-    /**
-     * Loads the customization for the npc.
-     */
-    protected void loadCustomization() {
-        for (Map.Entry<String, String[]> entry : npcPojo.getCustomizationMap().entrySet()) {
-            String methodName = entry.getKey();
-            try {
-                npcPojo.getNpcType().updateCustomization(
-                        this, methodName, entry.getValue()
-                );
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + npcPojo.getId(), methodName));
-            }
-        }
+    public void setLastMove(long lastMove) {
+        this.lastMove = lastMove;
     }
 
     /**

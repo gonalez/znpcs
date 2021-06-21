@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.npc.model;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.events.enums.ClickType;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
 import ak.znetwork.znpcservers.utility.PlaceholderUtils;
@@ -26,6 +27,11 @@ public class ZNPCAction {
     private final ActionType actionType;
 
     /**
+     * The action click type.
+     */
+    private final ClickType clickType;
+
+    /**
      * The action value.
      */
     private final String action;
@@ -39,13 +45,16 @@ public class ZNPCAction {
      * Creates a new action.
      *
      * @param actionType The action type.
+     * @param clickType The action click type.
      * @param action The action value.
      * @param delay The action delay.
      */
     public ZNPCAction(ActionType actionType,
+                      ClickType clickType,
                       String action,
                       int delay) {
         this.actionType = actionType;
+        this.clickType = clickType;
         this.action = action;
         this.delay = delay;
     }
@@ -58,7 +67,7 @@ public class ZNPCAction {
      */
     public ZNPCAction(String actionType,
                       String action) {
-        this(ActionType.valueOf(actionType), action, 0);
+        this(ActionType.valueOf(actionType), ClickType.DEFAULT, action, 0);
     }
 
     /**

@@ -44,6 +44,7 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
         }
 
     }
+
     /**
      * A map that contains the subcommands for the current command.
      */
@@ -95,7 +96,7 @@ public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
             String input = args[i - 1];
             if (contains(subCommand, input)) {
                 StringBuilder value = new StringBuilder();
-                for (int text = i; text < args.length;) {
+                for (int text = i; text < args.length; ) {
                     if (!contains(subCommand, args[text++])) {
                         value.append(args[i++]).append(WHITESPACE);
                     } else {
