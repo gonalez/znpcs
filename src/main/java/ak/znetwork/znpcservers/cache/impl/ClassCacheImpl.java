@@ -231,7 +231,7 @@ public interface ClassCacheImpl {
 
             @Override
             protected Method onLoad() throws NoSuchMethodException {
-                return BUILDER_CLASS.getDeclaredMethod(getMethodName(), getParameterTypes());
+                return BUILDER_CLASS.getDeclaredMethod(getMethodName(), getParameterTypes().get(0));
             }
         }
 
@@ -269,8 +269,23 @@ public interface ClassCacheImpl {
 
             @Override
             protected Constructor<?> onLoad() throws NoSuchMethodException {
-                Constructor<?> constructor = BUILDER_CLASS.getDeclaredConstructor(getParameterTypes());
-                constructor.setAccessible(true);
+                Constructor<?> constructor = null;
+                if (getParameterTypes().size() > 0) { // 1.17>>>>>><<<<3.3..
+                    try {
+                        for (Class<?>[] nextTypes : getParameterTypes()) {
+                            constructor = BUILDER_CLASS.getDeclaredConstructor(nextTypes);
+                        }
+                    } catch (NoSuchMethodException e) {
+                        // Next...
+                    }
+                } else {
+                    constructor = BUILDER_CLASS.getDeclaredConstructor(getParameterTypes().get(0));
+                }
+
+                // Set accessible
+                if (constructor != null) {
+                    constructor.setAccessible(true);
+                }
                 return constructor;
             }
         }

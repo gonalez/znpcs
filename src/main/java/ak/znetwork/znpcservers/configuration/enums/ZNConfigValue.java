@@ -23,6 +23,7 @@ public enum ZNConfigValue {
     SAVE_NPCS_DELAY_SECONDS(ZNConfigType.CONFIG, 60 * (10), Integer.class), // Save NPC delay (10 minutes)
     MAX_PATH_LOCATIONS(ZNConfigType.CONFIG, 500, Integer.class),
     NAMING_METHOD(ZNConfigType.CONFIG, NamingType.DEFAULT, NamingType.class),
+    ANIMATION_RGB(ZNConfigType.CONFIG, false, Boolean.class), // RGB Animation on npc lines...
 
     // Messages
     NO_PERMISSION(ZNConfigType.MESSAGES, "&cYou do not have permission to execute this command.", String.class),

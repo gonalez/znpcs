@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.cache.builder;
 
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.ArrayUtils;
 
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     /**
      * The class parameters.
      */
-    private final Class<?>[] parameterTypes;
+    private final ImmutableList<Class<?>[]> parameterTypes;
 
     /**
      * Creates a new empty classCache builder.
@@ -48,7 +49,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
                 EMPTY_STRING,
                 EMPTY_STRING,
                 EMPTY_STRING,
-                EMPTY_ARRAY
+                ImmutableList.of(EMPTY_ARRAY)
         );
     }
 
@@ -65,7 +66,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
                                 String className,
                                 String methodName,
                                 String fieldName,
-                                Class<?>... parameterTypes) {
+                                ImmutableList<Class<?>[]> parameterTypes) {
         this.packageName = packageType;
         this.className = className;
         this.methodName = methodName;
@@ -125,12 +126,15 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     }
 
     @Override
-    public ClassCacheBuilder parameterTypes(Class<?>... parameterTypes) {
+    public ClassCacheBuilder parameterTypes(Class<?>... to) {
         return new ClassCacheBuilder(packageName,
                 className,
                 methodName,
                 fieldName,
-                parameterTypes
+                // ><!>>1.17.1><<<>>
+                ImmutableList.<Class<?>[]>builder().addAll(
+                        ImmutableList.of(to)
+                ).build()
         );
     }
 

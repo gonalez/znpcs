@@ -39,7 +39,7 @@ public class ConfigTypes {
     /**
      * Represents the npc name in tab-list.
      */
-    public static final NamingType NAMING_METHOD = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.NAMING_METHOD);
+    public static final boolean RGB_ANIMATION = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.ANIMATION_RGB);
 
     /**
      * Represents the npc list.

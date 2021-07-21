@@ -584,6 +584,14 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
+    public static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = new ClazzLoader(new ClassCacheBuilder().
+            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            className("util.CraftChatMessage")).
+            typeOf();
+
+    /**
+     * {@inheritDoc}
+     */
     public static final Constructor<?> CHAT_MESSAGE_CONSTRUCTOR = new ConstructorLoader(new ClassCacheBuilder().
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.CHAT)).
             className(CHAT_MESSAGE_CLASS).
@@ -677,7 +685,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR = new ConstructorLoader(new ClassCacheBuilder().
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
             className(PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS).
-            parameterTypes(V17 ? int.class : int[].class)).
+            parameterTypes(int.class).
+            parameterTypes(int[].class)).
             typeOf();
 
     /**
@@ -1000,20 +1009,20 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
-    public static final Method ICHAT_BASE_COMPONENT_CREATE = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
-            className(I_CHAT_BASE_COMPONENT).
-            methodName("a").
+    public static final Method ENUM_CHAT_FORMAT_FIND = new MethodLoader(new ClassCacheBuilder().
+            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.NONE)).
+            className(ENUM_CHAT_CLASS).
+            methodName("b").
             parameterTypes(String.class)).
             typeOf();
 
     /**
      * {@inheritDoc}
      */
-    public static final Method ENUM_CHAT_FORMAT_FIND = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.NONE)).
-            className(ENUM_CHAT_CLASS).
-            methodName("b").
+    public static final Method CRAFT_CHAT_MESSAGE_METHOD = new MethodLoader(new ClassCacheBuilder().
+            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            className(CRAFT_CHAT_MESSAGE_CLASS).
+            methodName("fromStringOrNull").
             parameterTypes(String.class)).
             typeOf();
 
@@ -1096,13 +1105,5 @@ public class ClassTypes {
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
             className(ENUM_TAG_VISIBILITY).
             fieldName("b")).
-            typeOf();
-
-    /**
-     * {@inheritDoc}
-     */
-    private static final Enum<?>[] ENUM_CHAT_FORMAT = new EnumLoader(new ClassCacheBuilder().
-            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
-            className(ENUM_CHAT_CLASS)).
             typeOf();
 }

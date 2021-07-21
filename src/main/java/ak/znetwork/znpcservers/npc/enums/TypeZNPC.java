@@ -64,8 +64,7 @@ public enum TypeZNPC {
     WITCH(ClassTypes.ENTITY_WITCH_CLASS, 0.5),
     WITHER(ClassTypes.ENTITY_WITHER_CLASS, 1.75),
     ZOMBIE(ClassTypes.ENTITY_ZOMBIE_CLASS, 0, "setBaby"),
-    WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor"),
-    END_CRYSTAL(ClassTypes.ENTITY_ENDER_CRYSTAL_CLASS, "ENDER_CRYSTAL", 51, 0);
+    WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor");
 
     /**
      * A empty string.

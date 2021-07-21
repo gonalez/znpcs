@@ -50,8 +50,15 @@ public class PacketsV8 extends PacketsImpl.Default {
     }
 
     @Override
-    public void spawnPlayerPacket(Object nmsWorld) throws ReflectiveOperationException {
+    public void getPlayerPacket(Object nmsWorld) throws ReflectiveOperationException {
         playerSpawnPacket = ClassTypes.PLAYER_CONSTRUCTOR_OLD.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, getNPC().getGameProfile(), (Utils.versionNewer(14) ? ClassTypes.PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR : ClassTypes.PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR).newInstance(nmsWorld));
+    }
+
+    @Override
+    public Object getDestroyPacket(int entityId) throws ReflectiveOperationException {
+        return ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(
+                ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getParameterTypes()[0].isArray() ?
+                        new int[]{entityId} : entityId);
     }
 
     @Override

@@ -34,7 +34,12 @@ public interface PacketsImpl {
     /**
      * @inheritDoc
      */
-    void spawnPlayerPacket(Object nmsWorld) throws ReflectiveOperationException;
+    void getPlayerPacket(Object nmsWorld) throws ReflectiveOperationException;
+
+    /**
+     * @inheritDoc
+     */
+    Object getDestroyPacket(int entityId) throws ReflectiveOperationException;
 
     /**
      * @inheritDoc
@@ -71,7 +76,7 @@ public interface PacketsImpl {
         /**
          * @inheritDoc
          */
-        public Object scoreboardSpawn, scoreboardDelete, playerSpawnPacket;
+        public Object scoreboardSpawn, scoreboardDelete, playerSpawnPacket, destroyPacket;
 
         /**
          * @inheritDoc

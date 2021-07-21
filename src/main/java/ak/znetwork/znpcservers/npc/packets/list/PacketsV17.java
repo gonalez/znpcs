@@ -46,7 +46,7 @@ public class PacketsV17 extends PacketsV16 {
     }
 
     @Override
-    public void spawnPlayerPacket(Object nmsWorld) throws ReflectiveOperationException {
+    public void getPlayerPacket(Object nmsWorld) throws ReflectiveOperationException {
         playerSpawnPacket = ClassTypes.PLAYER_CONSTRUCTOR_NEW.newInstance(ClassTypes.GET_SERVER_METHOD.invoke(Bukkit.getServer()), nmsWorld, getNPC().getGameProfile());
     }
 

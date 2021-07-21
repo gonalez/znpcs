@@ -226,8 +226,9 @@ public class ZNPC {
      */
     public void setLocation(Location location) {
         try {
-            if (getLocation().getWorld() != location || packetClass.playerSpawnPacket == null) {
-                packetClass.spawnPlayerPacket(new ZLocation(location).getNMSWorld());
+            if (getLocation().getWorld() != location.getWorld()
+                    || packetClass.playerSpawnPacket == null) {
+                packetClass.getPlayerPacket(new ZLocation(location).getNMSWorld());
             }
 
             if (getNpcPath() == null) {
@@ -287,9 +288,9 @@ public class ZNPC {
     public void changeType(TypeZNPC npcType) {
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-            boolean isPlayer = npcType == TypeZNPC.PLAYER;
-            if (packetClass.playerSpawnPacket == null && isPlayer) {
-                packetClass.spawnPlayerPacket(nmsWorld);
+            final boolean isPlayer = npcType == TypeZNPC.PLAYER;
+            if (packetClass.playerSpawnPacket == null) {
+                packetClass.getPlayerPacket(nmsWorld);
             }
             nmsEntity = (isPlayer ? packetClass.playerSpawnPacket : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
             bukkitEntity = (ClassTypes.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
@@ -318,6 +319,7 @@ public class ZNPC {
 
             // Update new entity id
             entityID = ((Integer) ClassTypes.GET_ENTITY_ID.invoke(nmsEntity));
+            packetClass.destroyPacket = packetClass.getDestroyPacket(entityID);
         } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
@@ -409,19 +411,15 @@ public class ZNPC {
             return;
         }
 
-        try {
-            if (npcPojo.getNpcType() == TypeZNPC.PLAYER) {
-                hideFromTab(player);
-            }
+        if (npcPojo.getNpcType() == TypeZNPC.PLAYER) {
+            hideFromTab(player);
+        }
 
-            ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(Utils.BUKKIT_VERSION > 16 ? entityID : new int[]{entityID}));
-            hologram.delete(player);
+        ReflectionUtils.sendPacket(player, packetClass.destroyPacket);
+        hologram.delete(player);
 
-            if (removeViewer) {
-                viewers.remove(player);
-            }
-        } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+        if (removeViewer) {
+            viewers.remove(player);
         }
     }
 

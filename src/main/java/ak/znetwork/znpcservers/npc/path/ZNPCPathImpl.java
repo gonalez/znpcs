@@ -536,7 +536,7 @@ public interface ZNPCPathImpl {
                     final int nextIndex = getNextLocation();
                     if (nextIndex < 1)  {
                         pathReverse = false;
-                    } else if (nextIndex >= getPath().getLocationList().size() - 1)  {
+                    } else if (nextIndex >= getPath().getLocationList().size() - 1) {
                         pathReverse = true;
                     }
                 }

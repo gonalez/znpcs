@@ -1,5 +1,7 @@
 package ak.znetwork.znpcservers.hologram;
 
+import ak.znetwork.znpcservers.hologram.replacer.LineReplacer;
+import ak.znetwork.znpcservers.hologram.replacer.RGBLine;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.types.ConfigTypes;
@@ -25,11 +27,6 @@ public class Hologram {
      * The height between lines.
      */
     private static final double HOLOGRAM_SPACE = 0.3;
-
-    /**
-     * A string whitespace.
-     */
-    private static final String WHITESPACE = " ";
 
     /**
      * A list of entities (Holograms).
@@ -69,16 +66,18 @@ public class Hologram {
 
             double y = 0;
             for (String line : npc.getNpcPojo().getHologramLines()) {
-                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
+                final boolean visible = line.equalsIgnoreCase("%space%");
 
-                ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, line.length() > 0);
-                if (Utils.versionNewer(13)) {
-                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(null, Utils.color(line)));
-                } else {
-                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(line));
+                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()), location.getX(), (location.getY() - 0.15) + (y), location.getZ());
+                ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, !visible);
+                if (visible) {
+                    if (Utils.versionNewer(13)) {
+                        ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(null, line)));
+                    } else {
+                        ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, LineReplacer.makeAll(null, line));
+                    }
                 }
                 ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
-
                 entityArmorStands.add(armorStand);
 
                 y+=HOLOGRAM_SPACE;
@@ -118,7 +117,7 @@ public class Hologram {
             try {
                 int armorStandId = (int) ClassTypes.GET_ENTITY_ID.invoke(entityArmorStand);
 
-                ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(Utils.BUKKIT_VERSION > 16 ? armorStandId : new int[]{armorStandId}));
+                ReflectionUtils.sendPacket(player, npc.getPacketClass().getDestroyPacket(armorStandId));
             } catch (ReflectiveOperationException operationException) {
                 throw new AssertionError(operationException);
             }
@@ -131,14 +130,14 @@ public class Hologram {
     public void updateNames(Player player) {
         final List<String> npcLines = npc.getNpcPojo().getHologramLines();
         for (int i = 0; i < npcLines.size(); i++) {
-            Object armorStand = entityArmorStands.get(i);
+            final Object armorStand = entityArmorStands.get(i);
             try {
-                String line = npcLines.get(i).replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE);
+                final String line = npcLines.get(i);
 
                 if (Utils.versionNewer(13)) {
-                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, getStringNewestVersion(player, Utils.color(npcLines.get(i))));
+                    ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(player, line)));
                 } else {
-                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, Utils.color(Utils.PLACEHOLDER_SUPPORT ? PlaceholderUtils.getWithPlaceholders(player, npcLines.get(i)) : line));
+                    ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, LineReplacer.makeAll(player, line));
                 }
 
                 Object dataWatcherObject = ClassTypes.GET_DATA_WATCHER_METHOD.invoke(armorStand);
@@ -183,22 +182,6 @@ public class Hologram {
             }
 
             updateLocation();
-        } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
-        }
-    }
-
-    /**
-     * Returns a new hologram line for newer versions.
-     *
-     * @return The new hologram line.
-     */
-    public Object getStringNewestVersion(Player player, String text) {
-        try {
-            return ClassTypes.I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR.newInstance(Utils.PLACEHOLDER_SUPPORT && player != null ?
-                    PlaceholderUtils.getWithPlaceholders(player, text) :
-                    text.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE)
-            );
         } catch (ReflectiveOperationException operationException) {
             throw new AssertionError(operationException);
         }
