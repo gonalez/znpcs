@@ -75,7 +75,7 @@ public class CustomizationProcessor {
                     // Create a new cache for the constants on the enum class,
                     // for later use.
                     new ClassCacheImpl.Default.EnumLoader(new ClassCacheBuilder().
-                            packageType(PackageImpl.TypePackage.DEFAULT.getPackageName()).
+                            packageType(PackageImpl.TypePackage.DEFAULT.getFixedPackageName()).
                             className(parameter.getTypeName())).
                             typeOf();
                 }

@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.cache.impl;
 
 import ak.znetwork.znpcservers.cache.builder.ClassCacheBuilder;
 
+import com.google.common.collect.Iterables;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Constructor;
@@ -231,7 +232,9 @@ public interface ClassCacheImpl {
 
             @Override
             protected Method onLoad() throws NoSuchMethodException {
-                return BUILDER_CLASS.getDeclaredMethod(getMethodName(), getParameterTypes().get(0));
+                return Iterables.size(getParameterTypes()) > 0 ?
+                        BUILDER_CLASS.getDeclaredMethod(getMethodName(), Iterables.get(getParameterTypes(), 0)) :
+                        BUILDER_CLASS.getDeclaredMethod(getMethodName());
             }
         }
 
@@ -270,16 +273,17 @@ public interface ClassCacheImpl {
             @Override
             protected Constructor<?> onLoad() throws NoSuchMethodException {
                 Constructor<?> constructor = null;
-                if (getParameterTypes().size() > 0) { // 1.17>>>>>><<<<3.3..
-                    try {
-                        for (Class<?>[] nextTypes : getParameterTypes()) {
-                            constructor = BUILDER_CLASS.getDeclaredConstructor(nextTypes);
+                if (Iterables.size(getParameterTypes()) > 1) { // 1.17>>>>>><<<<3.3..<
+                    for (Class<?>[] keyParameters : getParameterTypes()) {
+                        try {
+                            constructor = BUILDER_CLASS.getDeclaredConstructor(keyParameters);
+                        } catch (NoSuchMethodException e) {
+                            // Next...
                         }
-                    } catch (NoSuchMethodException e) {
-                        // Next...
                     }
+
                 } else {
-                    constructor = BUILDER_CLASS.getDeclaredConstructor(getParameterTypes().get(0));
+                    constructor = BUILDER_CLASS.getDeclaredConstructor(Iterables.get(getParameterTypes(), 0));
                 }
 
                 // Set accessible

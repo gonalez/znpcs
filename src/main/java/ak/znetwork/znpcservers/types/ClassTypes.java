@@ -392,6 +392,30 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
+    public static final Class<?> ENTITY_AXOLOTL_CLASS = new ClazzLoader(new ClassCacheBuilder().
+            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.ENTITY, "animal.axolotl")).
+            className("Axolotl")).
+            typeOf();
+
+    /**
+     * {@inheritDoc}
+     */
+    public static final Class<?> ENTITY_GOAT_CLASS = new ClazzLoader(new ClassCacheBuilder().
+            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.ENTITY, "animal.goat")).
+            className("Goat")).
+            typeOf();
+
+    /**
+     * {@inheritDoc}
+     */
+    public static final Class<?> ENTITY_FOX_CLASS = new ClazzLoader(new ClassCacheBuilder().
+            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.ENTITY, "animal")).
+            className("EntityFox")).
+            typeOf();
+
+    /**
+     * {@inheritDoc}
+     */
     public static final Class<?> ENTITY_TYPES_CLASS = new ClazzLoader(new ClassCacheBuilder().
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.ENTITY)).
             className("EntityTypes")).
@@ -473,7 +497,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> CRAFT_ITEM_STACK_CLASS = new ClazzLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("inventory.CraftItemStack")).
             typeOf();
 
@@ -505,7 +529,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> CRAFT_SERVER_CLASS = new ClazzLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("CraftServer")).
             typeOf();
 
@@ -585,7 +609,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = new ClazzLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("util.CraftChatMessage")).
             typeOf();
 
@@ -772,15 +796,6 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
-    public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEW = new ConstructorLoader(new ClassCacheBuilder().
-            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
-            className("PacketPlayOutEntityEquipment").
-            parameterTypes(int.class, List.class)).
-            typeOf();
-
-    /**
-     * {@inheritDoc}
-     */
     public static final Constructor<?> ENTITY_CONSTRUCTOR = new ConstructorLoader(new ClassCacheBuilder().
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
             className(ENTITY_ARMOR_STAND_CLASS).
@@ -800,7 +815,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method AS_NMS_COPY_METHOD = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("inventory.CraftItemStack").
             methodName("asNMSCopy").
             parameterTypes(ItemStack.class)).
@@ -828,7 +843,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method GET_HANDLE_PLAYER_METHOD = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("entity.CraftPlayer").
             methodName("getHandle")).
             typeOf();
@@ -837,7 +852,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method GET_HANDLE_WORLD_METHOD = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("CraftWorld").
             methodName("getHandle")).
             typeOf();
@@ -846,7 +861,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method GET_SERVER_METHOD = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("CraftServer").
             methodName("getServer")).
             typeOf();
@@ -1020,7 +1035,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method CRAFT_CHAT_MESSAGE_METHOD = new MethodLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className(CRAFT_CHAT_MESSAGE_CLASS).
             methodName("fromStringOrNull").
             parameterTypes(String.class)).
@@ -1093,7 +1108,7 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Field BUKKIT_COMMAND_MAP = new FieldLoader(new ClassCacheBuilder().
-            packageType(TypePackage.CRAFT_BUKKIT.getPackageName()).
+            packageType(TypePackage.CRAFT_BUKKIT.getFixedPackageName()).
             className("CraftServer").
             fieldName("commandMap")).
             typeOf();

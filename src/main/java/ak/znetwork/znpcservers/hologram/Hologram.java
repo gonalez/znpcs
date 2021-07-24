@@ -1,11 +1,9 @@
 package ak.znetwork.znpcservers.hologram;
 
 import ak.znetwork.znpcservers.hologram.replacer.LineReplacer;
-import ak.znetwork.znpcservers.hologram.replacer.RGBLine;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.types.ConfigTypes;
-import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
@@ -132,7 +130,7 @@ public class Hologram {
         for (int i = 0; i < npcLines.size(); i++) {
             final Object armorStand = entityArmorStands.get(i);
             try {
-                final String line = npcLines.get(i);
+                final String line = npcLines.get(i).replace(ConfigTypes.SPACE_SYMBOL, " ");
 
                 if (Utils.versionNewer(13)) {
                     ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(player, line)));

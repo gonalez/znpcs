@@ -16,13 +16,10 @@ public interface PackageImpl {
      */
     String EMPTY_STRING = "";
 
-    /**
-     * ...
-     */
     String DOT = ".";
 
     /**
-     * 1.17+
+     * The sub-packages names for 1.17+
      */
     enum PacketCategory {
         NONE(EMPTY_STRING),
@@ -40,22 +37,31 @@ public interface PackageImpl {
         SERVER("server");
 
         /**
-         * The package name.
+         * The sub-package name.
          */
-        private final String packageName;
+        private final String subPackageName;
 
         /**
-         * Creates a new package identification.
+         * Creates a new sub-package identification.
          *
-         * @param packageIndex The package name.
+         * @param packageIndex The sub-package name.
          */
         PacketCategory(String packageIndex) {
-            this.packageName = packageIndex;
+            this.subPackageName = packageIndex;
+        }
+
+        /**
+         * Returns the sub-package name.
+         *
+         * @return The sub-package name.
+         */
+        private String getSubPackageName() {
+            return this == NONE ? EMPTY_STRING : DOT + subPackageName;
         }
     }
 
     /**
-     * @inheritDoc
+     * The bukkit packages.
      */
     enum TypePackage implements PackageImpl {
         /**
@@ -74,9 +80,9 @@ public interface PackageImpl {
         MINECRAFT_SERVER("net.minecraft");
 
         /**
-         * The package name.
+         * The fixed package name.
          */
-        private final String packageName;
+        private final String fixedPackageName;
 
         /**
          * Defines a new package.
@@ -84,21 +90,9 @@ public interface PackageImpl {
          * @param packageName The package name.
          */
         TypePackage(String packageName) {
-            this.packageName = packageName;
-        }
-
-        /**
-         * The default package name.
-         */
-        public String getPackageName() {
-            StringBuilder stringBuilder = new StringBuilder(packageName);
-            final boolean V17 = Utils.BUKKIT_VERSION > 16;
-            if (!V17)  {
-                if (this == TypePackage.MINECRAFT_SERVER) {
-                    stringBuilder.append(DOT).append("server").append(DOT).append(ReflectionUtils.getBukkitPackage());
-                }
-            }
-            return stringBuilder.toString();
+            this.fixedPackageName = Utils.BUKKIT_VERSION > 16 ? // v1.17+
+                    packageName :
+                    DOT + "server" + DOT + ReflectionUtils.getBukkitPackage();
         }
 
         /**
@@ -109,13 +103,10 @@ public interface PackageImpl {
          */
         public String getForCategory(PacketCategory packetCategory,
                                             String extra) {
-            if (Utils.BUKKIT_VERSION < 17) { // < 1.16
-                return getPackageName();
-            } else { // > 1.17+
-                return getPackageName() +
-                        (packetCategory != PacketCategory.NONE ? DOT + packetCategory.packageName : EMPTY_STRING) +
-                        (extra.length() > 0 ? DOT + extra : EMPTY_STRING);
-            }
+            return Utils.BUKKIT_VERSION > 16 ?
+                    fixedPackageName + packetCategory.getSubPackageName() +
+                            (extra.length() > 0 ? DOT + extra : EMPTY_STRING)
+                    : fixedPackageName;
         }
 
         /**
@@ -127,6 +118,15 @@ public interface PackageImpl {
         public String getForCategory(PacketCategory packetCategory) {
             return getForCategory(packetCategory,
                     EMPTY_STRING);
+        }
+
+        /**
+         * Returns the fixed package name for the current version.
+         *
+         * @return The fixed package name for the current version.
+         */
+        public String getFixedPackageName() {
+            return fixedPackageName;
         }
     }
 }

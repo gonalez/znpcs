@@ -64,7 +64,13 @@ public enum TypeZNPC {
     WITCH(ClassTypes.ENTITY_WITCH_CLASS, 0.5),
     WITHER(ClassTypes.ENTITY_WITHER_CLASS, 1.75),
     ZOMBIE(ClassTypes.ENTITY_ZOMBIE_CLASS, 0, "setBaby"),
-    WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor");
+    WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor"),
+
+    FOX(ClassTypes.ENTITY_FOX_CLASS, -1, "setFoxType", "setSitting", "setSleeping", "setAge", "setCrouching"),
+
+    /** 1.17+ */
+    AXOLOTL(ClassTypes.ENTITY_AXOLOTL_CLASS, -1, "setVariant", "setAge"),
+    GOAT(ClassTypes.ENTITY_GOAT_CLASS, -0.5, "setScreamingGoat", "setAge");
 
     /**
      * A empty string.

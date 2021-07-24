@@ -3,7 +3,7 @@ package ak.znetwork.znpcservers.cache.builder;
 import ak.znetwork.znpcservers.cache.impl.ClassCacheImpl;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.ArrayUtils;
+import com.google.common.collect.Iterables;
 
 import lombok.Getter;
 
@@ -22,11 +22,6 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     private static final String EMPTY_STRING = "";
 
     /**
-     * A empty array.
-     */
-    private static final Class<?>[] EMPTY_ARRAY = ArrayUtils.EMPTY_CLASS_ARRAY;
-
-    /**
      * The class name.
      */
     private final String packageName, className, methodName, fieldName;
@@ -39,7 +34,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
     /**
      * The class parameters.
      */
-    private final ImmutableList<Class<?>[]> parameterTypes;
+    private final Iterable<Class<?>[]> parameterTypes;
 
     /**
      * Creates a new empty classCache builder.
@@ -49,7 +44,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
                 EMPTY_STRING,
                 EMPTY_STRING,
                 EMPTY_STRING,
-                ImmutableList.of(EMPTY_ARRAY)
+                ImmutableList.of()
         );
     }
 
@@ -66,7 +61,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
                                 String className,
                                 String methodName,
                                 String fieldName,
-                                ImmutableList<Class<?>[]> parameterTypes) {
+                                Iterable<Class<?>[]> parameterTypes) {
         this.packageName = packageType;
         this.className = className;
         this.methodName = methodName;
@@ -132,9 +127,7 @@ public class ClassCacheBuilder implements ClassCacheImpl.Builder {
                 methodName,
                 fieldName,
                 // ><!>>1.17.1><<<>>
-                ImmutableList.<Class<?>[]>builder().addAll(
-                        ImmutableList.of(to)
-                ).build()
+                Iterables.concat(parameterTypes, ImmutableList.of(to))
         );
     }
 
