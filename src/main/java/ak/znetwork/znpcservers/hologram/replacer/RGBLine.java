@@ -12,7 +12,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 21/7/2021
  */
 public class RGBLine implements LineReplacer<String> {
-
     /**
      * Default hex-color-code length.
      */

@@ -21,7 +21,6 @@ import lombok.Data;
  */
 @Data
 public class ZNPCPojo {
-
     /**
      * The npc identifier.
      */

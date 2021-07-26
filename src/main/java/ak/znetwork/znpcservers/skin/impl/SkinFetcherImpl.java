@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.skin.impl;
 
 import ak.znetwork.znpcservers.skin.SkinFetcher;
+import ak.znetwork.znpcservers.skin.callback.SkinResultCallback;
 
 import lombok.Getter;
 
@@ -11,7 +12,6 @@ import lombok.Getter;
  * @since 07/02/2020
  */
 public interface SkinFetcherImpl {
-
     /**
      * Used to fetch data from the server.
      */
@@ -23,11 +23,9 @@ public interface SkinFetcherImpl {
     String POST_METHOD = "POST";
 
     /**
-     * Represents the skin profile values.
-     *
-     * @return The skin profile with the value & signature.
+     * Fetches the skin profile values.
      */
-    String[] getProfile();
+    void fetchProfile(SkinResultCallback skinResultCallback);
 
     @Getter
     class SkinBuilder {

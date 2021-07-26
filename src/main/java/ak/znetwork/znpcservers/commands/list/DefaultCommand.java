@@ -37,7 +37,6 @@ import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractTypeWriter.*
  * @since 07/02/2020
  */
 public class DefaultCommand extends ZNCommand {
-
     /**
      * A string whitespace.
      */
@@ -99,12 +98,13 @@ public class DefaultCommand extends ZNCommand {
         String type = args.get("type").toUpperCase();
 
         try {
-            ServersNPC.createNPC(id,
+            ZNPC znpc = ServersNPC.createNPC(id,
                     TypeZNPC.valueOf(type),
                     sender.getPlayer().getLocation(),
                     name
             );
 
+            ZNPCSkin.forName(args.get("name"), (values) -> znpc.changeSkin(ZNPCSkin.forValues(values)));
             ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
         } catch (Exception e) {
             throw new CommandExecuteException("An error occurred while creating npc", e);
@@ -184,8 +184,10 @@ public class DefaultCommand extends ZNCommand {
             return;
         }
 
-        foundNPC.changeSkin(ZNPCSkin.forName(args.get("skin")));
-        ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
+        ZNPCSkin.forName(args.get("skin"), (values) -> {
+            ConfigManager.getByType(ZNConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ZNConfigValue.SUCCESS);
+            foundNPC.changeSkin(ZNPCSkin.forValues(values));
+        });
     }
 
     @ZNCommandSub(

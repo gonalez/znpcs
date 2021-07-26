@@ -10,7 +10,6 @@ import ak.znetwork.znpcservers.utility.Utils;
  * @since 07/02/2020
  */
 public interface PackageImpl {
-
     /**
      * An empty string.
      */
@@ -92,7 +91,7 @@ public interface PackageImpl {
         TypePackage(String packageName) {
             this.fixedPackageName = Utils.BUKKIT_VERSION > 16 ? // v1.17+
                     packageName :
-                    DOT + "server" + DOT + ReflectionUtils.getBukkitPackage();
+                    packageName + (packageName.contains("minecraft") ? DOT + "server" + DOT + ReflectionUtils.getBukkitPackage() : EMPTY_STRING);
         }
 
         /**

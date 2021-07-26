@@ -9,9 +9,8 @@ package ak.znetwork.znpcservers.events.enums;
  * @since 07/02/2020
  */
 public enum ClickType {
-
     /**
-     * @inheritDoc
+     * Represents when an npc is interacted and the click type cannot be determined.
      */
     DEFAULT,
 
@@ -37,7 +36,7 @@ public enum ClickType {
         } else if (actionName.startsWith("ATTACK")) {
             return LEFT;
         } else {
-            throw new IllegalArgumentException("Cannot find click type for " + actionName);
+            return DEFAULT;
         }
     }
 }

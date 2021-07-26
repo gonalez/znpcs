@@ -12,7 +12,6 @@ import org.bukkit.ChatColor;
  * @since 07/02/2020
  */
 public final class Utils {
-
     /**
      * The current bukkit version.
      */
@@ -45,5 +44,10 @@ public final class Utils {
      */
     public static String color(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
+    }
+
+    /** Default constructor */
+    private Utils() {
+        throw new AssertionError("This class is not intended to be initialized.");
     }
 }

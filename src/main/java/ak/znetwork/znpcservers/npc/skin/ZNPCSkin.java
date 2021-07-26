@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.npc.skin;
 
 import java.net.URL;
 
+import ak.znetwork.znpcservers.skin.callback.SkinResultCallback;
 import ak.znetwork.znpcservers.utility.Utils;
 import lombok.Getter;
 
@@ -15,6 +16,21 @@ import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
  */
 @Getter
 public final class ZNPCSkin {
+    /**
+     * A empty string.
+     */
+    private static final String EMPTY_STRING = "";
+
+    /**
+     * A empty array of size 1.
+     */
+    private static final String[] EMPTY_ARRAY = new String[]{EMPTY_STRING,
+            EMPTY_STRING};
+
+    /**
+     * Layer index.
+     */
+    private static final int LAYER_INDEX = SkinLayerValues.findLayerByVersion();
 
     /**
      * The skin value.
@@ -32,15 +48,18 @@ public final class ZNPCSkin {
      * @param values The skin values.
      */
     protected ZNPCSkin(String... values) {
+        if (values.length < 1) {
+            throw new IllegalArgumentException("Length cannot be zero or negative.");
+        }
         this.value = values[0];
         this.signature = values[1];
     }
 
     /**
-     * @inheritDoc
+     * Skin layer index for current version.
      */
     public int getLayerIndex() {
-        return SkinLayerValues.findLayerByVersion(Utils.BUKKIT_VERSION);
+        return LAYER_INDEX;
     }
 
     /**
@@ -50,18 +69,7 @@ public final class ZNPCSkin {
      * @return A skin class with the given values.
      */
     public static ZNPCSkin forValues(String...values) {
-        return new ZNPCSkin(values);
-    }
-
-    /**
-     * Creates a new skin cache.
-     *
-     * @param skin The skin value.
-     * @param signature The skin signature.
-     * @return A skin class with the given values.
-     */
-    public static ZNPCSkin forSkin(String skin, String signature) {
-        return new ZNPCSkin(skin, signature);
+        return new ZNPCSkin(values.length > 0 ? values : EMPTY_ARRAY);
     }
 
     /**
@@ -70,15 +78,15 @@ public final class ZNPCSkin {
      * @param skin The skin name or url.
      * @return A skin class with the fetched values.
      */
-    public static ZNPCSkin forName(String skin) {
+    public static void forName(String skin,
+                                   SkinResultCallback skinResultCallback) {
         try {
             // Check if skin value is a url
             new URL(skin).toURI();
 
-            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.GENERATE_API,
-                    skin).toSkinFetcher().getProfile());
+            SkinBuilder.withData(SkinAPI.GENERATE_API, skin).toSkinFetcher().fetchProfile(skinResultCallback);
         } catch (Exception e) {
-            return new ZNPCSkin(SkinBuilder.withData(SkinAPI.PROFILE_API, skin).toSkinFetcher().getProfile());
+            SkinBuilder.withData(SkinAPI.PROFILE_API, skin).toSkinFetcher().fetchProfile(skinResultCallback);
         }
     }
 
@@ -117,13 +125,12 @@ public final class ZNPCSkin {
         /**
          * Find a layer index by its version.
          *
-         * @param minVersion The minimum required version.
          * @return The layer index.
          */
-        public static int findLayerByVersion(int minVersion) {
+        static int findLayerByVersion() {
             int value = V9.layerValue;
             for (SkinLayerValues skinLayerValue : values()) {
-                if (minVersion >= skinLayerValue.minVersion) {
+                if (Utils.BUKKIT_VERSION >= skinLayerValue.minVersion) {
                     value = skinLayerValue.layerValue;
                 }
             }

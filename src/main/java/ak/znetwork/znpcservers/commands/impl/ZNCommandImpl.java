@@ -24,7 +24,6 @@ import java.util.Arrays;
  * @since 07/02/2020
  */
 public interface ZNCommandImpl {
-
     /**
      * Loads the command subcommands..
      */

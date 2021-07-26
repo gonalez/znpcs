@@ -20,7 +20,6 @@ import java.util.Base64;
  * @since 07/02/2020
  */
 public class ItemStackSerializer implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack> {
-
     /**
      * Default itemstack, used when an itemstack cannot be deserialized.
      */

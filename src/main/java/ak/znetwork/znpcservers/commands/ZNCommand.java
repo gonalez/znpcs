@@ -24,7 +24,6 @@ import java.util.*;
  * @since 07/02/2020
  */
 public class ZNCommand extends BukkitCommand implements ZNCommandImpl {
-
     /**
      * A string whitespace.
      */

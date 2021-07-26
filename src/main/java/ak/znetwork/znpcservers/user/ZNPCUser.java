@@ -32,7 +32,6 @@ import lombok.Data;
  */
 @Data
 public class ZNPCUser {
-
     /**
      * The name of the NPC interact channel.
      */
@@ -193,7 +192,7 @@ public class ZNPCUser {
                     return;
                 }
 
-                ClickType clickName = ClickType.forName(npc.getPacketClass().getClickType(packet).toString());
+                ClickType clickName = ClickType.forName(npc.getPackets().getClickType(packet).toString());
                 lastInteract = System.currentTimeMillis();
 
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {

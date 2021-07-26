@@ -9,7 +9,6 @@ package ak.znetwork.znpcservers.npc.enums;
  * @since 07/02/2020
  */
 public enum ItemSlot {
-
     /**
      * Represents the helmet of the npc.
      */

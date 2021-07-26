@@ -32,7 +32,6 @@ import org.bukkit.util.Vector;
  * @since 07/02/2020
  */
 public interface ZNPCPathImpl {
-
     /**
      * Reads all the path attributes.
      *

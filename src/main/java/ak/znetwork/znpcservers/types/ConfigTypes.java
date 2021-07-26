@@ -6,7 +6,6 @@ import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.NamingType;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.List;
  * @since 07/02/2020
  */
 public class ConfigTypes {
-
     /**
      * Represents the symbol that will be used as spaces for each string.
      */

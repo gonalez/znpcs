@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.ItemSlot;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
+
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -15,7 +16,11 @@ import org.bukkit.inventory.ItemStack;
  * @since 07/02/2020
  */
 public class PacketsV9 extends PacketsV8 {
-
+    /**
+     * Creates the packets for the given npc.
+     *
+     * @param znpc The npc.
+     */
     public PacketsV9(ZNPC znpc) {
         super(znpc);
     }

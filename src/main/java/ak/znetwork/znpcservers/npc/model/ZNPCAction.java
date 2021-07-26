@@ -20,7 +20,6 @@ import lombok.Data;
  */
 @Data
 public class ZNPCAction {
-
     /**
      * The action type.
      */

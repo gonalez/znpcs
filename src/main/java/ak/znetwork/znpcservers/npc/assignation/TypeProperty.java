@@ -9,7 +9,6 @@ import java.util.function.Function;
  * @since 07/02/2020
  */
 public enum TypeProperty {
-
     STRING(String.class, String::toString),
     BOOLEAN(boolean.class, Boolean::parseBoolean),
     INT(int.class, Integer::parseInt),

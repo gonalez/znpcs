@@ -13,8 +13,7 @@ import com.google.common.collect.ImmutableMap;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ConfigManager {
-
+public final class ConfigManager {
     /**
      * The configuration types.
      */
@@ -28,6 +27,7 @@ public class ConfigManager {
         }
         CONFIG_IMMUTABLE_MAP = builder.build();
     }
+
 
     /**
      * Returns the configuration for the given config type.
@@ -46,5 +46,10 @@ public class ConfigManager {
      */
     public static ImmutableCollection<ZNConfig> all() {
         return CONFIG_IMMUTABLE_MAP.values();
+    }
+
+    /** Default constructor */
+    private ConfigManager() {
+        throw new AssertionError("This class is not intended to be initialized.");
     }
 }

@@ -20,7 +20,6 @@ import java.util.Map;
  * @since 07/02/2020
  */
 public class CustomizationProcessor {
-
     /**
      * The bukkit entity class.
      */

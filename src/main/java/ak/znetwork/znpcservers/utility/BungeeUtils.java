@@ -14,7 +14,6 @@ import java.io.IOException;
  * @since 07/02/2020
  */
 public class BungeeUtils {
-
     /**
      * The plugin instance.
      */

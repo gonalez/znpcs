@@ -14,8 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public final class NPCManagerTask extends BukkitRunnable {
-
+public class NPCManagerTask extends BukkitRunnable {
     /**
      * Creates a new task for all NPC.
      * This task will handle each npc.

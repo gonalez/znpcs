@@ -14,9 +14,6 @@ import org.bukkit.event.HandlerList;
  * @since 07/02/2020
  */
 public class NPCInteractEvent extends Event {
-
-    private static final HandlerList handlerList = new HandlerList();
-
     /**
      * The player who interacted with the npc.
      */
@@ -31,6 +28,9 @@ public class NPCInteractEvent extends Event {
      * The npc that was interacted with.
      */
     private final ZNPC npc;
+
+    /** ... */
+    private static final HandlerList handlerList = new HandlerList();
 
     /**
      * Creates a new interact event for a npc.

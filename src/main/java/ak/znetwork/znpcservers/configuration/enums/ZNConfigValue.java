@@ -13,7 +13,6 @@ import java.util.ArrayList;
  * @since 07/02/2020
  */
 public enum ZNConfigValue {
-
     // NPC
     NPC_LIST(ZNConfigType.DATA, new ArrayList<>(), ZNPCPojo.class),
 
@@ -39,6 +38,7 @@ public enum ZNConfigValue {
     PATH_FOUND(ZNConfigType.MESSAGES, "&cThere is already a path with this name.", String.class),
     NPC_FOUND(ZNConfigType.MESSAGES, "&cThere is already a npc with this id.", String.class),
     NO_PATH_FOUND(ZNConfigType.MESSAGES, "&cNo path found.", String.class),
+    NO_SKIN_FOUND(ZNConfigType.MESSAGES, "&cSkin not found.", String.class),
     NO_NPC_FOUND(ZNConfigType.MESSAGES, "&cNo npc found.", String.class),
     NO_ACTION_FOUND(ZNConfigType.MESSAGES, "&cNo action found.", String.class),
     METHOD_NOT_FOUND(ZNConfigType.MESSAGES, "&cNo method found.", String.class),

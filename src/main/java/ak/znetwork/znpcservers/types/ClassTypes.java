@@ -11,7 +11,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.Default.*;
 import static ak.znetwork.znpcservers.cache.impl.PackageImpl.*;
@@ -23,9 +22,8 @@ import static ak.znetwork.znpcservers.cache.impl.PackageImpl.*;
  * @since 07/02/2020
  */
 public class ClassTypes {
-
     /**
-     * {@inheritDoc}
+     * Returns true if the current version is v1.17+.
      */
     private static final boolean V17 = Utils.BUKKIT_VERSION > 16;
 
@@ -746,15 +744,6 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD = new ConstructorLoader(new ClassCacheBuilder().
             packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
             className(PACKET_PLAY_OUT_SCOREBOARD_TEAM_CLASS)).
-            typeOf();
-
-    /**
-     * {@inheritDoc}
-     */
-    public static final Constructor<?> PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_NEW = new ConstructorLoader(new ClassCacheBuilder().
-            packageType(TypePackage.MINECRAFT_SERVER.getForCategory(PacketCategory.PACKET)).
-            className(PACKET_PLAY_OUT_SCOREBOARD_TEAM_CLASS).
-            parameterTypes(String.class, int.class, Optional.class, Collection.class)).
             typeOf();
 
     /**

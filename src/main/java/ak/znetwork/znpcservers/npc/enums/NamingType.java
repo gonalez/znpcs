@@ -10,7 +10,7 @@ import ak.znetwork.znpcservers.utility.RandomString;
  * @since 07/02/2020
  */
 public enum NamingType {
-
+    /** Default */
     DEFAULT {
         @Override
         public String resolve(ZNPC znpc) {

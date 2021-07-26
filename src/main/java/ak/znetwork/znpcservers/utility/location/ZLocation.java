@@ -1,14 +1,14 @@
 package ak.znetwork.znpcservers.utility.location;
 
 import ak.znetwork.znpcservers.types.ClassTypes;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-
 import org.bukkit.util.Vector;
 
-import lombok.Getter;
-
 import java.lang.reflect.InvocationTargetException;
+
+import lombok.Getter;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -18,7 +18,6 @@ import java.lang.reflect.InvocationTargetException;
  */
 @Getter
 public class ZLocation {
-
     /**
      * The location world name.
      */

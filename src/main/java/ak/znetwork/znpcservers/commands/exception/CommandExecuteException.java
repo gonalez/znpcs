@@ -9,7 +9,10 @@ package ak.znetwork.znpcservers.commands.exception;
  * @since 07/02/2020
  */
 public class CommandExecuteException extends Exception {
-
+    /**
+     * @param message The exception message.
+     * @param cause   The throwable cause.
+     */
     public CommandExecuteException(String message, Throwable cause) {
         super(message, cause);
     }

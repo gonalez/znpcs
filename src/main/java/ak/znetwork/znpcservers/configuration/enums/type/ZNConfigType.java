@@ -7,19 +7,7 @@ package ak.znetwork.znpcservers.configuration.enums.type;
  * @since 07/02/2020
  */
 public enum ZNConfigType {
-
-    /**
-     * {@inheritDoc}
-     */
     CONFIG,
-
-    /**
-     * {@inheritDoc}
-     */
     MESSAGES,
-
-    /**
-     * {@inheritDoc}
-     */
     DATA
 }

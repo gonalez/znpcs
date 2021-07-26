@@ -2,7 +2,7 @@ package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.ZNConfig;
-import ak.znetwork.znpcservers.listeners.PlayerListeners;
+import ak.znetwork.znpcservers.listeners.PlayerListener;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 import ak.znetwork.znpcservers.utility.BungeeUtils;
 import ak.znetwork.znpcservers.utility.itemstack.ItemStackSerializer;
@@ -39,7 +39,6 @@ import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractTypeWriter.*
  * @since 07/02/2020
  */
 public class ServersNPC extends JavaPlugin {
-
     /**
      * The plugin name.
      */
@@ -115,7 +114,7 @@ public class ServersNPC extends JavaPlugin {
         new NPCSaveTask(this, ConfigTypes.SAVE_DELAY);
 
         // Register listeners
-        new PlayerListeners(this);
+        new PlayerListener(this);
     }
 
     @Override
@@ -171,9 +170,8 @@ public class ServersNPC extends JavaPlugin {
             return find;
         }
 
-        ZNPCPojo pojo = new ZNPCPojo(id, Collections.singletonList(name), ZNPCSkin.forName(name), new ZLocation(location), npcType);
+        ZNPCPojo pojo = new ZNPCPojo(id, Collections.singletonList(name), ZNPCSkin.forValues(), new ZLocation(location), npcType);
         ConfigTypes.NPC_LIST.add(pojo);
-
         return new ZNPC(pojo);
     }
 

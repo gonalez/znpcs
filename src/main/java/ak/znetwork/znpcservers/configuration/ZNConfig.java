@@ -121,12 +121,14 @@ public class ZNConfig implements ZNConfigImpl {
     }
 
     @Override
-    public void sendMessage(CommandSender sender, ZNConfigValue znConfigValue) {
-        sender.sendMessage(Utils.color(getValue(znConfigValue)));
+    public <T> T getValue(ZNConfigValue znConfigValue) {
+        synchronized (path) {
+            return (T) configValues.get(znConfigValue);
+        }
     }
 
     @Override
-    public <T> T getValue(ZNConfigValue znConfigValue) {
-        return (T) configValues.get(znConfigValue);
+    public void sendMessage(CommandSender sender, ZNConfigValue znConfigValue) {
+        sender.sendMessage(Utils.color(getValue(znConfigValue)));
     }
 }

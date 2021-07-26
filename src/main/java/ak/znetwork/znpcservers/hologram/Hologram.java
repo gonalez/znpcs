@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.hologram;
 
 import ak.znetwork.znpcservers.hologram.replacer.LineReplacer;
 import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.UnexpectedCallException;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
@@ -20,7 +21,6 @@ import java.util.List;
  * @since 07/02/2020
  */
 public class Hologram {
-
     /**
      * The height between lines.
      */
@@ -84,7 +84,7 @@ public class Hologram {
             setLocation(location, 0);
             npc.getViewers().forEach(this::spawn);
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -100,7 +100,6 @@ public class Hologram {
                 ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
             } catch (ReflectiveOperationException operationException) {
                 delete(player);
-                throw new AssertionError(operationException);
             }
         });
     }
@@ -115,9 +114,9 @@ public class Hologram {
             try {
                 int armorStandId = (int) ClassTypes.GET_ENTITY_ID.invoke(entityArmorStand);
 
-                ReflectionUtils.sendPacket(player, npc.getPacketClass().getDestroyPacket(armorStandId));
+                ReflectionUtils.sendPacket(player, npc.getPackets().getDestroyPacket(armorStandId));
             } catch (ReflectiveOperationException operationException) {
-                throw new AssertionError(operationException);
+                throw new UnexpectedCallException(operationException);
             }
         });
     }
@@ -143,7 +142,7 @@ public class Hologram {
                 int entity_id = (Integer) ClassTypes.GET_ENTITY_ID.invoke(armorStand);
                 ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entity_id, dataWatcherObject, true));
             } catch (ReflectiveOperationException operationException) {
-                throw new AssertionError(operationException);
+                throw new UnexpectedCallException(operationException);
             }
         }
     }
@@ -157,7 +156,7 @@ public class Hologram {
                 Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(o);
                 npc.getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
             } catch (ReflectiveOperationException operationException) {
-                throw new AssertionError("An exception occurred while trying to update location for hologram", operationException);
+                throw new UnexpectedCallException(operationException);
             }
         });
     }
@@ -181,7 +180,7 @@ public class Hologram {
 
             updateLocation();
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 }

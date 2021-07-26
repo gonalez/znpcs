@@ -9,7 +9,9 @@ package ak.znetwork.znpcservers.commands.exception;
  * @since 07/02/2020
  */
 public class CommandNotFoundException extends Exception {
-
+    /**
+     * @param message The exception message.
+     */
     public CommandNotFoundException(String message) {
         super(message);
     }

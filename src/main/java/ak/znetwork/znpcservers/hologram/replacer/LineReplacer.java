@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
  * @since 21/7/2021
  */
 public interface LineReplacer<T> {
-
     /**
      * Replaces the string with the provided feature.
      *

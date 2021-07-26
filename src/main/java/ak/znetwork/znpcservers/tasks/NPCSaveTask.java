@@ -14,8 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public final class NPCSaveTask extends BukkitRunnable {
-
+public class NPCSaveTask extends BukkitRunnable {
     /**
      * Initialization of the task to save NPCs.
      *

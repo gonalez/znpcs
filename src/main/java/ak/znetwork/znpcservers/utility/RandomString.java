@@ -9,7 +9,6 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 07/02/2020
  */
 public class RandomString {
-
     /**
      * The random string length.
      */

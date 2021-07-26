@@ -15,7 +15,6 @@ import lombok.Getter;
  */
 @Getter
 public class ClassCacheBuilder implements ClassCacheImpl.Builder {
-
     /**
      * A empty string.
      */

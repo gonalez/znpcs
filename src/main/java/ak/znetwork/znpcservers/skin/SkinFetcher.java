@@ -1,5 +1,6 @@
 package ak.znetwork.znpcservers.skin;
 
+import ak.znetwork.znpcservers.skin.callback.SkinResultCallback;
 import ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,7 +11,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,17 +21,10 @@ import java.util.concurrent.Executors;
  * @since 07/02/2020
  */
 public class SkinFetcher implements SkinFetcherImpl {
-
     /**
      * A empty string.
      */
     private static final String EMPTY_STRING = "";
-
-    /**
-     * A empty array of size 1.
-     */
-    private static final String[] EMPTY_ARRAY = new String[]{EMPTY_STRING,
-            EMPTY_STRING};
 
     /**
      * The default charset name.
@@ -105,18 +98,16 @@ public class SkinFetcher implements SkinFetcherImpl {
     }
 
     @Override
-    public String[] getProfile() {
-        try {
-            JsonObject data = getResponse().get().getAsJsonObject(skinAPI == SkinAPI.GENERATE_API ? "data" : "textures");
+    public void fetchProfile(
+            SkinResultCallback skinResultCallback
+    ) {
+        getResponse().thenAcceptAsync(jsonObject -> {
+            jsonObject = jsonObject.getAsJsonObject(skinAPI == SkinAPI.GENERATE_API ? "data" : "textures");
             JsonObject properties = (skinAPI == SkinAPI.GENERATE_API ?
-                    data.getAsJsonObject("texture") :
-                    data.getAsJsonObject("raw"));
-
-            return new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() };
-        } catch (InterruptedException | ExecutionException e) {
-            // The skin was not found, return the default skin profile (Steve)
-            return EMPTY_ARRAY;
-        }
+                    jsonObject.getAsJsonObject("texture") :
+                    jsonObject.getAsJsonObject("raw"));
+            skinResultCallback.onDone(new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() });
+        });
     }
 
     /**

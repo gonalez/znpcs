@@ -21,7 +21,6 @@ import java.util.logging.Logger;
  * @since 07/02/2020
  */
 public interface ClassCacheImpl {
-
     /**
      * A cache for storing loaded classes.
      */
@@ -283,7 +282,7 @@ public interface ClassCacheImpl {
                     }
 
                 } else {
-                    constructor = BUILDER_CLASS.getDeclaredConstructor(Iterables.get(getParameterTypes(), 0));
+                    constructor = Iterables.size(getParameterTypes()) > 0 ? BUILDER_CLASS.getDeclaredConstructor(Iterables.get(getParameterTypes(), 0)) : BUILDER_CLASS.getDeclaredConstructor();
                 }
 
                 // Set accessible

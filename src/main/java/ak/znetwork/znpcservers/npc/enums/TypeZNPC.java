@@ -26,7 +26,6 @@ import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.ClassCache;
  */
 @Getter
 public enum TypeZNPC {
-
     PLAYER(ClassTypes.ENTITY_PLAYER_CLASS, 0),
     ARMOR_STAND(ClassTypes.ENTITY_ARMOR_STAND_CLASS, 0, "setSmall", "setArms"),
     CREEPER(ClassTypes.ENTITY_CREEPER_CLASS, -0.15, "setPowered"),

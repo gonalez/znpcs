@@ -2,7 +2,6 @@ package ak.znetwork.znpcservers.npc.packets.list;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.ItemSlot;
-import ak.znetwork.znpcservers.npc.packets.PacketsImpl;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -20,12 +19,17 @@ import java.util.Collections;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class PacketsV8 extends PacketsImpl.Default {
-
+public class PacketsV8 extends Packets {
+    /**
+     * Returns true if the current version is v1.9+.
+     */
     private static final boolean V9 = Utils.versionNewer(9);
 
-    private static final String TEAM_MODE = V9 ? "i" : "h";
-
+    /**
+     * Creates the packets for the given npc.
+     *
+     * @param znpc The npc.
+     */
     public PacketsV8(ZNPC znpc) {
         super(znpc);
     }
@@ -34,7 +38,7 @@ public class PacketsV8 extends PacketsImpl.Default {
     public void deleteScoreboard() throws ReflectiveOperationException {
         scoreboardDelete = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
         ReflectionUtils.setValue(scoreboardDelete, "a", getNPC().getGameProfile().getName());
-        ReflectionUtils.setValue(scoreboardDelete, TEAM_MODE, 1);
+        ReflectionUtils.setValue(scoreboardDelete, V9 ? "i" : "h", 1);
     }
 
     @Override
@@ -42,7 +46,7 @@ public class PacketsV8 extends PacketsImpl.Default {
         scoreboardSpawn = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
         ReflectionUtils.setValue(scoreboardSpawn, "a", getNPC().getGameProfile().getName());
         ReflectionUtils.setValue(scoreboardSpawn, "e", "never");
-        ReflectionUtils.setValue(scoreboardSpawn, TEAM_MODE, 0);
+        ReflectionUtils.setValue(scoreboardSpawn, V9 ? "i" : "h", 0);
         ReflectionUtils.setValue(scoreboardSpawn, V9 ? "h" : "g", Collections.singletonList(getNPC().getGameProfile().getName()));
         if (getNPC().getNpcPojo().isHasGlow() && V9) {
             updateGlowPacket(scoreboardSpawn);

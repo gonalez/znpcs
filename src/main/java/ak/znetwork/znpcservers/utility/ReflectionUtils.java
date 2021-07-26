@@ -13,24 +13,47 @@ import java.lang.reflect.InvocationTargetException;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ReflectionUtils {
-
-    public static void setValue(Object instance, String field, Object value) throws IllegalAccessException, NoSuchFieldException {
-        Field f = instance.getClass().getDeclaredField(field);
+public final class ReflectionUtils {
+    /**
+     *
+     *
+     * @param instance                The class instance.
+     * @param fieldName               The field Name.
+     * @param value
+     * @throws NoSuchFieldException   If the field could not be found.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     */
+    public static void setValue(
+            Object instance,
+            String fieldName,
+            Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field f = instance.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(instance, value);
     }
 
-    public static Object getValue(Object instance, String field) throws NoSuchFieldException, IllegalAccessException {
-        Field f = instance.getClass().getDeclaredField(field);
+    /**
+     * Locates the specified field value on the given instance.
+     *
+     * @param instance                The class instance.
+     * @param fieldName               The field Name.
+     * @throws NoSuchFieldException   If the field could not be found.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     * @return The field value.
+     */
+    public static Object getValue(
+            Object instance,
+            String fieldName)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field f = instance.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         return f.get(instance);
     }
 
     /**
-     * Sends the packet to a receiver.
+     * Sends the packet to the given player.
      *
-     * @param player  The receiver of the packet.
+     * @param player  The player to send the packets for.
      * @param packets The packets to send.
      */
     public static void sendPacket(Player player, Object... packets) {
@@ -60,5 +83,10 @@ public class ReflectionUtils {
     public static String getFriendlyBukkitPackage() {
         String version = getBukkitPackage().replace("v", "").replace("R", "");
         return version.substring(2, version.length() - 2);
+    }
+
+    /** Default constructor */
+    private ReflectionUtils() {
+        throw new AssertionError("This class is not intended to be initialized.");
     }
 }

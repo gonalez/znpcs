@@ -12,7 +12,6 @@ import org.bukkit.scheduler.BukkitTask;
  * @since 07/02/2020
  */
 public class SchedulerUtils {
-
     /**
      * The plugin instance.
      */
@@ -41,7 +40,7 @@ public class SchedulerUtils {
     }
 
     /**
-     *  Schedules a repeatedly asynchronous task.
+     * Schedules a repeatedly asynchronous task.
      *
      * @param runnable The runnable to execute.
      * @param start    The start delay for the runnable to be executed

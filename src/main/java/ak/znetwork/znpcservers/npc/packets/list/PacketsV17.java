@@ -17,7 +17,11 @@ import java.util.*;
  * @since 07/02/2020
  */
 public class PacketsV17 extends PacketsV16 {
-
+    /**
+     * Creates the packets for the given npc.
+     *
+     * @param znpc The npc.
+     */
     public PacketsV17(ZNPC znpc) {
         super(znpc);
     }

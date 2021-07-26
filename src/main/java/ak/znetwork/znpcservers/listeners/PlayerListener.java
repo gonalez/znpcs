@@ -14,14 +14,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class PlayerListeners implements Listener {
-
+public class PlayerListener implements Listener {
     /**
      * Creates and register the necessary events for players.
      *
      * @param serversNPC The plugin instance.
      */
-    public PlayerListeners(ServersNPC serversNPC) {
+    public PlayerListener(ServersNPC serversNPC) {
         serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
     }
 

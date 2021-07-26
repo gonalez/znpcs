@@ -16,7 +16,6 @@ import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
  * @since 07/02/2020
  */
 public class ZNCommandInvoker {
-
     /**
      * The command instance.
      */
@@ -51,17 +50,17 @@ public class ZNCommandInvoker {
      * Invokes the subcommand.
      *
      * @param sender                       The commandSender to run the command.
-     * @param object                       The subCommand.
+     * @param subCommand                   The subCommand.
      * @throws CommandPermissionException  If commandSender does not have permission to execute the subCommand.
      * @throws CommandExecuteException     If subCommand cannot be executed.
      */
-    public void execute(ZNCommandSender sender, Object object) throws CommandPermissionException, CommandExecuteException {
+    public void execute(ZNCommandSender sender, Object subCommand) throws CommandPermissionException, CommandExecuteException {
         if (permission.length() > 0 && !sender.getCommandSender().hasPermission(permission)) {
             throw new CommandPermissionException("Insufficient permission");
         }
 
         try {
-            commandMethod.invoke(command, sender, object);
+            commandMethod.invoke(command, sender, subCommand);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new CommandExecuteException(e.getMessage(), e.getCause());
         }

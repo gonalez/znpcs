@@ -3,8 +3,9 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.npc.enums.NamingType;
-import ak.znetwork.znpcservers.npc.packets.PacketsImpl;
+import ak.znetwork.znpcservers.UnexpectedCallException;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
+import ak.znetwork.znpcservers.npc.packets.list.Packets;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.npc.enums.ItemSlot;
@@ -42,7 +43,6 @@ import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.*;
  */
 @Getter
 public class ZNPC {
-
     /**
      * A map containing the stored npcs.
      */
@@ -106,7 +106,7 @@ public class ZNPC {
     /**
      * Packets by version.
      */
-    private PacketsImpl.Default packetClass;
+    private Packets packets;
 
     /**
      * The bukkit entity id.
@@ -153,7 +153,7 @@ public class ZNPC {
         this.gameProfile = new GameProfile(UUID.randomUUID(), START_PREFIX + npcName);
         this.gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, npcPojo.getSkin(), npcPojo.getSignature()));
 
-        this.packetClass = PacketsImpl.Default.getByVersion(this, Utils.BUKKIT_VERSION); // ....
+        this.packets = Packets.getByVersion(this, Utils.BUKKIT_VERSION); // ....
 
         this.changeType(npcPojo.getNpcType());
         this.updateProfile(gameProfile.getProperties());
@@ -198,12 +198,12 @@ public class ZNPC {
             npcPojo.setGlowName(color);
 
             // Update scoreboard packets
-            packetClass.update();
+            packets.update();
 
             // Update npc data
             updateMetaData();
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -215,7 +215,7 @@ public class ZNPC {
             Object npcTeleportPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(nmsEntity);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, npcTeleportPacket));
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -227,8 +227,8 @@ public class ZNPC {
     public void setLocation(Location location) {
         try {
             if (getLocation().getWorld() != location.getWorld()
-                    || packetClass.playerSpawnPacket == null) {
-                packetClass.getPlayerPacket(new ZLocation(location).getNMSWorld());
+                    || packets.playerSpawnPacket == null) {
+                packets.getPlayerPacket(new ZLocation(location).getNMSWorld());
             }
 
             if (getNpcPath() == null) {
@@ -241,7 +241,7 @@ public class ZNPC {
 
             hologram.setLocation(location, npcPojo.getNpcType().getHoloHeight());
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -276,7 +276,7 @@ public class ZNPC {
                 ClassTypes.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, ClassTypes.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(znpcSkin.getLayerIndex(), dataWatcherRegistryEnum), (byte) 127);
             } else ClassTypes.WATCH_DATA_WATCHER_METHOD.invoke(dataWatcherObject, 10, (byte) 127);
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -289,10 +289,10 @@ public class ZNPC {
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
             final boolean isPlayer = npcType == TypeZNPC.PLAYER;
-            if (packetClass.playerSpawnPacket == null) {
-                packetClass.getPlayerPacket(nmsWorld);
+            if (packets.playerSpawnPacket == null) {
+                packets.getPlayerPacket(nmsWorld);
             }
-            nmsEntity = (isPlayer ? packetClass.playerSpawnPacket : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            nmsEntity = (isPlayer ? packets.playerSpawnPacket : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
             bukkitEntity = (ClassTypes.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
 
             if (isPlayer) {
@@ -312,16 +312,16 @@ public class ZNPC {
             setLocation(getLocation());
 
             // Update packets
-            packetClass.update();
+            packets.update();
 
             // Update new type for viewers
             deleteViewers();
 
             // Update new entity id
             entityID = ((Integer) ClassTypes.GET_ENTITY_ID.invoke(nmsEntity));
-            packetClass.destroyPacket = packetClass.getDestroyPacket(entityID);
+            packets.destroyPacket = packets.getDestroyPacket(entityID);
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -337,8 +337,8 @@ public class ZNPC {
 
             if (npcIsPlayer) {
                 // SB
-                ReflectionUtils.sendPacket(player, packetClass.scoreboardDelete);
-                ReflectionUtils.sendPacket(player, packetClass.scoreboardSpawn);
+                ReflectionUtils.sendPacket(player, packets.scoreboardDelete);
+                ReflectionUtils.sendPacket(player, packets.scoreboardSpawn);
 
                 if (npcPojo.isHasMirror()) {
                     // Set npc skin to player skin
@@ -374,7 +374,7 @@ public class ZNPC {
                         60
                 );
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -382,10 +382,10 @@ public class ZNPC {
      * @inheritDoc
      */
     public void sendEquipPacket(Player player) {
-        if (packetClass.equipPackets.isEmpty()) {
+        if (packets.equipPackets.isEmpty()) {
             return;
         }
-        packetClass.equipPackets.forEach((slot, o) -> ReflectionUtils.sendPacket(player, o));
+        packets.equipPackets.forEach((slot, o) -> ReflectionUtils.sendPacket(player, o));
     }
 
     /**
@@ -397,7 +397,7 @@ public class ZNPC {
         try {
             ReflectionUtils.sendPacket(player, ClassTypes.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(ClassTypes.REMOVE_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -415,7 +415,7 @@ public class ZNPC {
             hideFromTab(player);
         }
 
-        ReflectionUtils.sendPacket(player, packetClass.destroyPacket);
+        ReflectionUtils.sendPacket(player, packets.destroyPacket);
         hologram.delete(player);
 
         if (removeViewer) {
@@ -445,7 +445,7 @@ public class ZNPC {
                 viewers.forEach(players -> ReflectionUtils.sendPacket(players, headRotationPacket));
             }
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -467,15 +467,15 @@ public class ZNPC {
             npcPojo.getNpcEquip().put(slot, stack);
 
             if (Utils.BUKKIT_VERSION >= 16) {
-                packetClass.getEquipPacket();
+                packets.getEquipPacket();
             } else {
-                packetClass.getEquipPacket(slot, stack);
+                packets.getEquipPacket(slot, stack);
             }
 
             // Update for all viewers
             viewers.forEach(this::sendEquipPacket);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError(e);
+        } catch (ReflectiveOperationException operationException) {
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -509,7 +509,7 @@ public class ZNPC {
             ReflectionUtils.setValue(gameProfileObj, "id", gameProfile.getId());
             ReflectionUtils.setValue(gameProfileObj, "properties", propertyMap);
         } catch (ReflectiveOperationException operationException) {
-            throw new AssertionError(operationException);
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -520,8 +520,8 @@ public class ZNPC {
         try {
             Object customizationPacket = ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, ClassTypes.GET_DATA_WATCHER_METHOD.invoke(nmsEntity), true);
             viewers.forEach(player -> ReflectionUtils.sendPacket(player, customizationPacket));
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError(e);
+        } catch (ReflectiveOperationException operationException) {
+            throw new UnexpectedCallException(operationException);
         }
     }
 

@@ -1,12 +1,8 @@
 package ak.znetwork.znpcservers.npc.packets;
 
-import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.enums.ItemSlot;
-import ak.znetwork.znpcservers.npc.packets.list.*;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -15,44 +11,45 @@ import java.util.Map;
  * @since 07/02/2020
  */
 public interface PacketsImpl {
-
     /**
-     * @inheritDoc
+     * Updates the packets for the npc.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     void update() throws ReflectiveOperationException;
 
     /**
      * Deletes the npc scoreboard.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     void deleteScoreboard() throws ReflectiveOperationException;
 
     /**
-     * Shows the npc scoreboard.
+     * Spawns the npc scoreboard.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     void spawnScoreboard() throws ReflectiveOperationException;
 
     /**
-     * @inheritDoc
+     * Creates the npc player spawn packet.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     void getPlayerPacket(Object nmsWorld) throws ReflectiveOperationException;
 
     /**
-     * @inheritDoc
-     */
-    Object getDestroyPacket(int entityId) throws ReflectiveOperationException;
-
-    /**
-     * @inheritDoc
-     */
-    Object getClickType(Object interactPacket) throws ReflectiveOperationException;
-
-    /**
-     * Equip the npc.
+     * Creates the npc equip packet.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     void getEquipPacket(ItemSlot slot, ItemStack itemStack) throws ReflectiveOperationException;
 
     /**
-     * @inheritDoc
+     * Creates the npc equip packet.
+     *
+     * @throws ReflectiveOperationException When failed to call the method.
      */
     default void getEquipPacket() throws ReflectiveOperationException {
         getEquipPacket(null, null);
@@ -64,79 +61,19 @@ public interface PacketsImpl {
     void updateGlowPacket(Object packetTeam) throws ReflectiveOperationException;
 
     /**
-     * @inheritDoc
+     * Returns the npc destroy packet.
+     *
+     * @param entityId The npc entity id.
+     * @throws ReflectiveOperationException When failed to call the method.
      */
-    abstract class Default implements PacketsImpl {
+    Object getDestroyPacket(int entityId) throws ReflectiveOperationException;
 
-        /**
-         * The npc.
-         */
-        private final ZNPC znpc;
+    /**
+     * Returns the click type for the given interact packet.
+     *
+     * @param interactPacket The interact packet.
+     * @throws ReflectiveOperationException When failed to call the method.
+     */
+    Object getClickType(Object interactPacket) throws ReflectiveOperationException;
 
-        /**
-         * @inheritDoc
-         */
-        public Object scoreboardSpawn, scoreboardDelete, playerSpawnPacket, destroyPacket;
-
-        /**
-         * @inheritDoc
-         */
-        public final Map<String, Object> equipPackets;
-
-        /**
-         * Creates the packets for the given npc.
-         *
-         * @param znpc The npc.
-         */
-        public Default(ZNPC znpc) {
-            this.znpc = znpc;
-            equipPackets = new HashMap<>();
-        }
-
-        /**
-         * Returns the npc.
-         *
-         * @return The npc.
-         */
-        public ZNPC getNPC() {
-            return znpc;
-        }
-
-        @Override
-        public void update() throws ReflectiveOperationException {
-            deleteScoreboard();
-            spawnScoreboard();
-        }
-
-        @Override
-        public void getEquipPacket(ItemSlot slot, ItemStack itemStack) throws ReflectiveOperationException {
-            throw new IllegalStateException("Not supported for current version.");
-        }
-
-        @Override
-        public void updateGlowPacket(Object packetTeam) throws ReflectiveOperationException {
-            throw new IllegalStateException("Not supported for current version.");
-        }
-
-        /**
-         * Finds the packet class for the given version.
-         *
-         * @param znpc The npc.
-         * @param version The current version.
-         * @return The packet class for the given version.
-         */
-        public static Default getByVersion(ZNPC znpc,
-                                           int version) {
-            if (version > 16) {
-                return new PacketsV17(znpc);
-            }    else if (version > 15) {
-                return new PacketsV16(znpc);
-            } else if (version > 12) {
-                return new PacketsV13(znpc);
-            } else if (version > 8) {
-                return new PacketsV9(znpc);
-            }
-            return new PacketsV8(znpc);
-        }
-    }
 }
