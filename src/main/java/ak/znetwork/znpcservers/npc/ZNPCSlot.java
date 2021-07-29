@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.npc.enums;
+package ak.znetwork.znpcservers.npc;
 
 /**
  * Determines a npc equipment place by the slot id.
@@ -8,7 +8,7 @@ package ak.znetwork.znpcservers.npc.enums;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public enum ItemSlot {
+public enum ZNPCSlot {
     /**
      * Represents the helmet of the npc.
      */
@@ -55,7 +55,7 @@ public enum ItemSlot {
      * @param slotOld The equipment id for oldest versions.
      * @param slotNew The equipment id for newer versions.
      */
-    ItemSlot(int slotOld,
+    ZNPCSlot(int slotOld,
              int slotNew) {
         this.slotOld = slotOld;
         this.slotNew = slotNew;

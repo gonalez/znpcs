@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
-import ak.znetwork.znpcservers.configuration.ZNConfig;
+import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.listeners.PlayerListener;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 import ak.znetwork.znpcservers.utility.BungeeUtils;
@@ -11,12 +11,12 @@ import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
+import ak.znetwork.znpcservers.npc.ZNPCType;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.MetricsLite;
-import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
+import ak.znetwork.znpcservers.npc.ZNPCSkin;
 import ak.znetwork.znpcservers.utility.SchedulerUtils;
 
 import com.google.gson.Gson;
@@ -30,7 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 import java.util.Collections;
 
-import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.AbstractTypeWriter.*;
+import static ak.znetwork.znpcservers.npc.ZNPCPath.AbstractTypeWriter.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -120,7 +120,7 @@ public class ServersNPC extends JavaPlugin {
     @Override
     public void onDisable() {
         // Save configurations
-        ConfigManager.all().forEach(ZNConfig::save);
+        ConfigManager.all().forEach(Config::save);
 
         // Unregister netty for online players
         Bukkit.getOnlinePlayers().forEach(ZNPCUser::unregister);
@@ -164,7 +164,7 @@ public class ServersNPC extends JavaPlugin {
      * @param name     The npc skin name.
      * @return The created zNPC.
      */
-    public static ZNPC createNPC(int id, TypeZNPC npcType, Location location, String name) {
+    public static ZNPC createNPC(int id, ZNPCType npcType, Location location, String name) {
         final ZNPC find = ZNPC.find(id);
         if (find != null) {
             return find;

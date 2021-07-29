@@ -1,7 +1,5 @@
 package ak.znetwork.znpcservers.skin;
 
-import ak.znetwork.znpcservers.skin.callback.SkinResultCallback;
-import ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -14,13 +12,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static ak.znetwork.znpcservers.skin.SkinFetcherBuilder.*;
+
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class SkinFetcher implements SkinFetcherImpl {
+public class SkinFetcher {
     /**
      * A empty string.
      */
@@ -44,7 +44,7 @@ public class SkinFetcher implements SkinFetcherImpl {
     /**
      * The skin builder.
      */
-    private final SkinBuilder builder;
+    private final SkinFetcherBuilder builder;
 
     /**
      * The skin api type.
@@ -57,7 +57,7 @@ public class SkinFetcher implements SkinFetcherImpl {
      *
      * @param builder The skin builder.
      */
-    public SkinFetcher(SkinBuilder builder) {
+    public SkinFetcher(SkinFetcherBuilder builder) {
         this.builder = builder;
         this.skinAPI = builder.getApiUrl();
     }
@@ -97,9 +97,11 @@ public class SkinFetcher implements SkinFetcherImpl {
         return completableFuture;
     }
 
-    @Override
+    /**
+     * Fetches the skin profile values.
+     */
     public void fetchProfile(
-            SkinResultCallback skinResultCallback
+            SkinFetcherResult skinResultCallback
     ) {
         getResponse().thenAcceptAsync(jsonObject -> {
             jsonObject = jsonObject.getAsJsonObject(skinAPI == SkinAPI.GENERATE_API ? "data" : "textures");
@@ -111,12 +113,11 @@ public class SkinFetcher implements SkinFetcherImpl {
     }
 
     /**
-     * Returns real data for skin api.
+     * Returns the real data for skin api.
      *
      * @return The data for skin api.
      */
     private String getData() {
-        return skinAPI != SkinAPI.GENERATE_API ?
-                "/" + builder.getData() : EMPTY_STRING;
+        return skinAPI != SkinAPI.GENERATE_API ? "/" + builder.getData() : EMPTY_STRING;
     }
 }

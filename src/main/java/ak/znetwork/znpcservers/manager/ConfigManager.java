@@ -1,8 +1,8 @@
 package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.configuration.ZNConfig;
-import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.configuration.Config;
+import ak.znetwork.znpcservers.configuration.ConfigType;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -17,17 +17,15 @@ public final class ConfigManager {
     /**
      * The configuration types.
      */
-    private static final ImmutableMap<String, ZNConfig> CONFIG_IMMUTABLE_MAP;
+    private static final ImmutableMap<ConfigType, Config> CONFIG_IMMUTABLE_MAP;
 
     static {
-        final ImmutableMap.Builder<String, ZNConfig> builder = ImmutableMap.builder();
-        for (ZNConfigType configType : ZNConfigType.values()) {
-            String name = configType.name();
-            builder.put(name, new ZNConfig(configType, ServersNPC.PLUGIN_FOLDER.toPath().resolve(String.format("%s.json", name.toLowerCase()))));
+        final ImmutableMap.Builder<ConfigType, Config> builder = ImmutableMap.builder();
+        for (ConfigType configType : ConfigType.values()) {
+            builder.put(configType, new Config(configType, ServersNPC.PLUGIN_FOLDER.toPath().resolve(String.format("%s.json", configType.name().toLowerCase()))));
         }
         CONFIG_IMMUTABLE_MAP = builder.build();
     }
-
 
     /**
      * Returns the configuration for the given config type.
@@ -35,8 +33,8 @@ public final class ConfigManager {
      * @param type The configuration type.
      * @return The configuration.
      */
-    public static ZNConfig getByType(ZNConfigType type) {
-        return CONFIG_IMMUTABLE_MAP.get(type.name());
+    public static Config getByType(ConfigType type) {
+        return CONFIG_IMMUTABLE_MAP.get(type);
     }
 
     /**
@@ -44,7 +42,7 @@ public final class ConfigManager {
      *
      * @return The configurations in the map.
      */
-    public static ImmutableCollection<ZNConfig> all() {
+    public static ImmutableCollection<Config> all() {
         return CONFIG_IMMUTABLE_MAP.values();
     }
 

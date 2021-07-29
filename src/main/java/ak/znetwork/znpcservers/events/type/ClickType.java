@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.events.enums;
+package ak.znetwork.znpcservers.events.type;
 
 /**
  * Determines the click type when an npc is interacted.

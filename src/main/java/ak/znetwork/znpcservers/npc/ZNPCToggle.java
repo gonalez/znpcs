@@ -1,6 +1,4 @@
-package ak.znetwork.znpcservers.npc.enums;
-
-import ak.znetwork.znpcservers.npc.ZNPC;
+package ak.znetwork.znpcservers.npc;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -8,7 +6,7 @@ import ak.znetwork.znpcservers.npc.ZNPC;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public enum ToggleFunction {
+public enum ZNPCToggle {
     /**
      * Determines if a hologram of an npc should be seen.
      */

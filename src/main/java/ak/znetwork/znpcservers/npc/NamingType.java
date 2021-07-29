@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.npc.enums;
+package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.utility.RandomString;

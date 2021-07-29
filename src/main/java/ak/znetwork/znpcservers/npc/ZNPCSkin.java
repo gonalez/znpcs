@@ -1,12 +1,10 @@
-package ak.znetwork.znpcservers.npc.skin;
+package ak.znetwork.znpcservers.npc;
 
 import java.net.URL;
 
-import ak.znetwork.znpcservers.skin.callback.SkinResultCallback;
+import ak.znetwork.znpcservers.skin.SkinFetcherBuilder;
+import ak.znetwork.znpcservers.skin.SkinFetcherResult;
 import ak.znetwork.znpcservers.utility.Utils;
-import lombok.Getter;
-
-import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -14,7 +12,6 @@ import static ak.znetwork.znpcservers.skin.impl.SkinFetcherImpl.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-@Getter
 public final class ZNPCSkin {
     /**
      * A empty string.
@@ -56,6 +53,24 @@ public final class ZNPCSkin {
     }
 
     /**
+     * Returns the skin value.
+     *
+     * @return The skin value.
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * Returns the skin signature.
+     *
+     * @return The skin signature
+     */
+    public String getSignature() {
+        return signature;
+    }
+
+    /**
      * Skin layer index for current version.
      */
     public int getLayerIndex() {
@@ -76,17 +91,19 @@ public final class ZNPCSkin {
      * Creates a new skin cache.
      *
      * @param skin The skin name or url.
-     * @return A skin class with the fetched values.
      */
     public static void forName(String skin,
-                                   SkinResultCallback skinResultCallback) {
+                                   SkinFetcherResult skinResultCallback) {
         try {
             // Check if skin value is a url
             new URL(skin).toURI();
-
-            SkinBuilder.withData(SkinAPI.GENERATE_API, skin).toSkinFetcher().fetchProfile(skinResultCallback);
+            SkinFetcherBuilder.withData(SkinFetcherBuilder.SkinAPI.GENERATE_API, skin)
+                    .toSkinFetcher()
+                    .fetchProfile(skinResultCallback);
         } catch (Exception e) {
-            SkinBuilder.withData(SkinAPI.PROFILE_API, skin).toSkinFetcher().fetchProfile(skinResultCallback);
+            SkinFetcherBuilder.withData(SkinFetcherBuilder.SkinAPI.PROFILE_API, skin)
+                    .toSkinFetcher()
+                    .fetchProfile(skinResultCallback);
         }
     }
 

@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc.packets.list;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.ZNPCSlot;
 import ak.znetwork.znpcservers.types.ClassTypes;
 
 import com.google.common.collect.Lists;
@@ -31,9 +31,9 @@ public class PacketsV16 extends PacketsV13 {
     }
 
     @Override
-    public void getEquipPacket(ItemSlot itemSlot, ItemStack item) throws ReflectiveOperationException {
-        List<Pair<?, ?>> pairs = Lists.newArrayListWithCapacity(ItemSlot.values().length);
-        for (Map.Entry<ItemSlot, ItemStack> entry : getNPC().getNpcPojo().getNpcEquip().entrySet()) {
+    public void getEquipPacket(ZNPCSlot itemSlot, ItemStack item) throws ReflectiveOperationException {
+        List<Pair<?, ?>> pairs = Lists.newArrayListWithCapacity(ZNPCSlot.values().length);
+        for (Map.Entry<ZNPCSlot, ItemStack> entry : getNPC().getNpcPojo().getNpcEquip().entrySet()) {
             pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[entry.getKey().getSlotNew()],
                     ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, entry.getValue())));
         }

@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc.packets.list;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.ZNPCSlot;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -71,7 +71,7 @@ public class PacketsV8 extends Packets {
     }
 
     @Override
-    public void getEquipPacket(ItemSlot itemSlot, ItemStack itemStack) throws ReflectiveOperationException {
+    public void getEquipPacket(ZNPCSlot itemSlot, ItemStack itemStack) throws ReflectiveOperationException {
         equipPackets.put(itemSlot.name(), ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD.newInstance(getNPC().getEntityID(), itemSlot.getSlotOld(), ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, itemStack)));
     }
 }

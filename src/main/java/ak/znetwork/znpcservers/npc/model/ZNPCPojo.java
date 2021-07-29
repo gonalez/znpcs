@@ -1,8 +1,8 @@
 package ak.znetwork.znpcservers.npc.model;
 
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
-import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
-import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
+import ak.znetwork.znpcservers.npc.ZNPCSlot;
+import ak.znetwork.znpcservers.npc.ZNPCType;
+import ak.znetwork.znpcservers.npc.ZNPCSkin;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 
 import org.bukkit.inventory.ItemStack;
@@ -64,7 +64,7 @@ public class ZNPCPojo {
     /**
      * The npc entity type.
      */
-    private TypeZNPC npcType;
+    private ZNPCType npcType;
 
     /**
      * The hologram lines.
@@ -79,7 +79,7 @@ public class ZNPCPojo {
     /**
      * The npc equipment values.
      */
-    private final Map<ItemSlot, ItemStack> npcEquip;
+    private final Map<ZNPCSlot, ItemStack> npcEquip;
 
     /**
      * The npc customizations values.
@@ -99,7 +99,7 @@ public class ZNPCPojo {
                     List<String> lines,
                     ZNPCSkin npcSkin,
                     ZLocation location,
-                    TypeZNPC npcType) {
+                    ZNPCType npcType) {
         this();
         this.id = id;
         this.hologramLines = lines;

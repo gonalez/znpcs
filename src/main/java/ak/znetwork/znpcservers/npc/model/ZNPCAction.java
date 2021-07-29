@@ -1,10 +1,9 @@
 package ak.znetwork.znpcservers.npc.model;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.events.enums.ClickType;
+import ak.znetwork.znpcservers.events.type.ClickType;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 
-import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
 import org.bukkit.Bukkit;
@@ -78,7 +77,7 @@ public class ZNPCAction {
     public void run(ZNPCUser npcUser, String action) {
         actionType.run(npcUser,
                 Utils.PLACEHOLDER_SUPPORT ?
-                        PlaceholderUtils.getWithPlaceholders(npcUser.toPlayer(), action) :
+                        Utils.getWithPlaceholders(npcUser.toPlayer(), action) :
                         action
                 );
     }
@@ -87,7 +86,6 @@ public class ZNPCAction {
      * Determines the action type to run when an npc is clicked.
      */
     enum ActionType {
-
         /**
          * Represents an action executed by a player.
          */
@@ -139,7 +137,7 @@ public class ZNPCAction {
         };
 
         /**
-         * Executes the appropriate method for provided action type.
+         * Executes the appropriate method for the provided action type.
          *
          * @param npcUser      The user instance.
          * @param actionValue  The action value.

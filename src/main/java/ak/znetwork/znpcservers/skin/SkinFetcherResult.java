@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.skin.callback;
+package ak.znetwork.znpcservers.skin;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -6,7 +6,7 @@ package ak.znetwork.znpcservers.skin.callback;
  * @author ZNetwork
  * @since 25/7/2021
  */
-public interface SkinResultCallback {
+public interface SkinFetcherResult {
     /**
      * Called when a skin is fetched.
      *

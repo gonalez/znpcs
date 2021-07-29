@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.configuration.enums.type;
+package ak.znetwork.znpcservers.configuration;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -6,7 +6,7 @@ package ak.znetwork.znpcservers.configuration.enums.type;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public enum ZNConfigType {
+public enum ConfigType {
     CONFIG,
     MESSAGES,
     DATA

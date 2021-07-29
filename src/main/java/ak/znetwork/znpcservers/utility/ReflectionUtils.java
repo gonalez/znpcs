@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.types.ClassTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
@@ -15,11 +16,11 @@ import java.lang.reflect.InvocationTargetException;
  */
 public final class ReflectionUtils {
     /**
-     *
+     * Sets the value of the field.
      *
      * @param instance                The class instance.
      * @param fieldName               The field Name.
-     * @param value
+     * @param value                   The new field value.
      * @throws NoSuchFieldException   If the field could not be found.
      * @throws IllegalAccessException If the field cannot be accessed.
      */

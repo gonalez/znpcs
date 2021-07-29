@@ -1,10 +1,9 @@
-package ak.znetwork.znpcservers.npc.path;
+package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
-import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
+import ak.znetwork.znpcservers.configuration.ConfigValue;
+import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 
@@ -20,7 +19,6 @@ import java.util.logging.Logger;
 
 import com.google.common.base.Preconditions;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -31,7 +29,7 @@ import org.bukkit.util.Vector;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public interface ZNPCPathImpl {
+public interface ZNPCPath {
     /**
      * Reads all the path attributes.
      *
@@ -57,13 +55,12 @@ public interface ZNPCPathImpl {
      * @param npc The npc.
      * @return A new path the current type.
      */
-    ZNPCPath getPath(ZNPC npc);
+    PathInitializer getPath(ZNPC npc);
 
     /**
      * {@inheritDoc}
      */
-    interface ZNPCPath {
-
+    interface PathInitializer {
         /**
          * Handles the path for the npc.
          */
@@ -77,9 +74,9 @@ public interface ZNPCPathImpl {
         ZLocation getLocation();
 
         /**
-         * An abstract implementation of a {@link ZNPCPath}
+         * An abstract implementation of a {@link PathInitializer}.
          */
-        abstract class AbstractPath implements ZNPCPathImpl.ZNPCPath {
+        abstract class AbstractPath implements PathInitializer {
 
             /**
              * The npc in which the path will be handled.
@@ -201,14 +198,14 @@ public interface ZNPCPathImpl {
     }
 
     /**
-     * An abstract implementation of a {@link ZNPCPathImpl}
+     * An abstract implementation of a {@link ZNPCPath}
      */
-    abstract class AbstractTypeWriter implements ZNPCPathImpl {
+    abstract class AbstractTypeWriter implements ZNPCPath {
 
         /**
          * The logger.
          */
-        private static final Logger LOGGER = Bukkit.getLogger();
+        private static final Logger LOGGER = Logger.getLogger(AbstractTypeWriter.class.getName());
 
         /**
          * A map for storing & identifying a path by its name.
@@ -372,7 +369,7 @@ public interface ZNPCPathImpl {
             /**
              * The maximum locations that the path can have.
              */
-            private static final int MAX_LOCATIONS = ConfigManager.getByType(ZNConfigType.CONFIG).getValue(ZNConfigValue.MAX_PATH_LOCATIONS);
+            private static final int MAX_LOCATIONS = ConfigManager.getByType(ConfigType.CONFIG).getValue(ConfigValue.MAX_PATH_LOCATIONS);
 
             /**
              * The player who is creating the path.
@@ -483,7 +480,7 @@ public interface ZNPCPathImpl {
             }
 
             /**
-             * Returns if the location can be added to the path.
+             * Returns {@code true} if the location can be added to the path.
              *
              * @param location The location to add.
              * @return {@code true} If location can be added.
@@ -505,7 +502,7 @@ public interface ZNPCPathImpl {
             /**
              * {@inheritDoc}
              */
-            protected static class MovementPath extends ZNPCPath.AbstractPath {
+            protected static class MovementPath extends PathInitializer.AbstractPath {
 
                 /**
                  * The current path location.

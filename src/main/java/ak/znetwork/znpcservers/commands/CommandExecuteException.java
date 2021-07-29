@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.commands.exception;
+package ak.znetwork.znpcservers.commands;
 
 /**
  * Throw when a command could not be executed.

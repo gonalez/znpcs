@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.npc.assignation;
+package ak.znetwork.znpcservers.npc;
 
 import java.util.function.Function;
 

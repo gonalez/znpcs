@@ -1,6 +1,6 @@
 package ak.znetwork.znpcservers.events;
 
-import ak.znetwork.znpcservers.events.enums.ClickType;
+import ak.znetwork.znpcservers.events.type.ClickType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 
 import org.bukkit.entity.Player;

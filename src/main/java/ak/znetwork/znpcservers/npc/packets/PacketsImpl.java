@@ -1,6 +1,6 @@
 package ak.znetwork.znpcservers.npc.packets;
 
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.ZNPCSlot;
 
 import org.bukkit.inventory.ItemStack;
 
@@ -44,7 +44,7 @@ public interface PacketsImpl {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    void getEquipPacket(ItemSlot slot, ItemStack itemStack) throws ReflectiveOperationException;
+    void getEquipPacket(ZNPCSlot slot, ItemStack itemStack) throws ReflectiveOperationException;
 
     /**
      * Creates the npc equip packet.

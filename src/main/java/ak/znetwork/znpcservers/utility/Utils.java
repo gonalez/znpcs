@@ -1,9 +1,12 @@
 package ak.znetwork.znpcservers.utility;
 
+import ak.znetwork.znpcservers.types.ConfigTypes;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.math.NumberUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -42,8 +45,19 @@ public final class Utils {
      * @param string The string to translate.
      * @return Translated string.
      */
-    public static String color(String string) {
+    public static String toColor(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
+    }
+
+    /**
+     * Parses the given string for the player.
+     *
+     * @param player The player to parse the placeholder for.
+     * @param string The string to parse.
+     * @return The parsed {@link java.lang.String}.
+     */
+    public static String getWithPlaceholders(Player player, String string) {
+        return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigTypes.SPACE_SYMBOL, " ");
     }
 
     /** Default constructor */

@@ -1,9 +1,6 @@
 package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.configuration.enums.ZNConfigValue;
-import ak.znetwork.znpcservers.configuration.enums.type.ZNConfigType;
-import ak.znetwork.znpcservers.configuration.impl.ZNConfigImpl;
 import ak.znetwork.znpcservers.utility.Utils;
 
 import com.google.gson.JsonElement;
@@ -28,8 +25,7 @@ import java.util.stream.Collectors;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ZNConfig implements ZNConfigImpl {
-
+public class Config {
     /**
      * Creates a new parser.
      */
@@ -43,7 +39,7 @@ public class ZNConfig implements ZNConfigImpl {
     /**
      * The configuration type.
      */
-    private final ZNConfigType configType;
+    private final ConfigType configType;
 
     /**
      * The configuration path.
@@ -53,25 +49,27 @@ public class ZNConfig implements ZNConfigImpl {
     /**
      * A map that contains the configuration values.
      */
-    private final Map<ZNConfigValue, Object> configValues;
+    private final Map<ConfigValue, Object> configValues;
 
     /**
      * Creates a new configuration.
      *
-     * @param znConfigType The configuration type.
+     * @param configType The configuration type.
      * @param path The configuration path.
      */
-    public ZNConfig(ZNConfigType znConfigType,
-                    Path path) {
-        this.configType = znConfigType;
+    public Config(ConfigType configType,
+                  Path path) {
+        this.configType = configType;
         this.path = path;
-        this.configValues = Arrays.stream(ZNConfigValue.values()).filter(znConfigValue ->
-                znConfigValue.getConfigType() == configType).
-                collect(Collectors.toMap(key -> key, ZNConfigValue::getValue));
+        this.configValues = Arrays.stream(ConfigValue.values())
+                .filter(znConfigValue -> znConfigValue.getConfigType() == configType)
+                .collect(Collectors.toMap(key -> key, ConfigValue::getValue));
         load();
     }
 
-    @Override
+    /**
+     * Loads the configuration.
+     */
     public void load() {
         synchronized (path) {
             try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
@@ -81,7 +79,7 @@ public class ZNConfig implements ZNConfigImpl {
                     return;
                 }
 
-                for (ZNConfigValue configValue : configValues.keySet()) {
+                for (ConfigValue configValue : configValues.keySet()) {
                     final boolean single = configValues.size() == 1;
                     JsonElement jsonElement = single ?
                             data : data.isJsonObject() ?
@@ -108,7 +106,11 @@ public class ZNConfig implements ZNConfigImpl {
         }
     }
 
-    @Override
+    /**
+     * Saves configuration into config file.
+     *
+     * @throws IOException If configuration could not be saved.
+     */
     public void save() {
         synchronized (path) {
             try (Writer writer = Files.newBufferedWriter(path, CHARSET)) {
@@ -120,15 +122,24 @@ public class ZNConfig implements ZNConfigImpl {
         }
     }
 
-    @Override
-    public <T> T getValue(ZNConfigValue znConfigValue) {
+    /**
+     * Returns the configuration key value.
+     *
+     * @param configValue The configuration key.
+     */
+    public <T> T getValue(ConfigValue configValue) {
         synchronized (path) {
-            return (T) configValues.get(znConfigValue);
+            return (T) configValues.get(configValue);
         }
     }
 
-    @Override
-    public void sendMessage(CommandSender sender, ZNConfigValue znConfigValue) {
-        sender.sendMessage(Utils.color(getValue(znConfigValue)));
+    /**
+     * Sends configuration message to the given command sender.
+     *
+     * @param sender The sender to send the message for.
+     * @param configValue The configuration message value.
+     */
+    public void sendMessage(CommandSender sender, ConfigValue configValue) {
+        sender.sendMessage(Utils.toColor(getValue(configValue)));
     }
 }

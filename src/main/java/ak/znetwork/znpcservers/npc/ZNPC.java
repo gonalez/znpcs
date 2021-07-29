@@ -2,24 +2,19 @@ package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
-import ak.znetwork.znpcservers.npc.enums.NamingType;
 import ak.znetwork.znpcservers.UnexpectedCallException;
 import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
 import ak.znetwork.znpcservers.npc.packets.list.Packets;
 import ak.znetwork.znpcservers.user.ZNPCUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
-import ak.znetwork.znpcservers.npc.enums.TypeZNPC;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
-import ak.znetwork.znpcservers.npc.skin.ZNPCSkin;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -33,7 +28,7 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
-import static ak.znetwork.znpcservers.npc.path.ZNPCPathImpl.*;
+import static ak.znetwork.znpcservers.npc.ZNPCPath.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -51,7 +46,7 @@ public class ZNPC {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = Bukkit.getLogger();
+    private static final Logger LOGGER = Logger.getLogger(ZNPC.class.getName());
 
     /**
      * The profile textures for the npc {@link GameProfile}.
@@ -126,7 +121,7 @@ public class ZNPC {
     /**
      * The npc path.
      */
-    private ZNPCPath npcPath;
+    private PathInitializer npcPath;
 
     /**
      * Creates a new NPC.
@@ -171,9 +166,7 @@ public class ZNPC {
             try {
                 npcPojo.getNpcType().updateCustomization(this, entry.getKey(), entry.getValue());
             } catch (ReflectiveOperationException operationException) {
-                LOGGER.log(Level.WARNING,
-                        String.format("Skipping customization (%s) for npc " + npcPojo.getId(), entry.getKey())
-                );
+                LOGGER.log(Level.WARNING, String.format("Skipping customization (%s) for npc " + npcPojo.getId(), entry.getKey()));
             }
         }
     }
@@ -285,10 +278,10 @@ public class ZNPC {
      *
      * @param npcType The new entity type.
      */
-    public void changeType(TypeZNPC npcType) {
+    public void changeType(ZNPCType npcType) {
         try {
             Object nmsWorld = ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-            final boolean isPlayer = npcType == TypeZNPC.PLAYER;
+            final boolean isPlayer = npcType == ZNPCType.PLAYER;
             if (packets.playerSpawnPacket == null) {
                 packets.getPlayerPacket(nmsWorld);
             }
@@ -333,7 +326,7 @@ public class ZNPC {
     public void spawn(Player player) {
         try {
             // Check if npc type is player
-            boolean npcIsPlayer = npcPojo.getNpcType() == TypeZNPC.PLAYER;
+            boolean npcIsPlayer = npcPojo.getNpcType() == ZNPCType.PLAYER;
 
             if (npcIsPlayer) {
                 // SB
@@ -411,7 +404,7 @@ public class ZNPC {
             return;
         }
 
-        if (npcPojo.getNpcType() == TypeZNPC.PLAYER) {
+        if (npcPojo.getNpcType() == ZNPCType.PLAYER) {
             hideFromTab(player);
         }
 
@@ -462,7 +455,7 @@ public class ZNPC {
     /**
      * Updates the npc equipment for current viewers.
      */
-    public void updateEquipment(ItemSlot slot, ItemStack stack) {
+    public void updateEquipment(ZNPCSlot slot, ItemStack stack) {
         try {
             npcPojo.getNpcEquip().put(slot, stack);
 
@@ -498,7 +491,7 @@ public class ZNPC {
      * Updates the npc game-profile.
      */
     public void updateProfile(PropertyMap propertyMap) {
-        if (npcPojo.getNpcType() != TypeZNPC.PLAYER) {
+        if (npcPojo.getNpcType() != ZNPCType.PLAYER) {
             return;
         }
 

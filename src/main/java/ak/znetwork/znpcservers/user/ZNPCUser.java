@@ -2,7 +2,7 @@ package ak.znetwork.znpcservers.user;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
-import ak.znetwork.znpcservers.events.enums.ClickType;
+import ak.znetwork.znpcservers.events.type.ClickType;
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.model.ZNPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;

@@ -1,13 +1,7 @@
-package ak.znetwork.znpcservers.commands.invoker;
-
-import ak.znetwork.znpcservers.commands.ZNCommand;
-import ak.znetwork.znpcservers.commands.exception.CommandExecuteException;
-import ak.znetwork.znpcservers.commands.exception.CommandPermissionException;
+package ak.znetwork.znpcservers.commands;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -15,11 +9,11 @@ import static ak.znetwork.znpcservers.commands.impl.ZNCommandImpl.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ZNCommandInvoker {
+public class CommandInvoker {
     /**
      * The command instance.
      */
-    private final ZNCommand command;
+    private final Command command;
 
     /**
      * The command method.
@@ -38,27 +32,26 @@ public class ZNCommandInvoker {
      * @param commandMethod The command method.
      * @param permission    The command permission.
      */
-    public ZNCommandInvoker(ZNCommand command,
-                            Method commandMethod,
-                            String permission) {
+    public CommandInvoker(Command command,
+                          Method commandMethod,
+                          String permission) {
         this.command = command;
         this.commandMethod = commandMethod;
         this.permission = permission;
     }
 
     /**
-     * Invokes the subcommand.
+     * Invokes the command.
      *
-     * @param sender                       The commandSender to run the command.
+     * @param sender                       The commandSender to run the command for.
      * @param subCommand                   The subCommand.
      * @throws CommandPermissionException  If commandSender does not have permission to execute the subCommand.
      * @throws CommandExecuteException     If subCommand cannot be executed.
      */
-    public void execute(ZNCommandSender sender, Object subCommand) throws CommandPermissionException, CommandExecuteException {
+    public void execute(CommandSender sender, Object subCommand) throws CommandPermissionException, CommandExecuteException {
         if (permission.length() > 0 && !sender.getCommandSender().hasPermission(permission)) {
             throw new CommandPermissionException("Insufficient permission");
         }
-
         try {
             commandMethod.invoke(command, sender, subCommand);
         } catch (IllegalAccessException | InvocationTargetException e) {

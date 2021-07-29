@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.commands.exception;
+package ak.znetwork.znpcservers.commands;
 
 /**
  * Thrown when a command is not found.

@@ -86,7 +86,6 @@ public class ZLocation {
         if (locationCache != null) {
             return locationCache;
         }
-
         return locationCache = new Location(Bukkit.getWorld(world),
                 x,
                 y,
@@ -97,16 +96,16 @@ public class ZLocation {
     }
 
     /**
-     * @inheritDoc
+     * Converts the location to vector.
      */
-    public Object getNMSWorld() throws InvocationTargetException, IllegalAccessException {
-        return ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(toBukkitLocation().getWorld());
+    public Vector toVector() {
+        return toBukkitLocation().toVector();
     }
 
     /**
      * @inheritDoc
      */
-    public Vector toVector() {
-        return toBukkitLocation().toVector();
+    public Object getNMSWorld() throws InvocationTargetException, IllegalAccessException {
+        return ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(toBukkitLocation().getWorld());
     }
 }

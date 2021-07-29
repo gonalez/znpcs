@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc.packets.list;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.enums.ItemSlot;
+import ak.znetwork.znpcservers.npc.ZNPCSlot;
 import ak.znetwork.znpcservers.npc.packets.PacketsImpl;
 
 import org.bukkit.inventory.ItemStack;
@@ -57,7 +57,7 @@ public abstract class Packets implements PacketsImpl {
     }
 
     @Override
-    public void getEquipPacket(ItemSlot slot, ItemStack itemStack) throws ReflectiveOperationException {
+    public void getEquipPacket(ZNPCSlot slot, ItemStack itemStack) throws ReflectiveOperationException {
         throw new IllegalStateException("Not supported for current version.");
     }
 

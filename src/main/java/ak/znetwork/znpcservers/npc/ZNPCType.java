@@ -1,8 +1,5 @@
-package ak.znetwork.znpcservers.npc.enums;
+package ak.znetwork.znpcservers.npc;
 
-import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.assignation.CustomizationProcessor;
-import ak.znetwork.znpcservers.npc.assignation.TypeProperty;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.Utils;
 
@@ -16,7 +13,7 @@ import java.util.Optional;
 
 import lombok.Getter;
 
-import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.ClassCache;
+import static ak.znetwork.znpcservers.cache.CacheType.ClassCache;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -25,7 +22,7 @@ import static ak.znetwork.znpcservers.cache.impl.ClassCacheImpl.ClassCache;
  * @since 07/02/2020
  */
 @Getter
-public enum TypeZNPC {
+public enum ZNPCType {
     PLAYER(ClassTypes.ENTITY_PLAYER_CLASS, 0),
     ARMOR_STAND(ClassTypes.ENTITY_ARMOR_STAND_CLASS, 0, "setSmall", "setArms"),
     CREEPER(ClassTypes.ENTITY_CREEPER_CLASS, -0.15, "setPowered"),
@@ -130,7 +127,7 @@ public enum TypeZNPC {
      * @param holoHeight  The hologram height for the entity.
      * @param methods     The customization methods for the entity.
      */
-    TypeZNPC(Class<?> entityClass,
+    ZNPCType(Class<?> entityClass,
              String newName,
              int id,
              double holoHeight,
@@ -152,7 +149,7 @@ public enum TypeZNPC {
      * @param holoHeight    The hologram height for the entity.
      * @param customization The customization methods for the entity.
      */
-    TypeZNPC(Class<?> entityClass,
+    ZNPCType(Class<?> entityClass,
              double holoHeight,
              String... customization) {
         this(entityClass, EMPTY_STRING, DEFAULT_ID, holoHeight, customization);

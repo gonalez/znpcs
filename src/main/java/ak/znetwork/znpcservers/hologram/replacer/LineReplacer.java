@@ -1,6 +1,5 @@
 package ak.znetwork.znpcservers.hologram.replacer;
 
-import ak.znetwork.znpcservers.utility.PlaceholderUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
 import org.bukkit.ChatColor;
@@ -34,7 +33,7 @@ public interface LineReplacer<T> {
             line = new RGBLine().make(line);
         }
         return ChatColor.translateAlternateColorCodes('&', Utils.PLACEHOLDER_SUPPORT && player != null ?
-                PlaceholderUtils.getWithPlaceholders(player, line) :
+                Utils.getWithPlaceholders(player, line) :
                 line
         );
     }
