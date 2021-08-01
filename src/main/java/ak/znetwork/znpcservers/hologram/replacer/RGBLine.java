@@ -22,7 +22,6 @@ public class RGBLine implements LineReplacer<String> {
         String rgbString = string;
         for (int i = 0; i < rgbString.length(); i++) {
             char charAt = rgbString.charAt(i);
-
             // Check if the char is supposed to be a hex color code
             if (charAt == '#') {
                 int endIndex = i+HEX_COLOR_LENGTH+1;

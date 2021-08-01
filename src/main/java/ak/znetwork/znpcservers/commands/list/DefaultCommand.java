@@ -108,8 +108,8 @@ public class DefaultCommand extends Command {
 
             ZNPCSkin.forName(args.get("name"), (values) -> znpc.changeSkin(ZNPCSkin.forValues(values)));
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception e) {
-            throw new CommandExecuteException("An error occurred while creating npc", e);
+        } catch (Exception exception) {
+            throw new CommandExecuteException("An error occurred while creating npc", exception.getCause());
         }
     }
 
@@ -154,7 +154,10 @@ public class DefaultCommand extends Command {
         if (ConfigTypes.NPC_LIST.isEmpty()) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.NO_NPC_FOUND);
         } else {
-            ConfigTypes.NPC_LIST.forEach(npc -> sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString() + " &7(&e" + npc.getLocation().getWorld() + " " + npc.getLocation().getX() + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
+            ConfigTypes.NPC_LIST.forEach(npc ->
+                    sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString()
+                            + " &7(&e" + npc.getLocation().getWorld() + " " + npc.getLocation().getX()
+                            + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
         }
     }
 
@@ -260,7 +263,7 @@ public class DefaultCommand extends Command {
             foundNPC.getHologram().createHologram();
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.getNpcPojo().getId(), exception);
+            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.getNpcPojo().getId(), exception.getCause());
         }
     }
 
@@ -298,7 +301,7 @@ public class DefaultCommand extends Command {
 
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while moving npc", exception);
+            throw new CommandExecuteException("An error occurred while moving npc", exception.getCause());
         }
     }
 
@@ -340,8 +343,8 @@ public class DefaultCommand extends Command {
         try {
             foundNPC.changeType(npcType);
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception e) {
-            throw new CommandExecuteException("An error occurred while changing npc type", e);
+        } catch (Exception exception) {
+            throw new CommandExecuteException("An error occurred while changing npc type", exception.getCause());
         }
     }
 
@@ -460,7 +463,7 @@ public class DefaultCommand extends Command {
             npcToggle.toggle(foundNPC, args.get("value"));
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
         } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing toggle command", exception);
+            throw new CommandExecuteException("An error occurred while changing toggle command", exception.getCause());
         }
     }
 
@@ -510,7 +513,7 @@ public class DefaultCommand extends Command {
 
                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
             } catch (IllegalAccessException | InvocationTargetException exception) {
-                throw new CommandExecuteException("An error occurred while customizing npc", exception);
+                throw new CommandExecuteException("An error occurred while customizing npc", exception.getCause());
             }
         } else {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.METHOD_NOT_FOUND);

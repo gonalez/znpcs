@@ -74,8 +74,7 @@ public class Command extends BukkitCommand {
      * @param input      The subCommand name.
      * @return {@code true} If subcommand found.
      */
-    private boolean contains(CommandInformation subCommand,
-                             String input) {
+    private boolean contains(CommandInformation subCommand, String input) {
         return Arrays.stream(subCommand.aliases())
                 .anyMatch(input::equalsIgnoreCase);
     }
@@ -87,8 +86,7 @@ public class Command extends BukkitCommand {
      * @param args       The subcommand arguments.
      * @return A map with the subcommand arguments for the provided values.
      */
-    private Map<String, String> loadArgs(CommandInformation subCommand,
-                                         String[] args) {
+    private Map<String, String> loadArgs(CommandInformation subCommand, String[] args) {
         Map<String, String> argsMap = new HashMap<>();
         for (int i = 1; i <= args.length; i++) {
             String input = args[i - 1];
@@ -118,7 +116,9 @@ public class Command extends BukkitCommand {
 
     @Override
     public boolean execute(org.bukkit.command.CommandSender sender, String commandLabel, String[] args) {
-        Optional<Map.Entry<CommandInformation, CommandInvoker>> subCommandOptional = subCommands.entrySet().stream().filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
+        Optional<Map.Entry<CommandInformation, CommandInvoker>> subCommandOptional =
+                subCommands.entrySet().stream()
+                .filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
         if (!subCommandOptional.isPresent()) {
             // Sub-command not found
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);

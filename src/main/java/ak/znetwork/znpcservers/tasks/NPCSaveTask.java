@@ -16,7 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class NPCSaveTask extends BukkitRunnable {
     /**
-     * Initialization of the task to save NPCs.
+     * Initialization of the task to save all created NPC.
      *
      * @param serversNPC The plugin instance.
      * @param seconds How often the npc will be saved (in seconds).

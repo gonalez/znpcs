@@ -73,19 +73,16 @@ public class SkinFetcher {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(builder.getApiUrl().getApiURL() + getData()).openConnection();
                 connection.setRequestMethod(builder.getApiUrl().getMethod());
-
                 connection.setDoInput(true);
-
                 if (builder.getApiUrl() == SkinAPI.GENERATE_API) {
-                    // Send data
                     connection.setDoOutput(true);
+                    // Send skin data
                     try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
                         outputStream.writeBytes("url=" + URLEncoder.encode(builder.getData(), DEFAULT_CHARSET));
                     }
                 }
-
                 try (Reader reader = new InputStreamReader(connection.getInputStream(), Charset.forName(DEFAULT_CHARSET))) {
-                    // Read json
+                    // Read url result
                     completableFuture.complete(JSON_PARSER.parse(reader).getAsJsonObject());
                 } finally {
                     connection.disconnect();

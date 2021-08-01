@@ -29,25 +29,25 @@ public class NPCManagerTask extends BukkitRunnable {
     public void run() {
         for (ZNPC npc : ZNPC.all()) {
             boolean hasPath = npc.getNpcPath() != null;
+            // Manage npc path
             if (hasPath) {
-                npc.getNpcPath().handle(); // Handle path
+                npc.getNpcPath().handle();
             }
-
             for (Player player : Bukkit.getOnlinePlayers()) {
                 boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
-
                 if (npc.getViewers().contains(player) && !canSeeNPC)
+                    // Delete npc if player is not in range
                     npc.delete(player, true);
                 else if (canSeeNPC) {
+                    // Update npc for player
                     if (!npc.getViewers().contains(player)) {
                         npc.spawn(player);
                     }
-
-                    if (npc.getNpcPojo().isHasLookAt()
-                            && !hasPath) {
+                    // Look npc at player
+                    if (npc.getNpcPojo().isHasLookAt() && !hasPath) {
                         npc.lookAt(player, player.getLocation(), false);
                     }
-
+                    // Update hologram lines for player
                     npc.getHologram().updateNames(player);
                 }
             }

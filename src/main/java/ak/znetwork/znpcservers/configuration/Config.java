@@ -32,7 +32,7 @@ public class Config {
     private static final JsonParser JSON_PARSER = new JsonParser();
 
     /**
-     * The charset.
+     * The configuration charset.
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
@@ -78,19 +78,17 @@ public class Config {
                     // No data found
                     return;
                 }
-
                 for (ConfigValue configValue : configValues.keySet()) {
-                    final boolean single = configValues.size() == 1;
+                    boolean single = configValues.size() == 1;
                     JsonElement jsonElement = single ?
                             data : data.isJsonObject() ?
                             data.getAsJsonObject().get(configValue.name()) : null;
                     if (jsonElement != null && !jsonElement.isJsonNull()) {
-                        if (
-                                !single
-                                && configValue.getPrimitiveType().isEnum()) {
+                        if (!single && configValue.getPrimitiveType().isEnum()) {
                             configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, configValue.getPrimitiveType()));
                         } else {
-                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
+                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement,
+                                    $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
                         }
                     }
                 }
@@ -107,9 +105,7 @@ public class Config {
     }
 
     /**
-     * Saves configuration into config file.
-     *
-     * @throws IOException If configuration could not be saved.
+     * Writes the configuration values into the file.
      */
     public void save() {
         synchronized (path) {

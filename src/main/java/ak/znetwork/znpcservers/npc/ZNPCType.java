@@ -159,12 +159,10 @@ public enum ZNPCType {
      * Loads the npc type.
      */
     private Constructor<?> load() {
-        if (entityClass == null ||
-                entityClass.isAssignableFrom(ClassTypes.ENTITY_PLAYER_CLASS)) {
+        if (entityClass == null || entityClass.isAssignableFrom(ClassTypes.ENTITY_PLAYER_CLASS)) {
             // The entity type is not available for the current version so don't load it
             return null;
         }
-
         try {
             if (Utils.versionNewer(14)) {
                 // Get nms-entityType for bukkit entity type
@@ -186,11 +184,9 @@ public enum ZNPCType {
      */
     public static Object[] arrayToPrimitive(String[] strings, Method method) {
         Class<?>[] methodParameterTypes = method.getParameterTypes();
-
         Object[] newArray = new Object[methodParameterTypes.length];
         for (int i = 0; i < methodParameterTypes.length; i++) {
             TypeProperty typeProperty = TypeProperty.forType(methodParameterTypes[i]);
-
             if (typeProperty != null) {
                 newArray[i] = typeProperty.getFunction().apply(strings[i]);
             } else {
@@ -202,7 +198,7 @@ public enum ZNPCType {
     }
 
     /**
-     * Change/updates the npc customization.
+     * Change/update the npc customization.
      *
      * @param znpc   The npc.
      * @param name   The method name.
@@ -213,11 +209,9 @@ public enum ZNPCType {
             // Method not found
             return;
         }
-
         Method method = getCustomizationProcessor().getMethods().get(name);
-        method.invoke(znpc.getBukkitEntity(),
-                arrayToPrimitive(values, method));
-        // Update the new customization for the npc
+        method.invoke(znpc.getBukkitEntity(), arrayToPrimitive(values, method));
+        // Update new customization for the npc
         znpc.updateMetaData();
     }
 }

@@ -21,7 +21,7 @@ import static ak.znetwork.znpcservers.cache.CacheType.*;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ClassTypes {
+public final class ClassTypes {
     /**
      * {@inheritDoc}
      */
@@ -451,8 +451,8 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> ENUM_CHAT_CLASS = new AbstractCache.ClazzLoader(
-            new CacheBuilder(CachePackage.MINECRAFT_SERVER).
-                    withClassName("EnumChatFormat")).load();
+            new CacheBuilder(CachePackage.MINECRAFT_SERVER)
+                    .withClassName("EnumChatFormat")).load();
 
     /**
      * {@inheritDoc}
@@ -522,8 +522,8 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> CRAFT_ITEM_STACK_CLASS = new AbstractCache.ClazzLoader(
-            new CacheBuilder(CachePackage.CRAFT_BUKKIT).
-                    withClassName("inventory.CraftItemStack")).load();
+            new CacheBuilder(CachePackage.CRAFT_BUKKIT)
+                    .withClassName("inventory.CraftItemStack")).load();
 
     /**
      * {@inheritDoc}
@@ -608,14 +608,6 @@ public class ClassTypes {
     /**
      * {@inheritDoc}
      */
-    public static final Class<?> CHAT_MESSAGE_CLASS = new AbstractCache.ClazzLoader(
-            new CacheBuilder(CachePackage.MINECRAFT_SERVER)
-                    .withCategory(CacheCategory.CHAT)
-                    .withClassName("ChatMessage")).load();
-
-    /**
-     * {@inheritDoc}
-     */
     public static final Class<?> ENUM_TAG_VISIBILITY = new AbstractCache.ClazzLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.WORLD_SCORES)
@@ -625,17 +617,8 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Class<?> CRAFT_CHAT_MESSAGE_CLASS = new AbstractCache.ClazzLoader(
-            new CacheBuilder(CachePackage.CRAFT_BUKKIT).
-                    withClassName("util.CraftChatMessage")).load();
-
-    /**
-     * {@inheritDoc}
-     */
-    public static final Constructor<?> CHAT_MESSAGE_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
-            new CacheBuilder(CachePackage.MINECRAFT_SERVER)
-                    .withCategory(CacheCategory.CHAT)
-                    .withClassName(CHAT_MESSAGE_CLASS).
-                    withParameterTypes(String.class)).load();
+            new CacheBuilder(CachePackage.CRAFT_BUKKIT)
+                    .withClassName("util.CraftChatMessage")).load();
 
     /**
      * {@inheritDoc}
@@ -643,8 +626,8 @@ public class ClassTypes {
     public static final Constructor<?> SCOREBOARD_TEAM_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(SCOREBOARD_TEAM_CLASS).
-                    withParameterTypes(SCOREBOARD_CLASS, String.class)).load();
+                    .withClassName(SCOREBOARD_TEAM_CLASS)
+                    .withParameterTypes(SCOREBOARD_CLASS, String.class)).load();
 
     /**
      * {@inheritDoc}
@@ -652,8 +635,8 @@ public class ClassTypes {
     public static final Constructor<?> PLAYER_CONSTRUCTOR_OLD = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(ENTITY_PLAYER_CLASS).
-                    withParameterTypes(MINECRAFT_SERVER_CLASS, WORLD_SERVER_CLASS, GameProfile.class, PLAYER_INTERACT_MANAGER_CLASS)).load();
+                    .withClassName(ENTITY_PLAYER_CLASS)
+                    .withParameterTypes(MINECRAFT_SERVER_CLASS, WORLD_SERVER_CLASS, GameProfile.class, PLAYER_INTERACT_MANAGER_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -661,8 +644,8 @@ public class ClassTypes {
     public static final Constructor<?> PLAYER_CONSTRUCTOR_NEW = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(ENTITY_PLAYER_CLASS).
-                    withParameterTypes(MINECRAFT_SERVER_CLASS, WORLD_SERVER_CLASS, GameProfile.class)).load();
+                    .withClassName(ENTITY_PLAYER_CLASS)
+                    .withParameterTypes(MINECRAFT_SERVER_CLASS, WORLD_SERVER_CLASS, GameProfile.class)).load();
 
     /**
      * {@inheritDoc}
@@ -670,8 +653,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(PACKET_PLAY_OUT_PLAYER_INFO_CLASS).
-                    withParameterTypes(ENUM_PLAYER_INFO_CLASS, Utils.BUKKIT_VERSION > 16 ? Collection.class : Iterable.class)).load();
+                    .withClassName(PACKET_PLAY_OUT_PLAYER_INFO_CLASS)
+                    .withParameterTypes(ENUM_PLAYER_INFO_CLASS, Utils.BUKKIT_VERSION > 16 ? Collection.class : Iterable.class)).load();
 
     /**
      * {@inheritDoc}
@@ -679,8 +662,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_LOOK_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntity$PacketPlayOutEntityLook").
-                    withParameterTypes(int.class, byte.class, byte.class, boolean.class)).load();
+                    .withClassName("PacketPlayOutEntity$PacketPlayOutEntityLook")
+                    .withParameterTypes(int.class, byte.class, byte.class, boolean.class)).load();
 
     /**
      * {@inheritDoc}
@@ -688,8 +671,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_HEAD_ROTATION_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntityHeadRotation").
-                    withParameterTypes(ClassTypes.ENTITY_CLASS, byte.class)).load();
+                    .withClassName("PacketPlayOutEntityHeadRotation")
+                    .withParameterTypes(ClassTypes.ENTITY_CLASS, byte.class)).load();
 
     /**
      * {@inheritDoc}
@@ -706,8 +689,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntityMetadata").
-                    withParameterTypes(int.class, ClassTypes.DATA_WATCHER_CLASS, boolean.class)).load();
+                    .withClassName("PacketPlayOutEntityMetadata")
+                    .withParameterTypes(int.class, ClassTypes.DATA_WATCHER_CLASS, boolean.class)).load();
 
     /**
      * {@inheritDoc}
@@ -715,8 +698,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutNamedEntitySpawn").
-                    withParameterTypes(ENTITY_HUMAN_CLASS)).load();
+                    .withClassName("PacketPlayOutNamedEntitySpawn")
+                    .withParameterTypes(ENTITY_HUMAN_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -724,9 +707,9 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS).
-                    withParameterTypes(int.class).
-                    withParameterTypes(int[].class)).load();
+                    .withClassName(PACKET_PLAY_OUT_ENTITY_DESTROY_CLASS)
+                    .withParameterTypes(int.class)
+                    .withParameterTypes(int[].class)).load();
 
     /**
      * {@inheritDoc}
@@ -734,8 +717,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutSpawnEntityLiving").
-                    withParameterTypes(ENTITY_LIVING)).load();
+                    .withClassName("PacketPlayOutSpawnEntityLiving")
+                    .withParameterTypes(ENTITY_LIVING)).load();
 
     /**
      * {@inheritDoc}
@@ -743,8 +726,8 @@ public class ClassTypes {
     public static final Constructor<?> PLAYER_INTERACT_MANAGER_OLD_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PlayerInteractManager").
-                    withParameterTypes(WORLD_CLASS)).load();
+                    .withClassName("PlayerInteractManager")
+                    .withParameterTypes(WORLD_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -752,8 +735,8 @@ public class ClassTypes {
     public static final Constructor<?> PLAYER_INTERACT_MANAGER_NEW_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PlayerInteractManager").
-                    withParameterTypes(WORLD_SERVER_CLASS)).load();
+                    .withClassName("PlayerInteractManager")
+                    .withParameterTypes(WORLD_SERVER_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -769,8 +752,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_OLD = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntityEquipment").
-                    withParameterTypes(int.class, int.class, ClassTypes.ITEM_STACK_CLASS)).load();
+                    .withClassName("PacketPlayOutEntityEquipment")
+                    .withParameterTypes(int.class, int.class, ClassTypes.ITEM_STACK_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -778,8 +761,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntityEquipment").
-                    withParameterTypes(int.class, ClassTypes.ENUM_ITEM_SLOT, ClassTypes.ITEM_STACK_CLASS)).load();
+                    .withClassName("PacketPlayOutEntityEquipment")
+                    .withParameterTypes(int.class, ClassTypes.ENUM_ITEM_SLOT, ClassTypes.ITEM_STACK_CLASS)).load();
 
     /**
      * {@inheritDoc}
@@ -787,8 +770,8 @@ public class ClassTypes {
     public static final Constructor<?> PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_V1 = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName("PacketPlayOutEntityEquipment").
-                    withParameterTypes(int.class, List.class)).load();
+                    .withClassName("PacketPlayOutEntityEquipment")
+                    .withParameterTypes(int.class, List.class)).load();
 
     /**
      * {@inheritDoc}
@@ -796,8 +779,8 @@ public class ClassTypes {
     public static final Constructor<?> I_CHAT_BASE_COMPONENT_A_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.CHAT)
-                    .withClassName("ChatComponentText").
-                    withParameterTypes(String.class)).load();
+                    .withClassName("ChatComponentText")
+                    .withParameterTypes(String.class)).load();
 
     /**
      * {@inheritDoc}
@@ -805,8 +788,8 @@ public class ClassTypes {
     public static final Constructor<?> ENTITY_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(ENTITY_ARMOR_STAND_CLASS).
-                    withParameterTypes(ClassTypes.WORLD_CLASS, double.class, double.class, double.class)).load();
+                    .withClassName(ENTITY_ARMOR_STAND_CLASS)
+                    .withParameterTypes(ClassTypes.WORLD_CLASS, double.class, double.class, double.class)).load();
 
     /**
      * {@inheritDoc}
@@ -814,8 +797,8 @@ public class ClassTypes {
     public static final Constructor<?> DATA_WATCHER_OBJECT_CONSTRUCTOR = new AbstractCache.ConstructorLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(DATA_WATCHER_OBJECT).
-                    withParameterTypes(int.class, DATA_WATCHER_SERIALIZER)).load();
+                    .withClassName(DATA_WATCHER_OBJECT)
+                    .withParameterTypes(int.class, DATA_WATCHER_SERIALIZER)).load();
 
     /**
      * {@inheritDoc}
@@ -823,8 +806,8 @@ public class ClassTypes {
     public static final Method AS_NMS_COPY_METHOD = new AbstractCache.MethodLoader(
             new CacheBuilder(CachePackage.CRAFT_BUKKIT).
                     withClassName("inventory.CraftItemStack").
-                    withMethodName("asNMSCopy").
-                    withParameterTypes(ItemStack.class)).load();
+                    withMethodName("asNMSCopy")
+                    .withParameterTypes(ItemStack.class)).load();
 
     /**
      * {@inheritDoc}
@@ -832,8 +815,8 @@ public class ClassTypes {
     public static final Method GET_PROFILE_METHOD = new AbstractCache.MethodLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)
-                    .withClassName(ENTITY_HUMAN_CLASS).
-                    withMethodName("getProfile")).load();
+                    .withClassName(ENTITY_HUMAN_CLASS)
+                    .withMethodName("getProfile")).load();
 
     /**
      * {@inheritDoc}
@@ -849,32 +832,32 @@ public class ClassTypes {
      * {@inheritDoc}
      */
     public static final Method GET_HANDLE_PLAYER_METHOD = new AbstractCache.MethodLoader(
-            new CacheBuilder(CachePackage.CRAFT_BUKKIT).
-                    withClassName("entity.CraftPlayer").
-                    withMethodName("getHandle")).load();
+            new CacheBuilder(CachePackage.CRAFT_BUKKIT)
+                    .withClassName("entity.CraftPlayer")
+                    .withMethodName("getHandle")).load();
 
     /**
      * {@inheritDoc}
      */
     public static final Method GET_HANDLE_WORLD_METHOD = new AbstractCache.MethodLoader(
-            new CacheBuilder(CachePackage.CRAFT_BUKKIT).
-                    withClassName("CraftWorld").
-                    withMethodName("getHandle")).load();
+            new CacheBuilder(CachePackage.CRAFT_BUKKIT)
+                    .withClassName("CraftWorld")
+                    .withMethodName("getHandle")).load();
 
     /**
      * {@inheritDoc}
      */
     public static final Method GET_SERVER_METHOD = new AbstractCache.MethodLoader(
-            new CacheBuilder(CachePackage.CRAFT_BUKKIT).
-                    withClassName("CraftServer").
-                    withMethodName("getServer")).load();
+            new CacheBuilder(CachePackage.CRAFT_BUKKIT)
+                    .withClassName("CraftServer")
+                    .withMethodName("getServer")).load();
 
     /**
      * {@inheritDoc}
      */
     public static final Method SEND_PACKET_METHOD = new AbstractCache.MethodLoader(
-            new CacheBuilder(CachePackage.MINECRAFT_SERVER).
-                    withCategory(CacheCategory.PACKET)
+            new CacheBuilder(CachePackage.MINECRAFT_SERVER)
+                    .withCategory(CacheCategory.PACKET)
                     .withClassName(PLAYER_CONNECTION_CLASS)
                     .withMethodName("sendPacket")
                     .withParameterTypes(PACKET_CLASS)).load();
@@ -1110,8 +1093,8 @@ public class ClassTypes {
      */
     public static final Field BUKKIT_COMMAND_MAP = new AbstractCache.FieldLoader(
             new CacheBuilder(CachePackage.CRAFT_BUKKIT)
-                    .withClassName("CraftServer").
-                    withFieldName("commandMap")).load();
+                    .withClassName("CraftServer")
+                    .withFieldName("commandMap")).load();
 
     /**
      * {@inheritDoc}
@@ -1121,4 +1104,9 @@ public class ClassTypes {
                     .withCategory(CacheCategory.PACKET)
                     .withClassName(ENUM_TAG_VISIBILITY)
                     .withFieldName("b")).load();
+
+    /** Default constructor */
+    private ClassTypes() {
+        throw new AssertionError("This class is not intended to be initialized.");
+    }
 }

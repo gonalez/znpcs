@@ -18,7 +18,7 @@ import java.util.List;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class ConfigTypes {
+public final class ConfigTypes {
     /**
      * Represents the symbol that will be used as spaces for each string.
      */
@@ -50,5 +50,10 @@ public class ConfigTypes {
                 NPC_LIST.forEach(ZNPC::new),
                 25
         );
+    }
+
+    /** Default constructor */
+    private ConfigTypes() {
+        throw new AssertionError("This class is not intended to be initialized.");
     }
 }

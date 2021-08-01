@@ -77,7 +77,7 @@ public class NPCInteractEvent extends Event {
     /**
      * Returns if the npc was interacted with right click
      *
-     * @return {@code true} If if the npc was interacted with right click
+     * @return {@code true} If the npc was interacted with right click
      */
     public boolean isRightClick() {
         return clickType == ClickType.RIGHT;
@@ -86,7 +86,7 @@ public class NPCInteractEvent extends Event {
     /**
      * Returns if the npc was interacted with left click
      *
-     * @return {@code true} If if the npc was interacted with left click
+     * @return {@code true} If the npc was interacted with left click
      */
     public boolean isLeftClick() {
         return clickType == ClickType.LEFT;
