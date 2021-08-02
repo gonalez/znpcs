@@ -81,11 +81,7 @@ public class Hologram {
                         location.getX(), (location.getY() - 0.15) + (y), location.getZ());
                 if (visible) {
                     ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, true); // Entity name is not visible by default
-                    if (Utils.versionNewer(13)) {
-                        ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(null, line)));
-                    } else {
-                        ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, LineReplacer.makeAll(null, line));
-                    }
+                    updateLine(line, armorStand, null);
                 }
                 ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
                 hologramLines.add(new HologramLine(line.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE),
@@ -207,7 +203,6 @@ public class Hologram {
      * Used to create new lines for each hologram.
      */
     static class HologramLine {
-
         /**
          * The hologram line string.
          */

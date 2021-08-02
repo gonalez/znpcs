@@ -3,7 +3,6 @@ package ak.znetwork.znpcservers.commands.list;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.commands.Command;
 import ak.znetwork.znpcservers.commands.CommandInformation;
-import ak.znetwork.znpcservers.commands.CommandExecuteException;
 import ak.znetwork.znpcservers.commands.CommandSender;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
 import ak.znetwork.znpcservers.configuration.ConfigType;
@@ -70,7 +69,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs create -id 1 -type PLAYER -name Qentin"
             }
     )
-    public void createNPC(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void createNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 3) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -99,18 +98,9 @@ public class DefaultCommand extends Command {
 
         String type = args.get("type").toUpperCase();
 
-        try {
-            ZNPC znpc = ServersNPC.createNPC(id,
-                    ZNPCType.valueOf(type),
-                    sender.getPlayer().getLocation(),
-                    name
-            );
-
-            ZNPCSkin.forName(args.get("name"), (values) -> znpc.changeSkin(ZNPCSkin.forValues(values)));
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while creating npc", exception.getCause());
-        }
+        ZNPC znpc = ServersNPC.createNPC(id, ZNPCType.valueOf(type), sender.getPlayer().getLocation(), name);
+        ZNPCSkin.forName(args.get("name"), (values) -> znpc.changeSkin(ZNPCSkin.forValues(values)));
+        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -121,7 +111,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs delete -id 1"
             }
     )
-    public void deleteNPC(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void deleteNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -237,7 +227,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs lines -id 1 -lines First Second Third-Space"
             }
     )
-    public void changeLines(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void changeLines(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -257,14 +247,10 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        try {
-            // Update lines
-            foundNPC.getNpcPojo().setHologramLines(Lists.reverse(SPACE_SPLITTER.splitToList(args.get("lines"))));
-            foundNPC.getHologram().createHologram();
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing hologram for npc " + foundNPC.getNpcPojo().getId(), exception.getCause());
-        }
+        // Update lines
+        foundNPC.getNpcPojo().setHologramLines(Lists.reverse(SPACE_SPLITTER.splitToList(args.get("lines"))));
+        foundNPC.getHologram().createHologram();
+        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -275,7 +261,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs move -id 1"
             }
     )
-    public void move(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void move(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -295,14 +281,10 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        try {
-            foundNPC.setLocation(sender.getPlayer().getLocation());
-            foundNPC.setLastMove(System.currentTimeMillis()); // Fix
+        foundNPC.setLocation(sender.getPlayer().getLocation());
+        foundNPC.setLastMove(System.currentTimeMillis()); // Fix
 
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while moving npc", exception.getCause());
-        }
+        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -313,7 +295,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs type -id 1 -type ZOMBIE"
             }
     )
-    public void changeType(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void changeType(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -340,12 +322,8 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        try {
-            foundNPC.changeType(npcType);
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing npc type", exception.getCause());
-        }
+        foundNPC.changeType(npcType);
+        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -437,7 +415,7 @@ public class DefaultCommand extends Command {
                     " &f&l* &e/znpcs toggle -id 1 -type look"
             }
     )
-    public void toggle(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void toggle(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -458,13 +436,8 @@ public class DefaultCommand extends Command {
         }
 
         ZNPCToggle npcToggle = ZNPCToggle.valueOf(args.get("type").toUpperCase());
-
-        try {
-            npcToggle.toggle(foundNPC, args.get("value"));
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
-        } catch (Exception exception) {
-            throw new CommandExecuteException("An error occurred while changing toggle command", exception.getCause());
-        }
+        npcToggle.toggle(foundNPC, args.get("value"));
+        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -472,7 +445,7 @@ public class DefaultCommand extends Command {
             name = "customize",
             permission = "znpcs.cmd.customize"
     )
-    public void customize(CommandSender sender, Map<String, String> args) throws Exception {
+    public void customize(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
@@ -513,7 +486,7 @@ public class DefaultCommand extends Command {
 
                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
             } catch (IllegalAccessException | InvocationTargetException exception) {
-                throw new CommandExecuteException("An error occurred while customizing npc", exception.getCause());
+                throw new IllegalStateException("can't customize npc " + foundNPC.getNpcPojo().getId(), exception);
             }
         } else {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.METHOD_NOT_FOUND);
@@ -627,7 +600,7 @@ public class DefaultCommand extends Command {
             name = "height",
             permission = "znpcs.cmd.height"
     )
-    public void changeHologramHeight(CommandSender sender, Map<String, String> args) throws CommandExecuteException {
+    public void changeHologramHeight(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
             return;
