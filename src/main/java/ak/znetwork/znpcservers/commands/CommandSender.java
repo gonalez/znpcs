@@ -10,6 +10,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -23,9 +24,7 @@ public class CommandSender {
     /**
      * Start help message.
      */
-    private static final ImmutableList<String> HELP_PREFIX = ImmutableList.of(
-            "&eExample &7(Ejemplo)"
-    );
+    private static final ImmutableList<String> HELP_PREFIX = ImmutableList.of("&eExample &7(Ejemplo)");
 
     /**
      * The command sender.
@@ -74,10 +73,10 @@ public class CommandSender {
         final TextComponent textMessage = new TextComponent(Utils.toColor(message));
         if (hover != null) {
             textMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new ComponentBuilder(
-                            Utils.toColor(LINE_SEPARATOR_JOINER.join(Iterables.concat(HELP_PREFIX, hover)))
-                    ).create()
-            ));
+                    new ComponentBuilder(Utils.toColor(LINE_SEPARATOR_JOINER
+                            .join(Iterables.concat(HELP_PREFIX, hover))))
+                            .create())
+            );
         }
         getPlayer().spigot().sendMessage(textMessage);
     }

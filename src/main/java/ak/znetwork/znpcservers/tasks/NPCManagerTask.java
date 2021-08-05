@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.conversation.ConversationModel;
 import ak.znetwork.znpcservers.types.ConfigTypes;
 
 import org.bukkit.Bukkit;
@@ -36,19 +37,24 @@ public class NPCManagerTask extends BukkitRunnable {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
                 if (npc.getViewers().contains(player) && !canSeeNPC)
-                    // Delete npc if player is not in range
+                    // delete npc if player is not in range
                     npc.delete(player, true);
                 else if (canSeeNPC) {
-                    // Update npc for player
+                    // update npc for player
                     if (!npc.getViewers().contains(player)) {
                         npc.spawn(player);
                     }
-                    // Look npc at player
+                    // look npc at player
                     if (npc.getNpcPojo().isHasLookAt() && !hasPath) {
                         npc.lookAt(player, player.getLocation(), false);
                     }
-                    // Update hologram lines for player
+                    // update hologram lines for player
                     npc.getHologram().updateNames(player);
+                    // handle npc conversation
+                    ConversationModel conversationStorage = npc.getNpcPojo().getConversation();
+                    if (conversationStorage != null && conversationStorage.getConversationType() == ConversationModel.ConversationType.RADIUS) {
+                        npc.tryStartConversation(player);
+                    }
                 }
             }
         }

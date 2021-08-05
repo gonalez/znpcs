@@ -4,7 +4,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
 import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 
 import java.io.*;
@@ -16,8 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.common.base.Preconditions;
 
 import org.bukkit.Location;
 import org.bukkit.scheduler.BukkitTask;
@@ -77,7 +75,6 @@ public interface ZNPCPath {
          * An abstract implementation of a {@link PathInitializer}.
          */
         abstract class AbstractPath implements PathInitializer {
-
             /**
              * The npc in which the path will be handled.
              */
@@ -143,7 +140,6 @@ public interface ZNPCPath {
      * {@inheritDoc}
      */
     class ZNPCPathDelegator {
-
         /**
          * The path file.
          */
@@ -201,9 +197,8 @@ public interface ZNPCPath {
      * An abstract implementation of a {@link ZNPCPath}
      */
     abstract class AbstractTypeWriter implements ZNPCPath {
-
         /**
-         * The logger.
+         * The class logger.
          */
         private static final Logger LOGGER = Logger.getLogger(AbstractTypeWriter.class.getName());
 
@@ -259,11 +254,10 @@ public interface ZNPCPath {
         public void load() {
             try (DataInputStream reader = ZNPCPathDelegator.forFile(file).getInputStream()) {
                 initialize(reader);
-
-                // Register path..
+                // register path..
                 register(this);
             } catch (IOException e) {
-                // The path could not be initialized...
+                // the path could not be initialized...
                 LOGGER.log(Level.WARNING, String.format("The path %s could not be loaded", file.getName()));
             }
         }
@@ -282,11 +276,11 @@ public interface ZNPCPath {
         /**
          * {@inheritDoc}
          */
-        public static AbstractTypeWriter forCreation(String pathName, ZNPCUser user, TypeWriter typeWriter) {
+        public static AbstractTypeWriter forCreation(String pathName, ZUser user, TypeWriter typeWriter) {
             if (typeWriter == TypeWriter.MOVEMENT) {
                 return new TypeMovement(pathName, user);
             } else {
-                throw new IllegalStateException("Cannot find type writer for: " + typeWriter.name());
+                throw new IllegalStateException("can't find type writer for: " + typeWriter.name());
             }
         }
 
@@ -297,7 +291,7 @@ public interface ZNPCPath {
             if (typeWriter == TypeWriter.MOVEMENT) {
                 return new TypeMovement(file);
             } else {
-                throw new IllegalStateException("Cannot find type writer for: " + typeWriter.name());
+                throw new IllegalStateException("can't find type writer for: " + typeWriter.name());
             }
         }
 
@@ -365,7 +359,6 @@ public interface ZNPCPath {
          * {@inheritDoc}
          */
         private static class TypeMovement extends AbstractTypeWriter {
-
             /**
              * The maximum locations that the path can have.
              */
@@ -374,7 +367,7 @@ public interface ZNPCPath {
             /**
              * The player who is creating the path.
              */
-            private ZNPCUser npcUser;
+            private ZUser npcUser;
 
             /**
              * The path task.
@@ -397,52 +390,46 @@ public interface ZNPCPath {
              * @param npcUser  The player that is creating the path.
              */
             public TypeMovement(String fileName,
-                                ZNPCUser npcUser) {
+                                ZUser npcUser) {
                 super(TypeWriter.MOVEMENT, fileName);
                 this.npcUser = npcUser;
-
-                // Start path task
-                this.start();
+                // start path creation task
+                start();
             }
 
             @Override
             public void initialize(DataInputStream dataInputStream) throws IOException {
                 while (dataInputStream.available() > 0) {
                     String worldName = dataInputStream.readUTF();
-
                     double x = dataInputStream.readDouble();
                     double y = dataInputStream.readDouble();
                     double z = dataInputStream.readDouble();
-
                     float yaw = dataInputStream.readFloat();
                     float pitch = dataInputStream.readFloat();
-
-                    // Add path location
+                    // add path location
                     getLocationList().add(new ZLocation(worldName, x, y, z, yaw, pitch));
                 }
             }
 
             @Override
             public void write(DataOutputStream dataOutputStream) throws IOException {
-                Preconditions.checkArgument(!getLocationList().isEmpty(), "Location list is empty");
-
+                if (getLocationList().isEmpty()) {
+                    return;
+                }
                 Iterator<ZLocation> locationIterator = getLocationList().iterator();
                 while (locationIterator.hasNext()) {
-                    ZLocation location = locationIterator.next();
-
-                    // Location world name
+                    final ZLocation location = locationIterator.next();
+                    // location world name
                     dataOutputStream.writeUTF(location.getWorld());
-
-                    // Location x,y,z,yaw,pitch
+                    // location x,y,z,yaw,pitch
                     dataOutputStream.writeDouble(location.getX());
                     dataOutputStream.writeDouble(location.getY());
                     dataOutputStream.writeDouble(location.getZ());
                     dataOutputStream.writeFloat(location.getYaw());
                     dataOutputStream.writeFloat(location.getPitch());
 
-                    boolean last = !locationIterator.hasNext();
-                    if (last) {
-                        // Register the path...
+                    if (!locationIterator.hasNext()) {
+                        // register the path...
                         register(this);
                     }
                 }
@@ -451,24 +438,23 @@ public interface ZNPCPath {
             @Override
             public void start() {
                 npcUser.setHasPath(true);
-
+                // start creation task for path
                 bukkitTask = ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
+                    // check if the player who is creating the path is online and
+                    // current saved path locations haven't exceed the limit
                     if (npcUser.toPlayer() != null && npcUser.isHasPath() && MAX_LOCATIONS > getLocationList().size()) {
                         final Location location = npcUser.toPlayer().getLocation();
-
-                        // Check if location is valid
+                        // check if location is valid
                         if (isValid(location)) {
-                            // Add new location..
+                            // add new location to path ..
                             getLocationList().add(new ZLocation(location));
                         }
                     } else {
-                        // Cancel task...
+                        // cancel task...
                         bukkitTask.cancel();
-
-                        // Set user path
+                        // set user creation path to none
                         npcUser.setHasPath(false);
-
-                        // Write path
+                        // write path to file
                         write();
                     }
                 }, PATH_DELAY, PATH_DELAY);
@@ -503,9 +489,8 @@ public interface ZNPCPath {
              * {@inheritDoc}
              */
             protected static class MovementPath extends PathInitializer.AbstractPath {
-
                 /**
-                 * The current path location.
+                 * The current path location index.
                  */
                 private int currentEntryPath = 0;
 
@@ -528,8 +513,7 @@ public interface ZNPCPath {
                 @Override
                 public void handle() {
                     updatePathLocation(getPath().getLocationList().get(currentEntryPath = getNextLocation()));
-
-                    final int nextIndex = getNextLocation();
+                    int nextIndex = getNextLocation();
                     if (nextIndex < 1)  {
                         pathReverse = false;
                     } else if (nextIndex >= getPath().getLocationList().size() - 1) {
@@ -551,16 +535,13 @@ public interface ZNPCPath {
                  */
                 protected void updatePathLocation(ZLocation location) {
                     setLocation(location);
-
                     final ZLocation next = getPath().getLocationList().get(getNextLocation());
-                    // Y diff
+                    // add y diff (elevation)
                     Vector vector = next.toVector().add(new Vector(0, location.getY() - next.getY(), 0));
-
                     Location direction = next.toBukkitLocation().clone().setDirection(location.toVector().subtract(vector).
                             multiply(new Vector(-1, 0, -1))); // Reverse
                     getNpc().setLocation(direction);
-
-                    // Look at next location
+                    // look at next location
                     getNpc().lookAt(null, direction, true);
                 }
             }

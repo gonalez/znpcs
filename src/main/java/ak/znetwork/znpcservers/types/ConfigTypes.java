@@ -1,12 +1,13 @@
 package ak.znetwork.znpcservers.types;
 
-import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
 import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
+import ak.znetwork.znpcservers.npc.conversation.Conversation;
+import ak.znetwork.znpcservers.npc.ZNPCModel;
+import ak.znetwork.znpcservers.tasks.NPCLoadTask;
 
 import java.util.List;
 
@@ -42,14 +43,18 @@ public final class ConfigTypes {
     /**
      * Represents the npc list.
      */
-    public static final List<ZNPCPojo> NPC_LIST = ConfigManager.getByType(ConfigType.DATA).getValue(ConfigValue.NPC_LIST);
+    public static final List<ZNPCModel> NPC_LIST = ConfigManager.getByType(ConfigType.DATA).getValue(ConfigValue.NPC_LIST);
+
+    /**
+     * Represents the npc conversation list.
+     */
+    public static final List<Conversation> NPC_CONVERSATIONS = ConfigManager.getByType(ConfigType.CONVERSATIONS).getValue(ConfigValue.CONVERSATION_LIST);
 
     static {
         // Initialize all saved NPC...
-        ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
-                NPC_LIST.forEach(ZNPC::new),
-                25
-        );
+        NPC_LIST.stream()
+                .map(ZNPC::new)
+                .forEach(NPCLoadTask::new);
     }
 
     /** Default constructor */

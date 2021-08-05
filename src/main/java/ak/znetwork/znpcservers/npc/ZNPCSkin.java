@@ -1,7 +1,5 @@
 package ak.znetwork.znpcservers.npc;
 
-import java.net.URL;
-
 import ak.znetwork.znpcservers.skin.SkinFetcherBuilder;
 import ak.znetwork.znpcservers.skin.SkinFetcherResult;
 import ak.znetwork.znpcservers.utility.Utils;
@@ -94,17 +92,10 @@ public final class ZNPCSkin {
      */
     public static void forName(String skin,
                                    SkinFetcherResult skinResultCallback) {
-        try {
-            // Check if skin value is a url
-            new URL(skin).toURI();
-            SkinFetcherBuilder.withData(SkinFetcherBuilder.SkinAPI.GENERATE_API, skin)
-                    .toSkinFetcher()
-                    .fetchProfile(skinResultCallback);
-        } catch (Exception e) {
-            SkinFetcherBuilder.withData(SkinFetcherBuilder.SkinAPI.PROFILE_API, skin)
-                    .toSkinFetcher()
-                    .fetchProfile(skinResultCallback);
-        }
+        SkinFetcherBuilder.withData(skin.toLowerCase().startsWith("http") ?
+                SkinFetcherBuilder.SkinAPI.GENERATE_API : SkinFetcherBuilder.SkinAPI.PROFILE_API, skin)
+                .toSkinFetcher()
+                .fetchProfile(skinResultCallback);
     }
 
     /**
@@ -145,7 +136,7 @@ public final class ZNPCSkin {
          * @return The layer index.
          */
         static int findLayerByVersion() {
-            int value = V9.layerValue;
+            int value = V8.layerValue;
             for (SkinLayerValues skinLayerValue : values()) {
                 if (Utils.BUKKIT_VERSION >= skinLayerValue.minVersion) {
                     value = skinLayerValue.layerValue;

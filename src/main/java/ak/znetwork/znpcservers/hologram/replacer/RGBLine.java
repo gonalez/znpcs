@@ -22,13 +22,13 @@ public class RGBLine implements LineReplacer<String> {
         String rgbString = string;
         for (int i = 0; i < rgbString.length(); i++) {
             char charAt = rgbString.charAt(i);
-            // Check if the char is supposed to be a hex color code
+            // check if the char is supposed to be a hex color code
             if (charAt == '#') {
                 int endIndex = i+HEX_COLOR_LENGTH+1;
                 boolean success = true;
                 StringBuilder hexCodeStringBuilder = new StringBuilder();
                 for (int i2 = i; i2 < endIndex; i2++) {
-                    // Check if string length is in rage (hex-default length)
+                    // check if string length is in range (hex-default length)
                     if (rgbString.length() - 1 < i2) {
                         success = false;
                         break;
@@ -37,15 +37,15 @@ public class RGBLine implements LineReplacer<String> {
                     hexCodeStringBuilder.append(ConfigTypes.RGB_ANIMATION
                             && hexCode != '#' ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
                 }
-                // Found RGB Color!
+                // found RGB Color!
                 if (success) {
                     try {
-                        // Apply RGB Color to string..
+                        // apply RGB Color to string..
                         rgbString = rgbString.substring(0, i) +
                                 ChatColor.of(hexCodeStringBuilder.toString()) +
                                 rgbString.substring(endIndex);
                     } catch (Exception e) {
-                        // Invalid hex string
+                        // invalid hex string
                     }
                 }
             }

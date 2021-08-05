@@ -9,5 +9,6 @@ package ak.znetwork.znpcservers.configuration;
 public enum ConfigType {
     CONFIG,
     MESSAGES,
-    DATA
+    DATA,
+    CONVERSATIONS
 }

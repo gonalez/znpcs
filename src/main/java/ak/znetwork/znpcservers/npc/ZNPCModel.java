@@ -1,8 +1,6 @@
-package ak.znetwork.znpcservers.npc.model;
+package ak.znetwork.znpcservers.npc;
 
-import ak.znetwork.znpcservers.npc.ZNPCSlot;
-import ak.znetwork.znpcservers.npc.ZNPCType;
-import ak.znetwork.znpcservers.npc.ZNPCSkin;
+import ak.znetwork.znpcservers.npc.conversation.ConversationModel;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 
 import org.bukkit.inventory.ItemStack;
@@ -20,7 +18,7 @@ import lombok.Data;
  * @since 07/02/2020
  */
 @Data
-public class ZNPCPojo {
+public class ZNPCModel {
     /**
      * The npc identifier.
      */
@@ -55,6 +53,11 @@ public class ZNPCPojo {
      * The glow color name.
      */
     private String glowName;
+
+    /**
+     * The npc conversation.
+     */
+    private ConversationModel conversation;
 
     /**
      * The npc location
@@ -95,11 +98,11 @@ public class ZNPCPojo {
      * @param location The npc location.
      * @param npcType  The npc entity type.
      */
-    public ZNPCPojo(int id,
-                    List<String> lines,
-                    ZNPCSkin npcSkin,
-                    ZLocation location,
-                    ZNPCType npcType) {
+    public ZNPCModel(int id,
+                     List<String> lines,
+                     ZNPCSkin npcSkin,
+                     ZLocation location,
+                     ZNPCType npcType) {
         this();
         this.id = id;
         this.hologramLines = lines;
@@ -111,9 +114,9 @@ public class ZNPCPojo {
 
     /**
      * Default no-args constructor, this would be used by gson,
-     * initializes default variables for missing fields since gson doesn't support it.
+     * initializes default variables for missing fields since gson doesn't support it
      */
-    protected ZNPCPojo() {
+    protected ZNPCModel() {
         hologramLines = Collections.singletonList("/znpcs lines");
         clickActions = new ArrayList<>();
         npcEquip = new HashMap<>();

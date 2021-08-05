@@ -61,9 +61,7 @@ public enum ZNPCType {
     WITHER(ClassTypes.ENTITY_WITHER_CLASS, 1.75),
     ZOMBIE(ClassTypes.ENTITY_ZOMBIE_CLASS, 0, "setBaby"),
     WOLF(ClassTypes.ENTITY_WOLF_CLASS, -1, "setSitting", "setTamed", "setAngry", "setAge", "setCollarColor"),
-
     FOX(ClassTypes.ENTITY_FOX_CLASS, -1, "setFoxType", "setSitting", "setSleeping", "setAge", "setCrouching"),
-
     /** 1.17+ */
     AXOLOTL(ClassTypes.ENTITY_AXOLOTL_CLASS, -1, "setVariant", "setAge"),
     GOAT(ClassTypes.ENTITY_GOAT_CLASS, -0.5, "setScreamingGoat", "setAge");
@@ -119,7 +117,7 @@ public enum ZNPCType {
     private Object nmsEntityType;
 
     /**
-     * Creates a new Entity type.
+     * Creates a new NPC Entity type.
      *
      * @param entityClass The entity class.
      * @param newName     The entity name for newer versions.
@@ -143,7 +141,7 @@ public enum ZNPCType {
     }
 
     /**
-     * Creates a new Entity type.
+     * Creates a new NPC Entity type.
      *
      * @param entityClass   The entity class.
      * @param holoHeight    The hologram height for the entity.
@@ -160,12 +158,12 @@ public enum ZNPCType {
      */
     private Constructor<?> load() {
         if (entityClass == null || entityClass.isAssignableFrom(ClassTypes.ENTITY_PLAYER_CLASS)) {
-            // The entity type is not available for the current version so don't load it
+            // the entity type is not available for the current version so don't load it
             return null;
         }
         try {
             if (Utils.versionNewer(14)) {
-                // Get nms-entityType for bukkit entity type
+                // get nms entityType for the npc bukkit entity type
                 nmsEntityType = ((Optional<?>)ClassTypes.ENTITY_TYPES_A_METHOD.invoke(null, bukkitEntityType.getKey().getKey().toLowerCase())).get();
                 return entityClass.getConstructor(ClassTypes.ENTITY_TYPES_CLASS, ClassTypes.WORLD_CLASS);
             }
@@ -206,12 +204,12 @@ public enum ZNPCType {
      */
     public void updateCustomization(ZNPC znpc, String name, String[] values) throws InvocationTargetException, IllegalAccessException {
         if (!getCustomizationProcessor().contains(name)) {
-            // Method not found
+            // method not found
             return;
         }
         Method method = getCustomizationProcessor().getMethods().get(name);
         method.invoke(znpc.getBukkitEntity(), arrayToPrimitive(values, method));
-        // Update new customization for the npc
+        // update new customization for the npc
         znpc.updateMetaData();
     }
 }

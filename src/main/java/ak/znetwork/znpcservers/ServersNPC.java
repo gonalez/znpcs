@@ -2,11 +2,11 @@ package ak.znetwork.znpcservers;
 
 import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.Config;
+import ak.znetwork.znpcservers.listeners.InventoryListener;
 import ak.znetwork.znpcservers.listeners.PlayerListener;
-import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
+import ak.znetwork.znpcservers.npc.ZNPCModel;
 import ak.znetwork.znpcservers.utility.BungeeUtils;
 import ak.znetwork.znpcservers.utility.itemstack.ItemStackSerializer;
-import ak.znetwork.znpcservers.utility.location.ZLocationSerializer;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
@@ -14,11 +14,12 @@ import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.ZNPCType;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
 import ak.znetwork.znpcservers.types.ConfigTypes;
-import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.MetricsLite;
 import ak.znetwork.znpcservers.npc.ZNPCSkin;
 import ak.znetwork.znpcservers.utility.SchedulerUtils;
 
+import ak.znetwork.znpcservers.utility.location.ZLocationSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -55,7 +56,7 @@ public class ServersNPC extends JavaPlugin {
     public static final File PATH_FOLDER = new File("plugins/" + PLUGIN_NAME + "/paths");
 
     static {
-        // Create the folder if it doesn't exist.
+        // create the folders if it doesn't exist
         PLUGIN_FOLDER.mkdirs();
         PATH_FOLDER.mkdirs();
     }
@@ -69,12 +70,12 @@ public class ServersNPC extends JavaPlugin {
      * Creates a new Gson instance with
      * custom type adapters.
      */
-    public final static Gson GSON = new GsonBuilder().
-            registerTypeAdapter(ZLocation.class, new ZLocationSerializer()).
-            registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer()).
-            setPrettyPrinting().
-            disableHtmlEscaping().
-            create();
+    public final static Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(ZLocation.class, new ZLocationSerializer())
+            .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
+            .setPrettyPrinting()
+            .disableHtmlEscaping()
+            .create();
 
     /**
      * The scheduler instance.
@@ -106,8 +107,8 @@ public class ServersNPC extends JavaPlugin {
         // Bungee Utils
         BUNGEE_UTILS = new BungeeUtils(this);
 
-        // Setup netty again for online players
-        Bukkit.getOnlinePlayers().forEach(ZNPCUser::registerOrGet);
+        // Setup users again for online players
+        Bukkit.getOnlinePlayers().forEach(ZUser::find);
 
         // Init NPC task
         new NPCManagerTask(this);
@@ -115,17 +116,16 @@ public class ServersNPC extends JavaPlugin {
 
         // Register listeners
         new PlayerListener(this);
+        new InventoryListener(this);
     }
 
     @Override
     public void onDisable() {
-        // Save configurations
+        // save configurations
         ConfigManager.all().forEach(Config::save);
-
-        // Unregister netty for online players
-        Bukkit.getOnlinePlayers().forEach(ZNPCUser::unregister);
-
-        // Delete all npc for viewers
+        // unregister users
+        Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
+        // delete all npc for viewers
         removeAllViewers();
     }
 
@@ -137,12 +137,11 @@ public class ServersNPC extends JavaPlugin {
         if (listFiles == null) {
             return;
         }
-
         for (File file : listFiles) {
-            // Check if file is path
+            // check if file is a path
             if (file.getName().endsWith(".path")) {
                 AbstractTypeWriter abstractTypeWriter = AbstractTypeWriter.forFile(file, TypeWriter.MOVEMENT);
-                // Load path..
+                // load path..
                 abstractTypeWriter.load();
             }
         }
@@ -169,8 +168,7 @@ public class ServersNPC extends JavaPlugin {
         if (find != null) {
             return find;
         }
-
-        ZNPCPojo pojo = new ZNPCPojo(id, Collections.singletonList(name), ZNPCSkin.forValues(), new ZLocation(location), npcType);
+        ZNPCModel pojo = new ZNPCModel(id, Collections.singletonList(name), ZNPCSkin.forValues(), new ZLocation(location), npcType);
         ConfigTypes.NPC_LIST.add(pojo);
         return new ZNPC(pojo);
     }
@@ -183,9 +181,8 @@ public class ServersNPC extends JavaPlugin {
     public static void deleteNPC(int npcID) {
         ZNPC npc = ZNPC.find(npcID);
         if (npc == null) {
-            return;
+            throw new IllegalStateException("can't find npc " + npcID);
         }
-
         ZNPC.unregister(npcID);
         ConfigTypes.NPC_LIST.remove(npc.getNpcPojo());
     }

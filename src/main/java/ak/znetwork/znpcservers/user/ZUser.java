@@ -4,9 +4,10 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.NPCInteractEvent;
 import ak.znetwork.znpcservers.events.type.ClickType;
 import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.model.ZNPCAction;
+import ak.znetwork.znpcservers.npc.ZNPCAction;
 import ak.znetwork.znpcservers.types.ClassTypes;
 
+import ak.znetwork.znpcservers.utility.Utils;
 import com.mojang.authlib.GameProfile;
 
 import io.netty.channel.Channel;
@@ -17,10 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import lombok.Data;
 
@@ -31,7 +29,7 @@ import lombok.Data;
  * @since 07/02/2020
  */
 @Data
-public class ZNPCUser {
+public class ZUser {
     /**
      * The name of the NPC interact channel.
      */
@@ -45,12 +43,17 @@ public class ZNPCUser {
     /**
      * A map containing the saved users.
      */
-    private static final Map<UUID, ZNPCUser> USER_MAP = new HashMap<>();
+    private static final Map<UUID, ZUser> USER_MAP = new HashMap<>();
 
     /**
-     * A map of cooldowns for each interacted NPC.
+     * A map for checking the last interact time for an NPC.
      */
-    private final Map<Integer, Long> actionDelay;
+    private final Map<Integer, Long> lastClicked;
+
+    /**
+     * Store event services to run when the user trigger the event.
+     */
+    private final List<EventService<?>> eventServices;
 
     /**
      * The player uuid.
@@ -60,12 +63,12 @@ public class ZNPCUser {
     /**
      * The player channel.
      */
-    private Channel channel;
+    private final Channel channel;
 
     /**
      * The player game-profile.
      */
-    private GameProfile gameProfile;
+    private final GameProfile gameProfile;
 
     /**
      * Determines if player is creating a npc path.
@@ -82,43 +85,31 @@ public class ZNPCUser {
      *
      * @param uuid The player uuid.
      */
-    public ZNPCUser(UUID uuid) {
+    public ZUser(UUID uuid) {
         this.uuid = uuid;
-        actionDelay = new HashMap<>();
-        init();
-    }
-
-    /**
-     * Registers the NPC channel for the current user channel.
-     */
-    private void init() {
+        lastClicked = new HashMap<>();
+        eventServices = new ArrayList<>();
+        // handle npc user channel
         try {
             final Object playerHandle = ClassTypes.GET_HANDLE_PLAYER_METHOD.invoke(toPlayer());
-
             gameProfile = (GameProfile) ClassTypes.GET_PROFILE_METHOD.invoke(playerHandle);
-
             channel = (Channel) ClassTypes.CHANNEL_FIELD.get(ClassTypes.NETWORK_MANAGER_FIELD.get(ClassTypes.PLAYER_CONNECTION_FIELD.get(playerHandle)));
+            // check if channel is already created on the user network
+            if (channel.pipeline().names().contains(CHANNEL_NAME)) {
+                // channel found, remove it
+                channel.pipeline().remove(CHANNEL_NAME);
+            }
+            // setup npc channel for user
             channel.pipeline().addAfter("decoder", CHANNEL_NAME, new ZNPCSocketDecoder());
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Cannot initialize user", e);
+            throw new IllegalStateException("can't create player " + uuid.toString(), e.getCause());
         }
     }
 
     /**
-     * Unregisters the NPC channel for the current user.
-     */
-    public void ejectNetty() {
-        if (!channel.pipeline().names().contains(CHANNEL_NAME)) {
-            return;
-        }
-
-        channel.pipeline().remove(CHANNEL_NAME);
-    }
-
-    /**
-     * Returns player by user uuid.
+     * Returns the user as a player.
      *
-     * @return The player.
+     * @return The user player.
      */
     public Player toPlayer() {
         return Bukkit.getPlayer(uuid);
@@ -130,8 +121,8 @@ public class ZNPCUser {
      * @param uuid The uuid.
      * @return The user instance.
      */
-    public static ZNPCUser registerOrGet(UUID uuid) {
-        return USER_MAP.computeIfAbsent(uuid, u -> new ZNPCUser(uuid));
+    public static ZUser find(UUID uuid) {
+        return USER_MAP.computeIfAbsent(uuid, u -> new ZUser(uuid));
     }
 
     /**
@@ -140,8 +131,8 @@ public class ZNPCUser {
      * @param player The player.
      * @return The user instance.
      */
-    public static ZNPCUser registerOrGet(Player player) {
-        return registerOrGet(player.getUniqueId());
+    public static ZUser find(Player player) {
+        return find(player.getUniqueId());
     }
 
     /**
@@ -150,15 +141,14 @@ public class ZNPCUser {
      * @param player The player.
      */
     public static void unregister(Player player) {
-        ZNPCUser znpcUser = USER_MAP.get(player.getUniqueId());
+        ZUser znpcUser = USER_MAP.get(player.getUniqueId());
         if (znpcUser == null) {
-            return;
+            throw new IllegalStateException("can't find user " + player.getUniqueId());
         }
-
-        // Delete all npc for given player
-        ZNPC.all().forEach(npc -> npc.delete(player, true));
-
-        znpcUser.ejectNetty();
+        // delete all npc for the user player
+        ZNPC.all().stream()
+                .filter(npc -> npc.getViewers().contains(player))
+                .forEach(npc -> npc.delete(player, true));
         USER_MAP.remove(player.getUniqueId());
     }
 
@@ -168,66 +158,56 @@ public class ZNPCUser {
      * A {@link MessageToMessageDecoder} which tracks when a user interacts with an npc.
      */
     class ZNPCSocketDecoder extends MessageToMessageDecoder<Object> {
-
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, Object packet, List<Object> out) throws Exception {
-            if (channel == null) {
-                throw new IllegalStateException("Channel is NULL!");
-            }
-
             out.add(packet);
-
             if (packet.getClass() == ClassTypes.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
-                // Check for interact wait time between npc
-                if (lastInteract > 0 && System.currentTimeMillis() - lastInteract <= 1000L * DEFAULT_DELAY) {
+                // check for interact wait time between npc
+                long lastInteractNanos = System.nanoTime() - lastInteract;
+                if (lastInteract != 0 && lastInteractNanos < Utils.SECOND_INTERVAL_NANOS * DEFAULT_DELAY) {
                     return;
                 }
-
-                // The clicked entity id
+                // the clicked entity id
                 int entityId = ClassTypes.PACKET_IN_USE_ENTITY_ID_FIELD.getInt(packet);
-
-                // Try find npc
+                // find npc
                 ZNPC npc = ZNPC.all().stream().filter(znpc -> znpc.getEntityID() == entityId).findFirst().orElse(null);
                 if (npc == null) {
                     return;
                 }
-
+                // determine if click is right or left
                 ClickType clickName = ClickType.forName(npc.getPackets().getClickType(packet).toString());
-                lastInteract = System.currentTimeMillis();
-
+                lastInteract = System.nanoTime();
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
-                    // Call NPC interact event
+                    // call NPC interact event
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), clickName, npc));
-
                     final List<ZNPCAction> actions = npc.getNpcPojo().getClickActions();
+                    // check if the clicked npc have actions
                     if (actions == null || actions.isEmpty()) {
                         return;
                     }
-
+                    // run npc actions for player
                     for (ZNPCAction npcAction : actions) {
                         if (npcAction.getClickType() != ClickType.DEFAULT
-                        && clickName != npcAction.getClickType()) {
-                            // ...
+                                && clickName != npcAction.getClickType()) {
                             continue;
                         }
-
-                        // Check for action cooldown
+                        // handle delay for action
                         if (npcAction.getDelay() > 0) {
                             int actionId = npc.getNpcPojo().getClickActions().indexOf(npcAction);
-
-                            if (System.currentTimeMillis() - actionDelay.getOrDefault(actionId, 0L) < 1000L * npcAction.getDelay()) {
-                                continue;
+                            // check for action interact time
+                            if (lastClicked.containsKey(actionId)) {
+                                long lastClickNanos = System.nanoTime() - lastClicked.get(actionId);
+                                if (lastClickNanos < npcAction.getFixedDelay()) {
+                                    continue;
+                                }
                             }
-
-                            // Set new action cooldown for user
-                            actionDelay.put(actionId, System.currentTimeMillis());
+                            // update last interact time for action
+                            lastClicked.put(actionId, System.nanoTime());
                         }
-                        npcAction.run(ZNPCUser.this, npcAction.getAction());
+                        npcAction.run(ZUser.this, npcAction.getAction());
                     }
                 }, DEFAULT_DELAY);
             }
         }
     }
 }
-
-

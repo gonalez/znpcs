@@ -1,7 +1,8 @@
 package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.npc.NamingType;
-import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
+import ak.znetwork.znpcservers.npc.conversation.Conversation;
+import ak.znetwork.znpcservers.npc.ZNPCModel;
 
 import java.util.ArrayList;
 
@@ -13,7 +14,7 @@ import java.util.ArrayList;
  */
 public enum ConfigValue {
     /** Data */
-    NPC_LIST(ConfigType.DATA, new ArrayList<>(), ZNPCPojo.class),
+    NPC_LIST(ConfigType.DATA, new ArrayList<>(), ZNPCModel.class),
 
     /** Config */
     VIEW_DISTANCE(ConfigType.CONFIG, 32, Integer.class), // by Block distance
@@ -45,7 +46,14 @@ public enum ConfigValue {
     UNSUPPORTED_ENTITY(ConfigType.MESSAGES, "&cEntity type not available for your current version.", String.class),
     INCORRECT_USAGE_PATH_SET(ConfigType.MESSAGES, "&cUsage: -set <npc_id> -path <path_name>", String.class),
     INCORRECT_USAGE_ACTION_ADD(ConfigType.MESSAGES, "&cUsage: <SERVER:CMD:MESSAGE:CONSOLE> <actionValue>", String.class),
-    INCORRECT_USAGE_ACTION_DELAY(ConfigType.MESSAGES, "&cUsage: <actionID> <delayInSeconds>", String.class);
+    INCORRECT_USAGE_ACTION_DELAY(ConfigType.MESSAGES, "&cUsage: <action_id> <delay>", String.class),
+    INCORRECT_USAGE_CONVERSATION_SET(ConfigType.MESSAGES, "&cUsage: <npc_id> <conversation_name> <RADIUS:CLICK>", String.class),
+    NO_CONVERSATION_FOUND(ConfigType.MESSAGES, "&cNo conversation found.", String.class),
+    CONVERSATION_FOUND(ConfigType.MESSAGES, "&cThere is already a conversation with this name.", String.class),
+    INVALID_SIZE(ConfigType.MESSAGES, "&cThe position cannot exceed the limit.", String.class),
+
+    /** Conversations */
+    CONVERSATION_LIST(ConfigType.CONVERSATIONS, new ArrayList<>(), Conversation.class);
 
     /**
      * The configuration type.

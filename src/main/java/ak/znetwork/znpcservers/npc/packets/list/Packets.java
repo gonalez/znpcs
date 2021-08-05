@@ -77,7 +77,7 @@ public abstract class Packets implements PacketsImpl {
                                        int version) {
         if (version > 16) {
             return new PacketsV17(znpc);
-        }    else if (version > 15) {
+        } else if (version > 15) {
             return new PacketsV16(znpc);
         } else if (version > 12) {
             return new PacketsV13(znpc);

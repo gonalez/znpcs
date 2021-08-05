@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
  *
@@ -19,6 +21,11 @@ public final class Utils {
      * The current bukkit version.
      */
     public static final int BUKKIT_VERSION;
+
+    /**
+     * Default interval for second as nanos.
+     */
+    public static final long SECOND_INTERVAL_NANOS = 1000 * 1000 * 1000L;
 
     /**
      * Represents if the plugin will use external placeholders.
@@ -58,6 +65,32 @@ public final class Utils {
      */
     public static String getWithPlaceholders(Player player, String string) {
         return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigTypes.SPACE_SYMBOL, " ");
+    }
+
+    /**
+     * Creates a random {@link java.lang.String} with the specified character {@code length}.
+     *
+     * @return A random {@link java.lang.String}.
+     */
+    public static String randomString(int length) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int index = 0; index < length; index++) {
+            stringBuilder.append(ThreadLocalRandom.current().nextInt(0, 9));
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Send a title to the given player.
+     *
+     * @param player The player to send the title for.
+     * @param title The title string.
+     * @param subTitle The subtitle string.
+     */
+    public static void sendTitle(Player player,
+                                 String title,
+                                 String subTitle) {
+        player.sendTitle(toColor(title), toColor(subTitle));
     }
 
     /** Default constructor */

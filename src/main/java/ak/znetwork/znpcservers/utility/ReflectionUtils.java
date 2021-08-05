@@ -17,10 +17,10 @@ public final class ReflectionUtils {
     /**
      * Sets the value of the field.
      *
-     * @param instance                The class instance.
-     * @param fieldName               The field Name.
-     * @param value                   The new field value.
-     * @throws NoSuchFieldException   If the field could not be found.
+     * @param instance The class instance.
+     * @param fieldName The field Name.
+     * @param value The new field value.
+     * @throws NoSuchFieldException If the field could not be found.
      * @throws IllegalAccessException If the field cannot be accessed.
      */
     public static void setValue(
@@ -35,9 +35,9 @@ public final class ReflectionUtils {
     /**
      * Locates the specified field value on the given instance.
      *
-     * @param instance                The class instance.
-     * @param fieldName               The field Name.
-     * @throws NoSuchFieldException   If the field could not be found.
+     * @param instance The class instance.
+     * @param fieldName The field Name.
+     * @throws NoSuchFieldException If the field could not be found.
      * @throws IllegalAccessException If the field cannot be accessed.
      * @return The field value.
      */
@@ -51,9 +51,9 @@ public final class ReflectionUtils {
     }
 
     /**
-     * Sends the packet to the given player.
+     * Send the packets to the given player.
      *
-     * @param player  The player to send the packets for.
+     * @param player The player to send the packets for.
      * @param packets The packets to send.
      */
     public static void sendPacket(Player player, Object... packets) {
@@ -67,7 +67,7 @@ public final class ReflectionUtils {
     }
 
     /**
-     * Returns current bukkit version.
+     * Returns the current bukkit version.
      *
      * @return The bukkit version name.
      */
@@ -76,7 +76,7 @@ public final class ReflectionUtils {
     }
 
     /**
-     * Returns friendly current bukkit name version.
+     * Returns the friendly current bukkit name version.
      *
      * @return The bukkit friendly version name.
      */

@@ -8,7 +8,6 @@ import ak.znetwork.znpcservers.types.ConfigTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
-import com.google.common.base.Preconditions;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -190,8 +189,6 @@ public class Hologram {
     private void updateLine(String line,
                             Object armorStand,
                             @Nullable Player player) throws InvocationTargetException, IllegalAccessException {
-        Preconditions.checkNotNull(armorStand);
-        Preconditions.checkNotNull(line);
         if (NEW_METHOD) {
             ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(player, line)));
         } else {

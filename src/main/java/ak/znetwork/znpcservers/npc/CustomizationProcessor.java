@@ -63,15 +63,14 @@ public class CustomizationProcessor {
         for (Method method : entityClass.getMethods()) {
             if (builder.containsKey(method.getName()) ||
                     !Iterables.contains(iterable, method.getName())) {
-                // Only load provided methods..
+                // only load provided methods..
                 continue;
             }
             for (Class<?> parameter : method.getParameterTypes()) {
                 TypeProperty typeProperty = TypeProperty.forType(parameter);
                 if (typeProperty == null
                         && parameter.isEnum()) {
-                    // Create a new cache for the constants on the enum class,
-                    // for later use.
+                    // create a new cache for the values on the enum class for late use
                     new CacheType.AbstractCache.EnumLoader(
                             new CacheType.CacheBuilder(CachePackage.DEFAULT)
                             .withClassName(parameter.getTypeName())).load();
@@ -83,10 +82,10 @@ public class CustomizationProcessor {
     }
 
     /**
-     * Checks if a method exists.
+     * Returns {@code true} if a method with the given name exists.
      *
      * @param name The method name.
-     * @return {@code true} If method found.
+     * @return If a method with the given name exists.
      */
     public boolean contains(String name) {
         return methods.containsKey(name);

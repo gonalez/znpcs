@@ -1,8 +1,8 @@
-package ak.znetwork.znpcservers.npc.model;
+package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.events.type.ClickType;
-import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.user.ZUser;
 
 import ak.znetwork.znpcservers.utility.Utils;
 
@@ -74,12 +74,19 @@ public class ZNPCAction {
      * @param npcUser The player that clicked the npc.
      * @param action  The action value.
      */
-    public void run(ZNPCUser npcUser, String action) {
+    public void run(ZUser npcUser, String action) {
         actionType.run(npcUser,
                 Utils.PLACEHOLDER_SUPPORT ?
                         Utils.getWithPlaceholders(npcUser.toPlayer(), action) :
                         action
                 );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public long getFixedDelay() {
+        return Utils.SECOND_INTERVAL_NANOS * getDelay();
     }
 
     /**
@@ -91,7 +98,7 @@ public class ZNPCAction {
          */
         CMD {
             @Override
-            public void run(ZNPCUser znpcUser, String actionValue) {
+            public void run(ZUser znpcUser, String actionValue) {
                 znpcUser.toPlayer().performCommand(actionValue);
             }
         },
@@ -101,7 +108,7 @@ public class ZNPCAction {
          */
         CONSOLE {
             @Override
-            public void run(ZNPCUser znpcUser, String actionValue) {
+            public void run(ZUser znpcUser, String actionValue) {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), actionValue);
             }
         },
@@ -111,7 +118,7 @@ public class ZNPCAction {
          */
         CHAT {
             @Override
-            public void run(ZNPCUser znpcUser, String actionValue) {
+            public void run(ZUser znpcUser, String actionValue) {
                 znpcUser.toPlayer().chat(actionValue);
             }
         },
@@ -121,7 +128,7 @@ public class ZNPCAction {
          */
         MESSAGE {
             @Override
-            public void run(ZNPCUser znpcUser, String actionValue) {
+            public void run(ZUser znpcUser, String actionValue) {
                 znpcUser.toPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', actionValue));
             }
         },
@@ -131,7 +138,7 @@ public class ZNPCAction {
          */
         SERVER {
             @Override
-            public void run(ZNPCUser znpcUser, String actionValue) {
+            public void run(ZUser znpcUser, String actionValue) {
                 ServersNPC.BUNGEE_UTILS.sendPlayerToServer(znpcUser.toPlayer(), actionValue);
             }
         };
@@ -142,6 +149,6 @@ public class ZNPCAction {
          * @param npcUser      The user instance.
          * @param actionValue  The action value.
          */
-        public abstract void run(ZNPCUser npcUser, String actionValue);
+        public abstract void run(ZUser npcUser, String actionValue);
     }
 }

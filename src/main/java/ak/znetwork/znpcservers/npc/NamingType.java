@@ -1,7 +1,6 @@
 package ak.znetwork.znpcservers.npc;
 
-import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.utility.RandomString;
+import ak.znetwork.znpcservers.utility.Utils;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -14,7 +13,7 @@ public enum NamingType {
     DEFAULT {
         @Override
         public String resolve(ZNPC znpc) {
-            return new RandomString(FIXED_LENGTH).create();
+            return Utils.randomString(FIXED_LENGTH);
         }
     };
 

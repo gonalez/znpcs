@@ -3,20 +3,18 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.hologram.Hologram;
 import ak.znetwork.znpcservers.UnexpectedCallException;
-import ak.znetwork.znpcservers.npc.model.ZNPCPojo;
+import ak.znetwork.znpcservers.npc.conversation.ConversationModel;
 import ak.znetwork.znpcservers.npc.packets.list.Packets;
-import ak.znetwork.znpcservers.user.ZNPCUser;
+import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.types.ClassTypes;
 import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
-import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -56,11 +54,6 @@ public class ZNPC {
     private static final String PROFILE_TEXTURES = "textures";
 
     /**
-     * The team mode id in the npc scoreboard.
-     */
-    private static final String TEAM_MODE = Utils.versionNewer(9) ? "i" : "h";
-
-    /**
      * A string whitespace.
      */
     private static final String WHITESPACE = " ";
@@ -73,7 +66,7 @@ public class ZNPC {
     /**
      * The npc pojo.
      */
-    private final ZNPCPojo npcPojo;
+    private final ZNPCModel npcPojo;
 
     /**
      * The npc hologram.
@@ -130,7 +123,7 @@ public class ZNPC {
      *
      * @param npcModel The npc model.
      */
-    public ZNPC(ZNPCPojo npcModel) {
+    public ZNPC(ZNPCModel npcModel) {
         this.npcPojo = npcModel;
         viewers = new HashSet<>();
         hologram = new Hologram(this);
@@ -312,7 +305,10 @@ public class ZNPC {
      * @param player The player to spawn the npc for.
      */
     public void spawn(Player player) {
-        Preconditions.checkArgument(!viewers.contains(player), "The player %s is already a viewer", player.getName());
+        if (viewers.contains(player)) {
+            throw new IllegalStateException(player.getName() + " is already a viewer.");
+        }
+        //
         try {
             // Determine if the npc type is player
             boolean npcIsPlayer = npcPojo.getNpcType() == ZNPCType.PLAYER;
@@ -376,7 +372,9 @@ public class ZNPC {
      * @param player The player to delete the npc for.
      */
     public void delete(Player player, boolean removeViewer) {
-        Preconditions.checkArgument(viewers.contains(player), "The player %s is not a viewer", player.getName());
+        if (!viewers.contains(player)) {
+            throw new IllegalStateException(player.getName() + " is not a viewer.");
+        }
         // Hide npc from tabList
         if (npcPojo.getNpcType() == ZNPCType.PLAYER) {
             hideFromTab(player);
@@ -394,7 +392,9 @@ public class ZNPC {
      * @param location The location to look.
      */
     public void lookAt(Player player, Location location, boolean rotation) {
-        if (System.currentTimeMillis() - lastMove < 1000 * 3) {
+        // check for last npc move
+        long lastMoveNanos = System.nanoTime() - lastMove;
+        if (lastMoveNanos < Utils.SECOND_INTERVAL_NANOS * 3) {
             return;
         }
         // Set location direction
@@ -420,7 +420,7 @@ public class ZNPC {
      * @return The player game-profile.
      */
     public GameProfile getGameProfileForPlayer(Player player) {
-        return ZNPCUser.registerOrGet(player).getGameProfile();
+        return ZUser.find(player).getGameProfile();
     }
 
     /**
@@ -503,6 +503,19 @@ public class ZNPC {
     }
 
     /**
+     * The player to start the conversation with.
+     *
+     * @param player The player to start the conversation with.
+     */
+    public void tryStartConversation(Player player) {
+        ConversationModel conversationStorage = npcPojo.getConversation();
+        if (conversationStorage == null) {
+            throw new IllegalStateException("can't find conversation");
+        }
+        conversationStorage.startConversation(this, player);
+    }
+
+    /**
      * Returns the current location of the npc.
      *
      * @return The npc location.
@@ -538,9 +551,8 @@ public class ZNPC {
     public static void unregister(int id) {
         ZNPC znpc = find(id);
         if (znpc == null) {
-            return;
+            throw new IllegalStateException("can't find npc with id " + id);
         }
-
         NPC_MAP.remove(id);
         znpc.deleteViewers();
     }

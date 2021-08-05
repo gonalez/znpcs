@@ -13,28 +13,28 @@ import org.bukkit.entity.Player;
  */
 public interface LineReplacer<T> {
     /**
-     * Replaces the string with the provided feature.
+     * Replaces the {@link java.lang.String} with the line replaces.
      *
-     * @param string The string to replace.
-     * @return The converted {@link java.lang.String}
+     * @param string The {@link java.lang.String} to replace.
+     * @return The converted {@link java.lang.String}.
      */
     T make(String string);
 
     /**
-     * Replaces the string with the provided features.
+     * Replaces the {@link java.lang.String} with the line replaces.
      *
      * @param player The player to get placeholders for.
-     * @param line The line to convert.
-     * @return The converted {@link java.lang.String}
+     * @param string The {@link java.lang.String} to convert.
+     * @return The converted {@link java.lang.String}.
      */
     static String makeAll(Player player,
-                          String line) {
-        if (Utils.BUKKIT_VERSION > 16) {
-            line = new RGBLine().make(line);
+                          String string) {
+        if (Utils.BUKKIT_VERSION > 15) { // v1.16+
+            string = new RGBLine().make(string);
         }
         return ChatColor.translateAlternateColorCodes('&', Utils.PLACEHOLDER_SUPPORT && player != null ?
-                Utils.getWithPlaceholders(player, line) :
-                line
+                Utils.getWithPlaceholders(player, string) :
+                string
         );
     }
 }

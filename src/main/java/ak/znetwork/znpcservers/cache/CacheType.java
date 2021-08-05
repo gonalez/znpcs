@@ -92,7 +92,7 @@ public interface CacheType {
     }
 
     /**
-     * A builder for the {@code AbstractCache} class
+     * A builder for the {@code AbstractCache} class.
      */
     @Getter
     class CacheBuilder {
