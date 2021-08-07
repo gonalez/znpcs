@@ -1,6 +1,7 @@
 package ak.znetwork.znpcservers.utility.inventory;
 
 import ak.znetwork.znpcservers.utility.Utils;
+import com.google.common.base.Preconditions;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -80,14 +81,14 @@ public class ZInventory {
      * @return An new inventory instance.
      */
     public Inventory build(ZInventoryPage zInventoryPage) {
+        Preconditions.checkNotNull(zInventoryPage);
         setCurrentPage(zInventoryPage);
-        // Clear old items
-        zInventoryPage.getInventoryItems().clear();
-        // Update the page with the new items
+        // clear old items
+        zInventoryPage.getInventoryItems().removeIf(zInventoryItem -> !zInventoryItem.isDefault());
+        // update the page with the new items
         zInventoryPage.update();
-        inventory = Bukkit.createInventory(new ZInventoryHolder(this), zInventoryPage.getRows() * 9, Utils.toColor(zInventoryPage.getInventoryName()));
-        zInventoryPage.getInventoryItems()
-                .forEach(zInventoryItem -> inventory.setItem(zInventoryItem.getSlot(), zInventoryItem.getItemStack()));
+        inventory = Bukkit.createInventory(new ZInventoryHolder(this), zInventoryPage.getRows(), Utils.toColor(zInventoryPage.getInventoryName()));
+        zInventoryPage.getInventoryItems().forEach(zInventoryItem -> inventory.setItem(zInventoryItem.getSlot(), zInventoryItem.getItemStack()));
         return inventory;
     }
 

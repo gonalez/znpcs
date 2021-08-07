@@ -26,6 +26,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <p>Copyright (c) ZNetwork, 2020.</p>
@@ -89,8 +90,8 @@ public class ConversationGUI extends ZInventory {
                         i, clickEvent -> {
                             if (clickEvent.getClick() == ClickType.DROP) {
                                 Utils.sendTitle(getPlayer(), "&b&lCHANGE RADIUS", "&7Type the new radius...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
                                             if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation)) {
                                                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
                                                 return;
@@ -107,12 +108,11 @@ public class ConversationGUI extends ZInventory {
                                             }
                                             conversation.setRadius(radius);
                                             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                        }
-                                );
+                                        }).addConsumer(event -> openInventory());
                             } else if (clickEvent.isRightClick()) {
                                 Utils.sendTitle(getPlayer(), "&e&lADD LINE", "&7Type the new line...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
                                             if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation)) {
                                                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
                                                 return;
@@ -120,32 +120,32 @@ public class ConversationGUI extends ZInventory {
                                             conversation.getTexts().add(new ConversationKey(event.getMessage()));
                                             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
                                         }
-                                );
+                                ).addConsumer(event -> openInventory());
                             } else if (clickEvent.isLeftClick()) {
-                                getPlayer().openInventory(getInventory().build(new EditConversationPage(getInventory(), conversation)));
+                                new EditConversationPage(getInventory(), conversation).openInventory();
                             } else if (clickEvent.getClick() == ClickType.MIDDLE) {
                                 Utils.sendTitle(getPlayer(), "&6&lCHANGE COOLDOWN", "&7Type the new cooldown...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
-                                            if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation)) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
-                                                return;
-                                            }
-                                            Integer cooldown = Ints.tryParse(event.getMessage());
-                                            if (cooldown == null) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
-                                                return;
-                                            }
-                                            // cooldown must be >0
-                                            if (cooldown < 0) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
-                                                return;
-                                            }
-                                            conversation.setDelay(cooldown);
-                                            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                        }
-                                );
-                            }
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
+                                                    if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation)) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
+                                                        return;
+                                                    }
+                                                    Integer cooldown = Ints.tryParse(event.getMessage());
+                                                    if (cooldown == null) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
+                                                        return;
+                                                    }
+                                                    // cooldown must be >0
+                                                    if (cooldown < 0) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
+                                                        return;
+                                                    }
+                                                    conversation.setDelay(cooldown);
+                                                    ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
+                                                }
+                                        ).addConsumer(event -> openInventory());
+                                }
                         }
                 );
             }
@@ -186,14 +186,15 @@ public class ConversationGUI extends ZInventory {
                                         , "&7and the conversation has currently &b" + conversationKey.getActions().size() + " actions&7."
                                         , "&f&lUSES"
                                         , " &bLeft-click &7to change the position.", " &bRight-click &7to remove text."
-                                        , " &bShift-click &7to change the sound.", " &bMiddle-click &7to change the delay.",
+                                        , " &bLeft-Shift-click &7to change the sound.", " &bMiddle-click &7to change the delay."
+                                        , " &bRight-Shift-click &7to edit the text.",
                                         " &bQ &7to manage actions.")
                                 .build(),
                         i, clickEvent -> {
-                            if (clickEvent.isShiftClick()) {
+                            if (clickEvent.getClick() == ClickType.SHIFT_LEFT) {
                                 Utils.sendTitle(getPlayer(), "&c&lCHANGE SOUND", "&7Type the new sound...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
                                             if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
                                                     !conversation.getTexts().contains(conversationKey)) {
                                                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
@@ -202,32 +203,45 @@ public class ConversationGUI extends ZInventory {
                                             String sound = event.getMessage().trim();
                                             conversationKey.setSoundName(sound);
                                             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                        }
-                                );
+                                        }).addConsumer(event -> openInventory());
+                            } else if (clickEvent.getClick() == ClickType.SHIFT_RIGHT) {
+                                Utils.sendTitle(getPlayer(), "&a&lEDIT TEXT", "&7Type the new text...");
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
+                                                    if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
+                                                            !conversation.getTexts().contains(conversationKey)) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
+                                                        return;
+                                                    }
+                                                    conversationKey.getLines().clear();
+                                                    conversationKey.getLines().addAll(SPACE_SPLITTER.splitToList(event.getMessage()));
+                                                    ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
+                                                }
+                                        ).addConsumer(event -> openInventory());
                             } else if (clickEvent.isLeftClick()) {
                                 Utils.sendTitle(getPlayer(), "&e&lCHANGE POSITION &a>=" + 0 + "&c<=" + conversation.getTexts().size(),
                                         "&7Type the new position...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
-                                            if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
-                                                    !conversation.getTexts().contains(conversationKey)) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
-                                                return;
-                                            }
-                                            Integer position = Ints.tryParse(event.getMessage());
-                                            if (position == null) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
-                                                return;
-                                            }
-                                            // check if position is within conversation texts size
-                                            if (position < 0 || position > conversation.getTexts().size()-1) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_SIZE);
-                                                return;
-                                            }
-                                            Collections.swap(conversation.getTexts(), conversation.getTexts().indexOf(conversationKey), position);
-                                            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                        }
-                                );
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
+                                                    if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
+                                                            !conversation.getTexts().contains(conversationKey)) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
+                                                        return;
+                                                    }
+                                                    Integer position = Ints.tryParse(event.getMessage());
+                                                    if (position == null) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
+                                                        return;
+                                                    }
+                                                    // check if position is within conversation texts size
+                                                    if (position < 0 || position > conversation.getTexts().size() - 1) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_SIZE);
+                                                        return;
+                                                    }
+                                                    Collections.swap(conversation.getTexts(), conversation.getTexts().indexOf(conversationKey), position);
+                                                    ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
+                                                }
+                                        ).addConsumer(event -> openInventory());
                             } else if (clickEvent.isRightClick()) {
                                 conversation.getTexts().remove(conversationKey);
                                 ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
@@ -235,29 +249,29 @@ public class ConversationGUI extends ZInventory {
                                 openInventory();
                             } else if (clickEvent.getClick() == ClickType.MIDDLE) {
                                 Utils.sendTitle(getPlayer(), "&d&lCHANGE DELAY", "&7Type the new delay...");
-                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                        event -> {
-                                            if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
-                                                    !conversation.getTexts().contains(conversationKey)) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
-                                                return;
-                                            }
-                                            Integer delay = Ints.tryParse(event.getMessage());
-                                            if (delay == null) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
-                                                return;
-                                            }
-                                            // delay must be >0
-                                            if (delay < 0) {
-                                                ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
-                                                return;
-                                            }
-                                            conversationKey.setDelay(delay);
-                                            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                        }
-                                );
+                                EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                        .addConsumer(event -> {
+                                                    if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
+                                                            !conversation.getTexts().contains(conversationKey)) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
+                                                        return;
+                                                    }
+                                                    Integer delay = Ints.tryParse(event.getMessage());
+                                                    if (delay == null) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
+                                                        return;
+                                                    }
+                                                    // delay must be >0
+                                                    if (delay < 0) {
+                                                        ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.INVALID_NUMBER);
+                                                        return;
+                                                    }
+                                                    conversationKey.setDelay(delay);
+                                                    ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
+                                                }
+                                        ).addConsumer(event -> openInventory());
                             } else if (clickEvent.getClick() == ClickType.DROP) {
-                                getPlayer().openInventory(getInventory().build(new ActionManagementPage(getInventory(), conversation, conversationKey)));
+                                new ActionManagementPage(getInventory(), conversation, conversationKey).openInventory();
                             }
                         }
                 );
@@ -318,10 +332,10 @@ public class ConversationGUI extends ZInventory {
                             .setName(ChatColor.AQUA + "ADD A NEW ACTION")
                             .setLore("&7click here...")
                             .build(),
-                    (getRows() * 9) - 5, clickEvent -> {
+                    getRows() - 5, clickEvent -> {
                         Utils.sendTitle(getPlayer(), "&d&lADD ACTION", "&7Type the action...");
-                        EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class,
-                                event -> {
+                        EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
+                                .addConsumer(event -> {
                                     if (!ConfigTypes.NPC_CONVERSATIONS.contains(conversation) ||
                                             !conversation.getTexts().contains(conversationKey)) {
                                         ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.NO_CONVERSATION_FOUND);
@@ -334,8 +348,7 @@ public class ConversationGUI extends ZInventory {
                                     }
                                     conversationKey.getActions().add(new ZNPCAction(stringList.get(0).toUpperCase(), SPACE_JOINER.join(Iterables.skip(stringList, 1))));
                                     ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(getPlayer(), ConfigValue.SUCCESS);
-                                }
-                        );
+                                });
                     }
             );
         }

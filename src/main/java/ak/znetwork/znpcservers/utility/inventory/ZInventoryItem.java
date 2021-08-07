@@ -20,6 +20,11 @@ public class ZInventoryItem {
     private final int slot;
 
     /**
+     * Determines if the item should appear on all pages for the inventory.
+     */
+    private final boolean isDefault;
+
+    /**
      * The item callback.
      */
     private final ZInventoryCallback zInventoryCallback;
@@ -33,9 +38,11 @@ public class ZInventoryItem {
      */
     public ZInventoryItem(ItemStack itemStack,
                           int slot,
+                          boolean isDefault,
                           ZInventoryCallback zInventoryCallback) {
         this.itemStack = itemStack;
         this.slot = slot;
+        this.isDefault = isDefault;
         this.zInventoryCallback = zInventoryCallback;
     }
 
@@ -55,6 +62,15 @@ public class ZInventoryItem {
      */
     public int getSlot() {
         return slot;
+    }
+
+    /**
+     * Returns {@code true} if the item should appear on all pages.
+     *
+     * @return If the item should appear on all pages
+     */
+    public boolean isDefault() {
+        return isDefault;
     }
 
     /**

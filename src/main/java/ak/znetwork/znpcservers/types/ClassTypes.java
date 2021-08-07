@@ -1028,6 +1028,15 @@ public final class ClassTypes {
     /**
      * {@inheritDoc}
      */
+    public static final Method GET_UNIQUE_ID_METHOD = new AbstractCache.MethodLoader(
+            new CacheBuilder(CachePackage.MINECRAFT_SERVER)
+                    .withClassName(ENTITY_CLASS)
+                    .withMethodName("getUniqueID"))
+                    .load();
+
+    /**
+     * {@inheritDoc}
+     */
     public static final Field DATA_WATCHER_REGISTER_ENUM_FIELD = new AbstractCache.FieldLoader(
             new CacheBuilder(CachePackage.MINECRAFT_SERVER)
                     .withCategory(CacheCategory.PACKET)

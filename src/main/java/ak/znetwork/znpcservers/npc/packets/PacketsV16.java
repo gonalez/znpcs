@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.npc.packets.list;
+package ak.znetwork.znpcservers.npc.packets;
 
 import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.npc.ZNPCSlot;
@@ -20,22 +20,21 @@ import java.util.Map;
  * @author ZNetwork
  * @since 07/02/2020
  */
-public class PacketsV16 extends PacketsV13 {
+public class PacketsV16 extends PacketsV9 {
     /**
      * Creates the packets for the given npc.
      *
-     * @param znpc The npc.
+     * @param npc The npc.
      */
-    public PacketsV16(ZNPC znpc) {
-        super(znpc);
+    public PacketsV16(ZNPC npc) {
+        super(npc);
     }
 
     @Override
-    public void getEquipPacket(ZNPCSlot itemSlot, ItemStack item) throws ReflectiveOperationException {
+    public void updateEquipPacket(ZNPCSlot itemSlot, ItemStack item) throws ReflectiveOperationException {
         List<Pair<?, ?>> pairs = Lists.newArrayListWithCapacity(ZNPCSlot.values().length);
         for (Map.Entry<ZNPCSlot, ItemStack> entry : getNPC().getNpcPojo().getNpcEquip().entrySet()) {
-            pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[entry.getKey().getSlotNew()],
-                    ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, entry.getValue())));
+            pairs.add(new Pair<>(ClassTypes.ENUM_ITEM_SLOT.getEnumConstants()[entry.getKey().getSlotNew()], ClassTypes.AS_NMS_COPY_METHOD.invoke(ClassTypes.CRAFT_ITEM_STACK_CLASS, entry.getValue())));
         }
         equipPackets.put("ALL", ClassTypes.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_V1.newInstance(getNPC().getEntityID(), pairs));
     }

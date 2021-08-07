@@ -45,7 +45,7 @@ public class PlayerListener implements Listener {
             event.setCancelled(true);
             // gui logic
             EventService<AsyncPlayerChatEvent> eventService = EventService.findService(zUser, AsyncPlayerChatEvent.class);
-            eventService.getEventConsumer().accept(event);
+            eventService.getEventConsumers().forEach(consumer -> consumer.accept(event));
             // remove
             zUser.getEventServices().remove(eventService);
         }

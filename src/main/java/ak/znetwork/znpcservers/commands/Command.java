@@ -5,6 +5,7 @@ import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.types.ClassTypes;
 
+import com.google.common.collect.Iterables;
 import org.bukkit.Bukkit;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.command.CommandMap;
@@ -58,7 +59,6 @@ public class Command extends BukkitCommand {
     private void load() {
         // Register the command
         COMMAND_MAP.register(getName(), this);
-
         for (Method method : getClass().getMethods()) {
             if (method.isAnnotationPresent(CommandInformation.class)) {
                 CommandInformation cmdInfo = method.getAnnotation(CommandInformation.class);
@@ -68,38 +68,31 @@ public class Command extends BukkitCommand {
     }
 
     /**
-     * Retuns {@code true} if the subcommand exists.
-     *
-     * @param subCommand The subCommand to check.
-     * @param input      The subCommand name.
-     * @return {@code true} If subcommand found.
-     */
-    private boolean contains(CommandInformation subCommand, String input) {
-        return Arrays.stream(subCommand.aliases())
-                .anyMatch(input::equalsIgnoreCase);
-    }
-
-    /**
      * Converts the provided subcommand arguments to a map.
      *
      * @param subCommand The subcommand.
      * @param args       The subcommand arguments.
      * @return A map with the subcommand arguments for the provided values.
      */
-    private Map<String, String> loadArgs(CommandInformation subCommand, String[] args) {
+    private Map<String, String> loadArgs(CommandInformation subCommand,
+                                         Iterable<String> args) {
+        int size = Iterables.size(args);
+        int subCommandsSize = subCommand.aliases().length;
         Map<String, String> argsMap = new HashMap<>();
-        for (int i = 1; i <= args.length; i++) {
-            String input = args[i - 1];
-            if (contains(subCommand, input)) {
-                StringBuilder value = new StringBuilder();
-                for (int text = i; text < args.length; ) {
-                    if (!contains(subCommand, args[text++])) {
-                        value.append(args[i++]).append(WHITESPACE);
-                    } else {
-                        break;
+        if (size > 1) {
+            if (subCommand.isMultiple()) {
+                argsMap.put(Iterables.get(args, 1), String.join(WHITESPACE, Iterables.skip(args, 2)));
+            } else {
+                for (int i = 0; i < Math.min(subCommandsSize, size); i++) {
+                    int fixedLength = i + 1;
+                    if (size > fixedLength) {
+                        String input = Iterables.get(args, fixedLength);
+                        if (fixedLength == subCommandsSize) {
+                            input = String.join(WHITESPACE, Iterables.skip(args, subCommandsSize));
+                        }
+                        argsMap.put(subCommand.aliases()[i], input);
                     }
                 }
-                argsMap.put(input.replace("-", ""), value.substring(0, Math.max(0, value.length() - 1)));
             }
         }
         return argsMap;
@@ -118,15 +111,18 @@ public class Command extends BukkitCommand {
     public boolean execute(org.bukkit.command.CommandSender sender, String commandLabel, String[] args) {
         Optional<Map.Entry<CommandInformation, CommandInvoker>> subCommandOptional =
                 subCommands.entrySet().stream()
-                .filter(subCommand -> subCommand.getKey().name().contentEquals(args.length > 0 ? args[0] : "")).findFirst();
+                        .filter(command -> command.getKey().name().contentEquals(args.length > 0 ? args[0] : ""))
+                        .findFirst();
+
         if (!subCommandOptional.isPresent()) {
-            // Sub-command not found
+            // sub-command not found
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);
             return false;
         }
 
         try {
-            subCommandOptional.get().getValue().execute(new CommandSender(sender), loadArgs(subCommandOptional.get().getKey(), args));
+            Map.Entry<CommandInformation, CommandInvoker> subCommand = subCommandOptional.get();
+            subCommand.getValue().execute(new CommandSender(sender), loadArgs(subCommand.getKey(), Arrays.asList(args)));
         } catch (CommandExecuteException e) {
             ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_ERROR);
 

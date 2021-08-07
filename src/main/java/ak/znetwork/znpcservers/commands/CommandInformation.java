@@ -27,4 +27,9 @@ public @interface CommandInformation {
      * The command permission.
      */
     String permission();
+
+    /**
+     * Determines if the command have multiple subcommands.
+     */
+    boolean isMultiple() default false;
 }

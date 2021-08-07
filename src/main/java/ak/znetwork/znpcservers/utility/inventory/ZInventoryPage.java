@@ -1,6 +1,10 @@
 package ak.znetwork.znpcservers.utility.inventory;
 
+import ak.znetwork.znpcservers.utility.itemstack.ItemStackBuilder;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -45,8 +49,23 @@ public abstract class ZInventoryPage {
                           int rows) {
         this.zInventory = zInventory;
         this.inventoryName = inventoryName;
-        this.rows = rows;
+        this.rows = 9*rows;
         this.inventoryItems = new ArrayList<>();
+        // check if the inventory opened a page before or its the first page
+        if (zInventory.getInventory() != null) {
+            // the last page
+            final ZInventoryPage zInventoryPage = zInventory.getCurrentPage();
+            // add back button
+            addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                    .setName(ChatColor.GREEN + "Go back")
+                    .setLore(ChatColor.GRAY  + "click here...")
+                    .build(), this.rows-9, true, event -> {
+                zInventory.setCurrentPage(zInventoryPage);
+                openInventory();
+            });
+        }
+        // set new page for inventory
+        zInventory.setCurrentPage(this);
     }
 
     /**
@@ -92,8 +111,7 @@ public abstract class ZInventoryPage {
      * @return If the page contains a item in the given slot.
      */
     public boolean hasItem(int slot) {
-        return inventoryItems.stream()
-                .anyMatch(zInventoryItem -> zInventoryItem.getSlot() == slot);
+        return inventoryItems.stream().anyMatch(zInventoryItem -> zInventoryItem.getSlot() == slot);
     }
 
     /**
@@ -119,12 +137,24 @@ public abstract class ZInventoryPage {
      */
     public void addItem(ItemStack itemStack,
                         int row,
+                        boolean isDefault,
                         ZInventoryCallback zInventoryCallback) {
-        if (hasItem(row)) {
-            throw new IllegalStateException("item at position " + row + " already exists");
-        }
-        inventoryItems.add(new ZInventoryItem(itemStack, row, zInventoryCallback));
+        inventoryItems.add(new ZInventoryItem(itemStack, row, isDefault, zInventoryCallback));
     }
+
+    /**
+     * Adds a new item.
+     *
+     * @param itemStack The item-stack.
+     * @param row The item position slot.
+     * @param zInventoryCallback The item click callback.
+     */
+    public void addItem(ItemStack itemStack,
+                        int row,
+                        ZInventoryCallback zInventoryCallback) {
+        addItem(itemStack, row, false, zInventoryCallback);
+    }
+
 
     /**
      * The player that created the inventory.

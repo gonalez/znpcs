@@ -6,14 +6,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class CommandSender {
     /**
@@ -61,7 +62,11 @@ public class CommandSender {
      * @param subCommand The sub-command.
      */
     public void sendMessage(CommandInformation subCommand) {
-        sendMessage(" &f&l* &6/&eznpcs " + subCommand.name() + " " + String.join(" ", subCommand.aliases()), Arrays.asList(subCommand.help()));
+        sendMessage("&f&l* &6/&eznpcs " + subCommand.name() + " " +
+                        Arrays.stream(subCommand.aliases())
+                                .map(s -> "<" + s + ">")
+                                .collect(Collectors.joining(" ")),
+                Arrays.asList(subCommand.help()));
     }
 
     /**
@@ -70,20 +75,24 @@ public class CommandSender {
      * @param message The message to send.
      */
     public void sendMessage(String message, Iterable<String> hover) {
-        final TextComponent textMessage = new TextComponent(Utils.toColor(message));
+        final TextComponent textComponent = new TextComponent();
+        for (BaseComponent baseComponent : TextComponent.fromLegacyText(Utils.toColor(message))) {
+            textComponent.addExtra(baseComponent);
+        }
+        // set hover event for help messages
         if (hover != null) {
-            textMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+            textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                     new ComponentBuilder(Utils.toColor(LINE_SEPARATOR_JOINER
                             .join(Iterables.concat(HELP_PREFIX, hover))))
                             .create())
             );
         }
-        getPlayer().spigot().sendMessage(textMessage);
+        getPlayer().spigot().sendMessage(textComponent);
     }
 
     /**
      * Returns the command sender as player.
-     *
+     * <p>
      * If the sender command is not represented by Player.class,
      * The method will throw an IllegalStateException.
      *

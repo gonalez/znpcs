@@ -1,7 +1,10 @@
 package ak.znetwork.znpcservers.user;
 
+import com.google.common.collect.ImmutableList;
 import org.bukkit.event.Event;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -20,18 +23,18 @@ public class EventService<T extends Event> {
     /**
      * The event consumer.
      */
-    private final Consumer<T> eventConsumer;
+    private final List<Consumer<T>> eventConsumers;
 
     /**
      * Creates a new service for the given event.
      *
      * @param eventClass The event class.
-     * @param eventConsumer The event consumer.
+     * @param eventConsumers The event consumers.
      */
-    public EventService(Class<T> eventClass,
-                        Consumer<T> eventConsumer)  {
+    protected EventService(Class<T> eventClass,
+                        List<Consumer<T>> eventConsumers)  {
         this.eventClass = eventClass;
-        this.eventConsumer = eventConsumer;
+        this.eventConsumers = eventConsumers;
     }
 
     /**
@@ -44,30 +47,42 @@ public class EventService<T extends Event> {
     }
 
     /**
-     * Returns the event consumer.
+     * Returns the event consumers.
      *
-     * @return The event consumer.
+     * @return The event consumers.
      */
-    public Consumer<T> getEventConsumer() {
-        return eventConsumer;
+    public List<Consumer<T>> getEventConsumers() {
+        return eventConsumers;
     }
 
     /**
-     * Setups a new event service for the given player.
+     * Adds a new operation consumer for the event service.
+     *
+     * @param consumer The operation to add.
+     * @return The current event service.
+     */
+    public EventService<T> addConsumer(Consumer<T> consumer) {
+        getEventConsumers().add(consumer);
+        return this;
+    }
+
+    /**
+     * Registers a new event service for the given player.
      *
      * @param zUser The user to add the service for.
-     * @param eventClass The event class.
-     * @param eventConsumer The consumer to run when the player runs the event.
+     * @param eventServiceClass The event class.
      * @param <T> The event type.
      */
-    public static <T extends Event> void addService(ZUser zUser,
-                                             Class<T> eventClass,
-                                             Consumer<T> eventConsumer) {
-        if (hasService(zUser, eventClass)) {
-            throw new IllegalStateException(eventClass.getSimpleName() + " is already register for " + zUser.getUuid().toString());
+    public static <T extends Event> EventService<T> addService(ZUser zUser,
+                                                    Class<T> eventServiceClass) {
+        if (hasService(zUser, eventServiceClass)) {
+            throw new IllegalStateException(eventServiceClass.getSimpleName() + " is already register for " + zUser.getUuid().toString());
         }
-        zUser.getEventServices().add(new EventService<>(eventClass, eventConsumer));
+        EventService<T> service = new EventService<>(eventServiceClass, new ArrayList<>());
+        zUser.getEventServices().add(service);
+        // close inventory for player
         zUser.toPlayer().closeInventory();
+        return service;
     }
 
     /**
