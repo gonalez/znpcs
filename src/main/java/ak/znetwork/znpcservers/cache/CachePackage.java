@@ -1,13 +1,9 @@
 package ak.znetwork.znpcservers.cache;
 
-import ak.znetwork.znpcservers.utility.ReflectionUtils;
 import ak.znetwork.znpcservers.utility.Utils;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * The possible packages when building a {@link TypeCache.CacheBuilder}.
  */
 public enum CachePackage {
     /**
@@ -15,12 +11,11 @@ public enum CachePackage {
      */
     DEFAULT(),
     /**
-     * Craft Bukkit package.
+     * Craft bukkit package.
      */
-    CRAFT_BUKKIT("org.bukkit.craftbukkit." + ReflectionUtils.getBukkitPackage()),
-
+    CRAFT_BUKKIT("org.bukkit.craftbukkit." + Utils.getBukkitPackage()),
     /**
-     * Minecraft Server package for > 1.17.
+     * Minecraft server package.
      */
     MINECRAFT_SERVER("net.minecraft");
 
@@ -47,7 +42,7 @@ public enum CachePackage {
     CachePackage(String packageName) {
         this.fixedPackageName = Utils.BUKKIT_VERSION > 16 ? // v1.17+
                 packageName :
-                packageName + (packageName.contains("minecraft") ? DOT + "server" + DOT + ReflectionUtils.getBukkitPackage() : EMPTY_STRING);
+                packageName + (packageName.contains("minecraft") ? DOT + "server" + DOT + Utils.getBukkitPackage() : EMPTY_STRING);
     }
 
     /**
@@ -68,16 +63,6 @@ public enum CachePackage {
         return Utils.BUKKIT_VERSION > 16 ?
                 fixedPackageName + packetCategory.getSubPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
                 fixedPackageName;
-    }
-
-    /**
-     * Locates a package by its category.
-     *
-     * @param packetCategory The packet category.
-     * @return The package name for category.
-     */
-    public String getForCategory(CacheCategory packetCategory) {
-        return getForCategory(packetCategory, EMPTY_STRING);
     }
 
     /**

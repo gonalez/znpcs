@@ -1,11 +1,14 @@
 package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.configuration.ConfigKey;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
-import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
+import org.bukkit.Location;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -17,17 +20,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.bukkit.Location;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.Vector;
-
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * @inheritDoc
  */
-public interface ZNPCPath {
+public interface NPCPath {
     /**
      * Reads all the path attributes.
      *
@@ -53,7 +49,7 @@ public interface ZNPCPath {
      * @param npc The npc.
      * @return A new path the current type.
      */
-    PathInitializer getPath(ZNPC npc);
+    PathInitializer getPath(NPC npc);
 
     /**
      * {@inheritDoc}
@@ -78,7 +74,7 @@ public interface ZNPCPath {
             /**
              * The npc in which the path will be handled.
              */
-            private final ZNPC npc;
+            private final NPC npc;
 
             /**
              * The path type.
@@ -96,7 +92,7 @@ public interface ZNPCPath {
              * @param npc The npc.
              * @param typeWriter The path type.
              */
-            public AbstractPath(ZNPC npc,
+            public AbstractPath(NPC npc,
                                 AbstractTypeWriter typeWriter) {
                 this.npc = npc;
                 this.typeWriter = typeWriter;
@@ -107,7 +103,7 @@ public interface ZNPCPath {
              *
              * @return The npc in which the path will be handled.
              */
-            public ZNPC getNpc() {
+            public NPC getNpc() {
                 return npc;
             }
 
@@ -194,9 +190,9 @@ public interface ZNPCPath {
     }
 
     /**
-     * An abstract implementation of a {@link ZNPCPath}
+     * An abstract implementation of a {@link NPCPath}
      */
-    abstract class AbstractTypeWriter implements ZNPCPath {
+    abstract class AbstractTypeWriter implements NPCPath {
         /**
          * The class logger.
          */
@@ -362,7 +358,7 @@ public interface ZNPCPath {
             /**
              * The maximum locations that the path can have.
              */
-            private static final int MAX_LOCATIONS = ConfigManager.getByType(ConfigType.CONFIG).getValue(ConfigValue.MAX_PATH_LOCATIONS);
+            private static final int MAX_LOCATIONS = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.MAX_PATH_LOCATIONS);
 
             /**
              * The player who is creating the path.
@@ -420,7 +416,7 @@ public interface ZNPCPath {
                 while (locationIterator.hasNext()) {
                     final ZLocation location = locationIterator.next();
                     // location world name
-                    dataOutputStream.writeUTF(location.getWorld());
+                    dataOutputStream.writeUTF(location.getWorldName());
                     // location x,y,z,yaw,pitch
                     dataOutputStream.writeDouble(location.getX());
                     dataOutputStream.writeDouble(location.getY());
@@ -441,7 +437,7 @@ public interface ZNPCPath {
                 // start creation task for path
                 bukkitTask = ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
                     // check if the player who is creating the path is online and
-                    // current saved path locations haven't exceed the limit
+                    // the current saved path locations haven't exceed the limit
                     if (npcUser.toPlayer() != null && npcUser.isHasPath() && MAX_LOCATIONS > getLocationList().size()) {
                         final Location location = npcUser.toPlayer().getLocation();
                         // check if location is valid
@@ -450,18 +446,16 @@ public interface ZNPCPath {
                             getLocationList().add(new ZLocation(location));
                         }
                     } else {
-                        // cancel task...
                         bukkitTask.cancel();
                         // set user creation path to none
                         npcUser.setHasPath(false);
-                        // write path to file
                         write();
                     }
                 }, PATH_DELAY, PATH_DELAY);
             }
 
             @Override
-            public MovementPath getPath(ZNPC npc) {
+            public MovementPath getPath(NPC npc) {
                 return new MovementPath(npc, this);
             }
 
@@ -495,7 +489,7 @@ public interface ZNPCPath {
                 private int currentEntryPath = 0;
 
                 /**
-                 * Determines if path is running backwards or forwards.
+                 * Determines if the path is running backwards or forwards.
                  */
                 private boolean pathReverse = false;
 
@@ -505,7 +499,7 @@ public interface ZNPCPath {
                  * @param npc The npc that will be handled.
                  * @param path The path that will handle the npc.
                  */
-                public MovementPath(ZNPC npc,
+                public MovementPath(NPC npc,
                                     TypeMovement path) {
                     super(npc, path);
                 }
@@ -538,7 +532,7 @@ public interface ZNPCPath {
                     final ZLocation next = getPath().getLocationList().get(getNextLocation());
                     // add y diff (elevation)
                     Vector vector = next.toVector().add(new Vector(0, location.getY() - next.getY(), 0));
-                    Location direction = next.toBukkitLocation().clone().setDirection(location.toVector().subtract(vector).
+                    Location direction = next.bukkitLocation().clone().setDirection(location.toVector().subtract(vector).
                             multiply(new Vector(-1, 0, -1))); // Reverse
                     getNpc().setLocation(direction);
                     // look at next location

@@ -1,34 +1,34 @@
 package ak.znetwork.znpcservers.commands;
 
 import ak.znetwork.znpcservers.utility.Utils;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a sender that is dispatching a {@link Command}.
+ */
 public class CommandSender {
     /**
-     * Fix array spaces for bungee.
+     * Fix array of spaces for bungee.
      */
     static final Joiner LINE_SEPARATOR_JOINER = Joiner.on("\n");
 
     /**
-     * Start help message.
+     * The default help message for the command.
      */
-    private static final ImmutableList<String> HELP_PREFIX = ImmutableList.of("&eExample &7(Ejemplo)");
+    private static final ImmutableList<String> HELP_PREFIX = ImmutableList.of("&6&lEXAMPLES&r:");
 
     /**
-     * The command sender.
+     * The bukkit command sender.
      */
     private final org.bukkit.command.CommandSender commandSender;
 
@@ -38,7 +38,7 @@ public class CommandSender {
     private final SenderType type;
 
     /**
-     * Creates a new command sender type.
+     * Creates a new {@link CommandSender} for a bukkit sender.
      *
      * @param commandSender The command sender.
      */
@@ -57,20 +57,20 @@ public class CommandSender {
     }
 
     /**
-     * Sends the sub-command help message to the command sender.
+     * Sends the sub command help message to the command sender.
      *
      * @param subCommand The sub-command.
      */
     public void sendMessage(CommandInformation subCommand) {
-        sendMessage("&f&l* &6/&eznpcs " + subCommand.name() + " " +
-                        Arrays.stream(subCommand.aliases())
+        sendMessage(" &7» &6/&eznpcs " + subCommand.name() + " " +
+                        Arrays.stream(subCommand.arguments())
                                 .map(s -> "<" + s + ">")
                                 .collect(Collectors.joining(" ")),
                 Arrays.asList(subCommand.help()));
     }
 
     /**
-     * Sends a hover-message to the command sender.
+     * Sends a hover message to the command sender.
      *
      * @param message The message to send.
      */
@@ -91,12 +91,11 @@ public class CommandSender {
     }
 
     /**
-     * Returns the command sender as player.
-     * <p>
-     * If the sender command is not represented by Player.class,
-     * The method will throw an IllegalStateException.
+     * Returns the command sender as a {@link Player}.
+     * If the sender is not a player the method will throw an {@link IllegalStateException}.
      *
      * @return The player command sender.
+     * @throws IllegalStateException If the sender is not a player.
      */
     public Player getPlayer() {
         if (type != SenderType.PLAYER) {
@@ -106,25 +105,22 @@ public class CommandSender {
     }
 
     /**
-     * Returns the command sender.
+     * Returns the bukkit command sender.
      *
-     * @return The command sender
+     * @return The bukkit command sender
      */
     public org.bukkit.command.CommandSender getCommandSender() {
         return commandSender;
     }
 
     /**
-     * This enum represents the sender type,
-     * that has executed a command.
+     * This enum represents the sender type, that has executed the command.
      */
     enum SenderType {
-
         /**
          * Represents when a command has been executed by a player.
          */
         PLAYER,
-
         /**
          * Represents when a command has been executed by console.
          */

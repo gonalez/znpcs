@@ -3,27 +3,23 @@ package ak.znetwork.znpcservers.tasks;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-
+import ak.znetwork.znpcservers.npc.NPC;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * A Task to save NPCs.
- *
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Runnable task for saving the created {@link NPC}s.
  */
 public class NPCSaveTask extends BukkitRunnable {
     /**
-     * Initialization of the task to save all created NPC.
+     * Creates a new task. This task will handle the saving of
+     * all created {@link NPC}s.
      *
      * @param serversNPC The plugin instance.
-     * @param seconds How often the npc will be saved (in seconds).
+     * @param seconds How often to save.
      */
     public NPCSaveTask(ServersNPC serversNPC,
                        int seconds) {
-        this.runTaskTimer(serversNPC, 100L, seconds);
+        this.runTaskTimer(serversNPC, 200L, seconds);
     }
 
     @Override

@@ -1,11 +1,11 @@
-package ak.znetwork.znpcservers.npc.packets;
+package ak.znetwork.znpcservers.npc.packet;
 
-import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.ZNPCSlot;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.ItemSlot;
 
-import ak.znetwork.znpcservers.npc.ZNPCType;
-import ak.znetwork.znpcservers.types.ClassTypes;
-import ak.znetwork.znpcservers.utility.ReflectionUtils;
+import ak.znetwork.znpcservers.npc.NPCType;
+import ak.znetwork.znpcservers.npc.ToggleType;
+import ak.znetwork.znpcservers.cache.CacheRegistry;
 import ak.znetwork.znpcservers.utility.Utils;
 
 import org.bukkit.inventory.ItemStack;
@@ -15,16 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Contains a {@link NPC} packets for the current bukkit version.
  */
-public abstract class Packets {
+public abstract class AbstractPacket {
     /**
      * The npc.
      */
-    private final ZNPC znpc;
+    private final NPC npc;
 
     /**
      * The packet equipment values.
@@ -41,8 +38,8 @@ public abstract class Packets {
      *
      * @param npc The npc.
      */
-    public Packets(ZNPC npc) {
-        this.znpc = npc;
+    protected AbstractPacket(NPC npc) {
+        this.npc = npc;
         equipPackets = new HashMap<>();
     }
 
@@ -65,7 +62,7 @@ public abstract class Packets {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    public abstract void updateEquipPacket(ZNPCSlot itemSlot, ItemStack itemStack) throws ReflectiveOperationException;
+    public abstract void updateEquipPacket(ItemSlot itemSlot, ItemStack itemStack) throws ReflectiveOperationException;
 
     /**
      * Returns the click type for the given interact packet.
@@ -98,7 +95,7 @@ public abstract class Packets {
      * @throws ReflectiveOperationException When failed to call the method.
      */
     public Object getDestroyPacket(int entityId) throws ReflectiveOperationException {
-        return ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(ClassTypes.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getParameterTypes()[0].isArray() ? new int[]{entityId} : entityId);
+        return CacheRegistry.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.newInstance(CacheRegistry.PACKET_PLAY_OUT_ENTITY_DESTROY_CONSTRUCTOR.getParameterTypes()[0].isArray() ? new int[]{entityId} : entityId);
     }
 
     /**
@@ -121,40 +118,41 @@ public abstract class Packets {
         // +v1.9
         final boolean isVersion9 = Utils.BUKKIT_VERSION > 8;
         Object scoreboardTeamPacket = isVersion17 ?
-                ClassTypes.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName()) : ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
+                CacheRegistry.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName()) : CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
         if (!isVersion17) {
-            ReflectionUtils.setValue(scoreboardTeamPacket, "a", getNPC().getGameProfile().getName());
-            ReflectionUtils.setValue(scoreboardTeamPacket, isVersion9 ? "i" : "h", 1);
+            Utils.setValue(scoreboardTeamPacket, "a", getNPC().getGameProfile().getName());
+            Utils.setValue(scoreboardTeamPacket, isVersion9 ? "i" : "h", 1);
         }
         // set new scoreboard delete packet
-        scoreboardDeletePacket = isVersion17 ? ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CREATE_V1.invoke(null, scoreboardTeamPacket) : scoreboardTeamPacket;
+        scoreboardDeletePacket = isVersion17 ? CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CREATE_V1.invoke(null, scoreboardTeamPacket) : scoreboardTeamPacket;
         if (isVersion17) {
             // new class for scoreboard add packet
-            scoreboardTeamPacket = ClassTypes.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName());
-            ReflectionUtils.setValue(scoreboardTeamPacket, "e", getNPC().getGameProfile().getName());
-            ReflectionUtils.setValue(scoreboardTeamPacket, "l", ClassTypes.ENUM_TAG_VISIBILITY_NEVER.get(null));
+            scoreboardTeamPacket = CacheRegistry.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName());
+            Utils.setValue(scoreboardTeamPacket, "e", getNPC().getGameProfile().getName());
+            Utils.setValue(scoreboardTeamPacket, "l", CacheRegistry.ENUM_TAG_VISIBILITY_NEVER.get(null));
         } else {
             // new class for scoreboard add packet
-            scoreboardTeamPacket = ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
-            ReflectionUtils.setValue(scoreboardTeamPacket, "a", getNPC().getGameProfile().getName());
-            ReflectionUtils.setValue(scoreboardTeamPacket, "e", "never");
-            ReflectionUtils.setValue(scoreboardTeamPacket, isVersion9 ? "i" : "h", 0);
+            scoreboardTeamPacket = CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
+            Utils.setValue(scoreboardTeamPacket, "a", getNPC().getGameProfile().getName());
+            Utils.setValue(scoreboardTeamPacket, "e", "never");
+            Utils.setValue(scoreboardTeamPacket, isVersion9 ? "i" : "h", 0);
         }
         // the entity list to update the scoreboard for (npc)
         Collection<String> collection = (Collection<String>) (isVersion17 ?
-                ClassTypes.SCOREBOARD_PLAYER_LIST.invoke(scoreboardTeamPacket) : ReflectionUtils.getValue(scoreboardTeamPacket, isVersion9 ? "h" : "g"));
-        if (getNPC().getNpcPojo().getNpcType() == ZNPCType.PLAYER) {
+                CacheRegistry.SCOREBOARD_PLAYER_LIST.invoke(scoreboardTeamPacket) : Utils.getValue(scoreboardTeamPacket, isVersion9 ? "h" : "g"));
+        if (getNPC().getNpcPojo().getNpcType() == NPCType.PLAYER) {
             collection.add(getNPC().getGameProfile().getName());
         } else {
             // non-player entities must be added with their uuid
             collection.add(getNPC().getUuid().toString());
         }
         // check if version support glow color and the npc has glow activated
-        if (getNPC().getNpcPojo().isHasGlow() && allowGlowColor()) {
+        if (ToggleType.isTrue(npc,
+                ToggleType.GLOW) && allowGlowColor()) {
             // update scoreboard with glow
             updateGlowPacket(scoreboardTeamPacket);
         }
-        scoreboardSpawnPacket = isVersion17 ? ClassTypes.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CREATE.invoke(null, scoreboardTeamPacket, true) : scoreboardTeamPacket;
+        scoreboardSpawnPacket = isVersion17 ? CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CREATE.invoke(null, scoreboardTeamPacket, true) : scoreboardTeamPacket;
     }
 
     /**
@@ -162,19 +160,19 @@ public abstract class Packets {
      *
      * @return The npc.
      */
-    public ZNPC getNPC() {
-        return znpc;
+    public NPC getNPC() {
+        return npc;
     }
 
     /**
-     * Returns the packet instance for the given version.
+     * Returns a {@link AbstractPacket} instance for the given version.
      *
      * @param npc     The npc.
      * @param version The current version.
      * @return The packet class for the given version.
      */
-    public static Packets getByVersion(ZNPC npc,
-                                       int version) {
+    public static AbstractPacket getByVersion(NPC npc,
+                                              int version) {
         if (version > 16) {
             return new PacketsV17(npc);
         } else if (version > 15) {

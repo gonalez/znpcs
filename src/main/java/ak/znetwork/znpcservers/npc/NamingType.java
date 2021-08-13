@@ -3,27 +3,21 @@ package ak.znetwork.znpcservers.npc;
 import ak.znetwork.znpcservers.utility.Utils;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Enumerates all possible names for a {@link NPC}.
  */
 public enum NamingType {
-    /** Default */
     DEFAULT {
         @Override
-        public String resolve(ZNPC znpc) {
+        public String resolve(NPC npc) {
             return Utils.randomString(FIXED_LENGTH);
         }
     };
 
-    /**
-     * Default length for tab npc name.
-     */
+    /** Default length for tab npc name. */
     private static final int FIXED_LENGTH = 6;
 
     /**
      * {@inheritDoc}
      */
-    public abstract String resolve(ZNPC znpc);
+    public abstract String resolve(NPC npc);
 }

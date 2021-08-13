@@ -1,12 +1,9 @@
 package ak.znetwork.znpcservers.configuration;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * List of the configuration types used to identify a configuration by its type.
  */
-public enum ConfigType {
+public enum ConfigKey {
     CONFIG,
     MESSAGES,
     DATA,

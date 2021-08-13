@@ -1,15 +1,12 @@
-package ak.znetwork.znpcservers.hologram.replacer;
+package ak.znetwork.znpcservers.npc.hologram.replacer;
 
-import ak.znetwork.znpcservers.types.ConfigTypes;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 21/7/2021
+ * Enables RGB for the string.
  */
 public class RGBLine implements LineReplacer<String> {
     /**

@@ -8,10 +8,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Helper functions for BungeeCord.
  */
 public class BungeeUtils {
     /**
@@ -20,7 +17,7 @@ public class BungeeUtils {
     private final Plugin plugin;
 
     /**
-     * Initializes bungee utils.
+     * Creates the bungee utils for the plugin.
      *
      * @param plugin The plugin instance.
      */
@@ -31,7 +28,7 @@ public class BungeeUtils {
     /**
      * Sends a player to a bungee server.
      *
-     * @param player The player to send to the server.
+     * @param player The player to send to.
      * @param server The server name.
      */
     public void sendPlayerToServer(Player player, String server) {

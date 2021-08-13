@@ -4,92 +4,82 @@ import ak.znetwork.znpcservers.utility.itemstack.ItemStackBuilder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 2/8/2021
+* An abstract class, necessary to build a {@link ZInventory}.
  */
 public abstract class ZInventoryPage {
-    /**
-     * The inventory.
-     */
+    /** The inventory in which the page will be created. */
     private final ZInventory zInventory;
 
-    /**
-     * The page inventory name.
-     */
-    private final String inventoryName;
+    /** The name of the inventory of this page. */
+    private final String pageName;
 
     /**
-     * The page inventory rows.
+     * Represents the inventory {@link Inventory#getSize()} of this page.
+     * <p>
+     * Each row represents 9 slots for a inventory.
+     * <b>NOTE:</b> An inventory cannot have a size of more than 54 slots
+     * so the maximum of rows for an inventory is {@code 6}.
+     * If try to create an page with more than 6 rows an exception will be thrown
+     * as described in {@link ZInventory#build(ZInventoryPage)}
      */
     private final int rows;
 
     /**
-     * The page items.
+     * The items for the page.
      */
     private final List<ZInventoryItem> inventoryItems;
 
     /**
-     * Creates a new page for a {@link ZInventory}.
+     * Creates a new page for an {@link ZInventory}.
      *
-     * @param zInventory The inventory.
-     * @param inventoryName The page inventory name;
-     * @param rows The page rows.
+     * @param zInventory    The inventory.
+     * @param inventoryName The page name;
+     * @param rows          The page rows.
      */
     public ZInventoryPage(ZInventory zInventory,
                           String inventoryName,
                           int rows) {
         this.zInventory = zInventory;
-        this.inventoryName = inventoryName;
-        this.rows = 9*rows;
+        this.pageName = inventoryName;
+        this.rows = 9 * rows;
         this.inventoryItems = new ArrayList<>();
-        // check if the inventory opened a page before or its the first page
-        if (zInventory.getInventory() != null) {
-            // the last page
-            final ZInventoryPage zInventoryPage = zInventory.getCurrentPage();
-            // add back button
+        if (zInventory.getInventory() != null) { // check if the inventory opened a page before
+            final ZInventoryPage zInventoryPage = zInventory.getPage();
+            // back button
             addItem(ItemStackBuilder.forMaterial(Material.ARROW)
                     .setName(ChatColor.GREEN + "Go back")
-                    .setLore(ChatColor.GRAY  + "click here...")
-                    .build(), this.rows-9, true, event -> {
+                    .setLore(ChatColor.GRAY  +  "click here...")
+                    .build(), this.rows - 9, true, event -> {
                 zInventory.setCurrentPage(zInventoryPage);
                 openInventory();
             });
         }
-        // set new page for inventory
         zInventory.setCurrentPage(this);
     }
 
     /**
-     * The inventory.
-     *
-     * @return Returns the inventory.
+     * Returns the page inventory.
      */
     public ZInventory getInventory() {
         return zInventory;
     }
 
     /**
-     * Returns the page inventory name.
-     *
-     * @return The page inventory name.
+     * Returns the page name.
      */
-    public String getInventoryName() {
-        return inventoryName;
+    public String getPageName() {
+        return pageName;
     }
 
     /**
      * Returns the page rows.
-     *
-     * @return The page rows.
      */
     public int getRows() {
         return rows;
@@ -97,29 +87,27 @@ public abstract class ZInventoryPage {
 
     /**
      * Returns the page items.
-     *
-     * @return The page items.
      */
     public List<ZInventoryItem> getInventoryItems() {
         return inventoryItems;
     }
 
     /**
-     * Returns {@code true} if the page contains a item in the given slot.
+     * Returns {@code true} if the page contains an item in the given slot.
      *
-     * @param slot The slot to check for a item.
-     * @return If the page contains a item in the given slot.
+     * @param slot The slot to check for.
+     * @return {@code true}  If the page contains an item in the given slot.
      */
-    public boolean hasItem(int slot) {
+    public boolean containsItem(int slot) {
         return inventoryItems.stream().anyMatch(zInventoryItem -> zInventoryItem.getSlot() == slot);
     }
 
     /**
-     * Finds a item in the given slot, if no item is found
-     * The method will throw an {@link IllegalStateException}
+     * Tries to find a item on the given slot.
      *
-     * @param slot The slot to find the item.
-     * @return The found item.
+     * @param slot The slot.
+     * @return The item.
+     * @throws IllegalStateException If the item can't be found.
      */
     public ZInventoryItem findItem(int slot) {
         return inventoryItems.stream()
@@ -129,44 +117,41 @@ public abstract class ZInventoryPage {
     }
 
     /**
-     * Adds a new item.
+     * Adds a new page item.
      *
-     * @param itemStack The item-stack.
-     * @param row The item position slot.
-     * @param zInventoryCallback The item click callback.
+     * @param itemStack The item stack.
+     * @param slot      The item position slot.
+     * @param callback  The item click callback.
      */
     public void addItem(ItemStack itemStack,
-                        int row,
+                        int slot,
                         boolean isDefault,
-                        ZInventoryCallback zInventoryCallback) {
-        inventoryItems.add(new ZInventoryItem(itemStack, row, isDefault, zInventoryCallback));
+                        ZInventoryCallback callback) {
+        inventoryItems.add(new ZInventoryItem(itemStack, slot, isDefault, callback));
     }
 
     /**
-     * Adds a new item.
+     * Adds a new page item.
      *
      * @param itemStack The item-stack.
-     * @param row The item position slot.
-     * @param zInventoryCallback The item click callback.
+     * @param slot      The item position slot.
+     * @param callback  The item click callback.
      */
     public void addItem(ItemStack itemStack,
-                        int row,
-                        ZInventoryCallback zInventoryCallback) {
-        addItem(itemStack, row, false, zInventoryCallback);
+                        int slot,
+                        ZInventoryCallback callback) {
+        addItem(itemStack, slot, false, callback);
     }
 
-
     /**
-     * The player that created the inventory.
-     *
-     * @return The player that created the inventory.
+     * Returns the player that created the inventory.
      */
     public Player getPlayer() {
         return zInventory.getPlayer();
     }
 
     /**
-     * Open the inventory again for the player.
+     * Open inventory again for the player.
      */
     public void openInventory() {
         zInventory.getPlayer().openInventory(zInventory.build());

@@ -1,6 +1,5 @@
 package ak.znetwork.znpcservers.user;
 
-import com.google.common.collect.ImmutableList;
 import org.bukkit.event.Event;
 
 import java.util.ArrayList;
@@ -8,39 +7,36 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 3/8/2021
+ * A build event service.
+ * <p />
+ * Create a new {@link EventService<T>} using the {@link #addService(ZUser, Class)} method.
+ * <p>
+ * <b>NOTE</b> For the service to be executed for the user you need to create a method with the {@link org.bukkit.event.Event} class type.
+ * annotated with {@link org.bukkit.event.EventHandler}.
+ * </p>
+ * @param <T> The event class type.
  */
-@SuppressWarnings("unchecked")
 public class EventService<T extends Event> {
-    /**
-     * The event class.
-     */
+    /** The event class. */
     private final Class<T> eventClass;
 
-    /**
-     * The event consumer.
-     */
+    /** A list of consumers, these will be ran when the user triggers the event. */
     private final List<Consumer<T>> eventConsumers;
 
     /**
-     * Creates a new service for the given event.
+     * Creates a new {@link EventService}.
      *
      * @param eventClass The event class.
      * @param eventConsumers The event consumers.
      */
     protected EventService(Class<T> eventClass,
-                        List<Consumer<T>> eventConsumers)  {
+                           List<Consumer<T>> eventConsumers) {
         this.eventClass = eventClass;
         this.eventConsumers = eventConsumers;
     }
 
     /**
      * Returns the event class.
-     *
-     * @return The event class.
      */
     public Class<T> getEventClass() {
         return eventClass;
@@ -48,8 +44,6 @@ public class EventService<T extends Event> {
 
     /**
      * Returns the event consumers.
-     *
-     * @return The event consumers.
      */
     public List<Consumer<T>> getEventConsumers() {
         return eventConsumers;
@@ -67,34 +61,35 @@ public class EventService<T extends Event> {
     }
 
     /**
-     * Registers a new event service for the given player.
+     * Registers a new {@link EventService} for the given user.
      *
-     * @param zUser The user to add the service for.
-     * @param eventServiceClass The event class.
+     * @param user The user to add the service for.
+     * @param eventClass The event class.
      * @param <T> The event type.
+     * @throws IllegalStateException If the {@code user} already has a service for the given {@code eventServiceClass}.
      */
-    public static <T extends Event> EventService<T> addService(ZUser zUser,
-                                                    Class<T> eventServiceClass) {
-        if (hasService(zUser, eventServiceClass)) {
-            throw new IllegalStateException(eventServiceClass.getSimpleName() + " is already register for " + zUser.getUuid().toString());
+    public static <T extends Event> EventService<T> addService(ZUser user, Class<T> eventClass) {
+        if (hasService(user, eventClass)) {
+            throw new IllegalStateException(eventClass.getSimpleName() + " is already register for " + user.getUUID().toString());
         }
-        EventService<T> service = new EventService<>(eventServiceClass, new ArrayList<>());
-        zUser.getEventServices().add(service);
-        // close inventory for player
-        zUser.toPlayer().closeInventory();
+        EventService<T> service = new EventService<>(eventClass, new ArrayList<>());
+        user.getEventServices().add(service);
+        // close inventory for the user
+        user.toPlayer().closeInventory();
         return service;
     }
 
     /**
-     * Finds a event service for the given user.
+     * Tries to find a event service for the given user,
+     * if no service is found the method will return {@code null}.
      *
-     * @param zUser The user to find the service for.
+     * @param user The user to find the service for.
      * @param eventClass The event class.
      * @param <T> The event type.
      */
-    public static <T extends Event> EventService<T> findService(ZUser zUser,
-                                                                Class<T> eventClass) {
-        return zUser.getEventServices().stream()
+    @SuppressWarnings("unchecked")
+    public static <T extends Event> EventService<T> findService(ZUser user, Class<T> eventClass) {
+        return user.getEventServices().stream()
                 .filter(eventService -> eventService.getEventClass().isAssignableFrom(eventClass))
                 .map(EventService.class::cast)
                 .findFirst()
@@ -102,15 +97,13 @@ public class EventService<T extends Event> {
     }
 
     /**
-     * Returns {@code true} if the user has a event service on the given event class.
+     * Returns {@code true} if the user has a event service on the given {@code eventClass}.
      *
-     * @param zUser The user.
+     * @param user The user.
      * @param eventClass The event class.
-     * @return If the user has a event service on the given event class.
+     * @return {@code true} the user has a event service for the given {@code eventClass}.
      */
-    public static boolean hasService(ZUser zUser,
-                                     Class<? extends Event> eventClass) {
-        return zUser.getEventServices().stream()
-                .anyMatch(eventService -> eventService.getEventClass() == eventClass);
+    public static boolean hasService(ZUser user, Class<? extends Event> eventClass) {
+        return user.getEventServices().stream().anyMatch(eventService -> eventService.getEventClass() == eventClass);
     }
 }

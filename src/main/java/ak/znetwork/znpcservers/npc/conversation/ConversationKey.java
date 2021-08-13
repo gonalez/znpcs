@@ -1,6 +1,6 @@
 package ak.znetwork.znpcservers.npc.conversation;
 
-import ak.znetwork.znpcservers.npc.ZNPCAction;
+import ak.znetwork.znpcservers.npc.NPCAction;
 import com.google.common.base.Splitter;
 
 import java.util.ArrayList;
@@ -9,15 +9,12 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
+ * Key that identifies a text for a {@link Conversation},
+ * {@link Conversation#getTexts()}.
  *
- * @author ZNetwork
- * @since 2/8/2021
+ * @see Conversation
  */
 public class ConversationKey {
-    /**
-     * Splitter.
-     */
     private static final Splitter SPACE_SPLITTER = Splitter.on(" ");
 
     /**
@@ -28,10 +25,10 @@ public class ConversationKey {
     /**
      * The conversation text actions.
      */
-    private final List<ZNPCAction> actions;
+    private final List<NPCAction> actions;
 
     /**
-     * The seconds to wait to send the text message.
+     * The delay to wait to send the text lines. in seconds
      */
     private int delay = 1;
 
@@ -41,7 +38,7 @@ public class ConversationKey {
     private String soundName;
 
     /**
-     * Creates a new conversation line.
+     * Creates a new {@link ConversationKey}.
      *
      * @param line The conversation text line.
      */
@@ -50,9 +47,9 @@ public class ConversationKey {
     }
 
     /**
-     * Creates a new conversation line.
+     * Creates a new {@link ConversationKey}.
      *
-     * @param line The conversation text line.
+     * @param line The conversation text lines.
      */
     public ConversationKey(Iterable<String> line) {
         this.lines = StreamSupport.stream(line.spliterator(), false).map(String::toString).collect(Collectors.toList());
@@ -60,18 +57,14 @@ public class ConversationKey {
     }
 
     /**
-     * The key lines.
-     *
-     * @return The key lines.
+     * Returns the key text lines.
      */
     public List<String> getLines() {
         return lines;
     }
 
     /**
-     * The delay to send the lines.
-     *
-     * @return The delay.
+     * Returns the delay to send the text lines.
      */
     public int getDelay() {
         return delay;
@@ -79,50 +72,46 @@ public class ConversationKey {
 
     /**
      * Returns the sound name.
-     *
-     * @return The sound name.
      */
     public String getSoundName() {
         return soundName;
     }
 
     /**
-     * Returns the actions.
-     *
-     * @return The actions list.
+     * Returns the actions to run when sending the texts.
      */
-    public List<ZNPCAction> getActions() {
+    public List<NPCAction> getActions() {
         return actions;
     }
 
     /**
-     * Sets the delay to send the message.
+     * Sets the {@link #getDelay()} of this key.
      *
-     * @param delay The new delay.
+     * @param delay The new page.
      */
     public void setDelay(int delay) {
         this.delay = delay;
     }
 
     /**
-     * Sets the sound name.
+     * Sets the {@link #getSoundName()} of this key.
      *
-     * @param soundName The sound name.
+     * @param soundName The new sound name.
      */
     public void setSoundName(String soundName) {
         this.soundName = soundName;
     }
 
     /**
-     * Returns the first text in the list.
-     *
-     * @return The first text in the list
+     * @inheritDoc
      */
-    public String getFirstTextFormatted() {
-        if (!lines.isEmpty()) {
-            String firstText = lines.get(0);
-            return firstText.substring(0, Math.min(firstText.length(), 24));
+    public String getTextFormatted() {
+        if (lines.isEmpty()) {
+            return "";
         }
-        return "???";
+
+        String text =
+                lines.iterator().next();
+        return text.substring(0, Math.min(text.length(), 24));
     }
 }

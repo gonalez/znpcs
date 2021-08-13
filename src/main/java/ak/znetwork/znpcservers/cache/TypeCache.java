@@ -2,23 +2,21 @@ package ak.znetwork.znpcservers.cache;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import lombok.Getter;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import lombok.Getter;
-
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * @inheritDoc
  */
-public interface CacheType {
+public interface TypeCache {
     /**
      * A cache for storing loaded classes.
      */
@@ -132,7 +130,7 @@ public interface CacheType {
         private final Iterable<Class<?>[]> parameterTypes;
 
         /**
-         * Creates a new classCache builder with the provided cache package.
+         * Creates a new {@link CacheBuilder} with the provided package.
          *
          * @param cachePackage The cache package.
          */
@@ -147,10 +145,10 @@ public interface CacheType {
         }
 
         /**
-         * Creates a new classCache builder.
+         * Creates a new {@link CacheBuilder} with the provided values.
          *
          * @param cachePackage   The class package.
-         * @param cacheCategory   The class category.
+         * @param cacheCategory  The class category.
          * @param className      The class name.
          * @param methodName     The class method name.
          * @param fieldName      The class field name.
@@ -175,10 +173,10 @@ public interface CacheType {
         }
 
         /**
-         * Defines the package of the cache.
+         * Defines the category of the cache.
          *
-         * @param cacheCategory The package.
-         * @return The builder with the new package.
+         * @param cacheCategory The category.
+         * @return The builder with the new category.
          */
         public CacheBuilder withCategory(CacheCategory cacheCategory) {
             return new CacheBuilder(
@@ -193,7 +191,7 @@ public interface CacheType {
         }
 
         /**
-         * Defines the cache class.
+         * Defines the cache class name.
          *
          * @param className The class name.
          * @return The builder with the new class.
@@ -323,11 +321,11 @@ public interface CacheType {
      *
      * @param <T> The class type.
      */
-    abstract class AbstractCache<T> {
+    abstract class BaseCache<T> {
         /**
          * The logger.
          */
-        private static final Logger LOGGER = Logger.getLogger(AbstractCache.class.getName());
+        private static final Logger LOGGER = Logger.getLogger(BaseCache.class.getName());
 
         /**
          * The builder class.
@@ -342,7 +340,7 @@ public interface CacheType {
         /**
          * Creates a new cache loader for the given builder.
          */
-        protected AbstractCache(CacheBuilder cacheBuilder) {
+        protected BaseCache(CacheBuilder cacheBuilder) {
             this.cacheBuilder = cacheBuilder;
         }
 
@@ -383,7 +381,7 @@ public interface CacheType {
         /**
          * Initializes and loads the given class.
          */
-        public static class ClazzLoader extends AbstractCache<Class<?>> {
+        public static class ClazzLoader extends BaseCache<Class<?>> {
             /**
              * Creates a new class loader for the given builder.
              */
@@ -400,7 +398,7 @@ public interface CacheType {
         /**
          * Initializes and loads the given method.
          */
-        public static class MethodLoader extends AbstractCache<Method> {
+        public static class MethodLoader extends BaseCache<Method> {
             /**
              * Creates a new method loader for the given builder.
              */
@@ -419,7 +417,7 @@ public interface CacheType {
         /**
          * Initializes and loads the given field.
          */
-        public static class FieldLoader extends AbstractCache<Field> {
+        public static class FieldLoader extends BaseCache<Field> {
             /**
              * Creates a new field loader for the given builder.
              */
@@ -438,7 +436,7 @@ public interface CacheType {
         /**
          * Initializes and loads the given constructor.
          */
-        public static class ConstructorLoader extends AbstractCache<Constructor<?>> {
+        public static class ConstructorLoader extends BaseCache<Constructor<?>> {
             /**
              * Creates a new constructor loader for the given builder.
              */
@@ -472,7 +470,7 @@ public interface CacheType {
         /**
          * Initializes and loads the enum constants for the given class.
          */
-        public static class EnumLoader extends AbstractCache<Enum<?>[]> {
+        public static class EnumLoader extends BaseCache<Enum<?>[]> {
             /**
              * Creates a new multiple field loader for the given builder.
              */
@@ -484,7 +482,6 @@ public interface CacheType {
             protected Enum<?>[] onLoad() {
                 Enum<?>[] enumConstants = (Enum<?>[]) BUILDER_CLASS.getEnumConstants();
                 for (Enum<?> enumConstant : enumConstants) {
-                    // Register value
                     ClassCache.register(enumConstant.name(), enumConstant, BUILDER_CLASS);
                 }
                 return enumConstants;

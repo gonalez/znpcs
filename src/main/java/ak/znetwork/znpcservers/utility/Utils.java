@@ -1,56 +1,65 @@
 package ak.znetwork.znpcservers.utility;
 
-import ak.znetwork.znpcservers.types.ConfigTypes;
+import ak.znetwork.znpcservers.cache.CacheRegistry;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
+import ak.znetwork.znpcservers.user.ZUser;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.math.NumberUtils;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Helper functions for the plugin.
  */
 public final class Utils {
-    /**
-     * The current bukkit version.
-     */
+    /** The server bukkit version. */
     public static final int BUKKIT_VERSION;
 
-    /**
-     * Default interval for second as nanos.
-     */
+    /** Represents one second in nanos */
     public static final long SECOND_INTERVAL_NANOS = 1000 * 1000 * 1000L;
 
-    /**
-     * Represents if the plugin will use external placeholders.
-     */
+    /** Returns {@code true} if the plugin should use external placeholders. */
     public static boolean PLACEHOLDER_SUPPORT = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
 
     static {
-        BUKKIT_VERSION = NumberUtils.toInt(ReflectionUtils.getFriendlyBukkitPackage());
+        BUKKIT_VERSION = NumberUtils.toInt(getFormattedBukkitPackage());
     }
 
     /**
-     * Checks if version is newer than current bukkit version.
+     * Returns {@code true} if the given version is newer than the current bukkit version.
      *
      * @param version The version to compare.
-     * @return {@code true} If is newer version.
+     * @return {@code true} if the given version is newer than the current bukkit version.
      */
     public static boolean versionNewer(int version) {
         return BUKKIT_VERSION >= version;
     }
 
     /**
-     * Automatically converts string to colored string.
+     * Returns the current bukkit version.
+     */
+    public static String getBukkitPackage() {
+        return Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    }
+
+    /**
+     * Returns the formatted bukkit name version.
+     */
+    public static String getFormattedBukkitPackage() {
+        final String version = getBukkitPackage().replace("v", "").replace("R", "");
+        return version.substring(2, version.length() - 2);
+    }
+
+    /**
+     * Automatically converts the given string to a bukkit colored string.
      *
-     * @param string The string to translate.
-     * @return Translated string.
+     * @param string The string to convert.
+     * @return The converted string.
      */
     public static String toColor(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
@@ -59,18 +68,18 @@ public final class Utils {
     /**
      * Parses the given string for the player.
      *
-     * @param player The player to parse the placeholder for.
      * @param string The string to parse.
-     * @return The parsed {@link java.lang.String}.
+     * @param player The player to parse the string for.
+     * @return The parsed string.
      */
-    public static String getWithPlaceholders(Player player, String string) {
+    public static String getWithPlaceholders(String string, Player player) {
         return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigTypes.SPACE_SYMBOL, " ");
     }
 
     /**
      * Creates a random {@link java.lang.String} with the specified character {@code length}.
      *
-     * @return A random {@link java.lang.String}.
+     * @return A random {@link java.lang.String} with the specified {@code length}.
      */
     public static String randomString(int length) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -81,7 +90,7 @@ public final class Utils {
     }
 
     /**
-     * Send a title to the given player.
+     * Sends a title to the given player.
      *
      * @param player The player to send the title for.
      * @param title The title string.
@@ -91,6 +100,58 @@ public final class Utils {
                                  String title,
                                  String subTitle) {
         player.sendTitle(toColor(title), toColor(subTitle));
+    }
+
+    /**
+     * Sets the new value for the field.
+     *
+     * @param fieldInstance The field instance.
+     * @param fieldName The field name.
+     * @param value The new field value.
+     * @throws NoSuchFieldException If the field could not be found.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     */
+    public static void setValue(
+            Object fieldInstance,
+            String fieldName,
+            Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field f = fieldInstance.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        f.set(fieldInstance, value);
+    }
+
+    /**
+     * Locates the specified field value on the given instance.
+     *
+     * @param instance The field instance.
+     * @param fieldName The field name.
+     * @return The field value.
+     * @throws NoSuchFieldException If the field could not be found.
+     * @throws IllegalAccessException If the field cannot be accessed.
+     */
+    public static Object getValue(
+            Object instance,
+            String fieldName)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field f = instance.getClass().getDeclaredField(fieldName);
+        f.setAccessible(true);
+        return f.get(instance);
+    }
+
+    /**
+     * Sends the given packets to the given player.
+     *
+     * @param user The player to send the packets for.
+     * @param packets The packets to send.
+     */
+    public static void sendPackets(ZUser user, Object... packets) {
+        try {
+            for (Object packet : packets) {
+                CacheRegistry.SEND_PACKET_METHOD.invoke(user.getPlayerConnection(), packet);
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     /** Default constructor */

@@ -3,7 +3,9 @@ package ak.znetwork.znpcservers.skin;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -12,77 +14,54 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static ak.znetwork.znpcservers.skin.SkinFetcherBuilder.*;
-
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Retrieves the skin textures for a {@link SkinFetcherBuilder}.
+ * @see SkinFetcherBuilder
  */
 public class SkinFetcher {
-    /**
-     * A empty string.
-     */
+    /** A empty string. */
     private static final String EMPTY_STRING = "";
 
-    /**
-     * The default charset name.
-     */
+    /** The charset that will be used when making the skin request. */
     private static final String DEFAULT_CHARSET = "UTF-8";
 
-    /**
-     * The executor service to delegate work.
-     */
+    /** A executor service to delegate the work. */
     private static final ExecutorService SKIN_EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
-    /**
-     * Creates a new parser.
-     */
+    /** Creates a new parser. */
     private static final JsonParser JSON_PARSER = new JsonParser();
 
-    /**
-     * The skin builder.
-     */
+    /** The skin builder. */
     private final SkinFetcherBuilder builder;
 
     /**
-     * The skin api type.
-     */
-    private final SkinAPI skinAPI;
-
-    /**
-     * Creates a new skin fetcher.
-     * With all the builder provided types.
+     * Creates a new {@link SkinFetcher} for the given builder.
      *
-     * @param builder The skin builder.
+     * @param builder The builder.
      */
     public SkinFetcher(SkinFetcherBuilder builder) {
         this.builder = builder;
-        this.skinAPI = builder.getApiUrl();
     }
 
     /**
-     * Returns the api server response.
-     *
-     * @return The http response.
+     * Fetches the json object of the skin from the specified
+     * builder {@link SkinFetcherBuilder#getAPIServer()}.
      */
-    private CompletableFuture<JsonObject> getResponse() {
+    protected CompletableFuture<JsonObject> doReadSkin() {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
         SKIN_EXECUTOR_SERVICE.submit(() -> {
             try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(builder.getApiUrl().getApiURL() + getData()).openConnection();
-                connection.setRequestMethod(builder.getApiUrl().getMethod());
+                HttpURLConnection connection = (HttpURLConnection) new URL(builder.getAPIServer().getURL() + getData()).openConnection();
+                connection.setRequestMethod(builder.getAPIServer().getMethod());
                 connection.setDoInput(true);
-                if (builder.getApiUrl() == SkinAPI.GENERATE_API) {
+                if (builder.isUrlType()) {
                     connection.setDoOutput(true);
-                    // Send skin data
+                    // send skin data
                     try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
                         outputStream.writeBytes("url=" + URLEncoder.encode(builder.getData(), DEFAULT_CHARSET));
                     }
                 }
                 try (Reader reader = new InputStreamReader(connection.getInputStream(), Charset.forName(DEFAULT_CHARSET))) {
-                    // Read url result
                     completableFuture.complete(JSON_PARSER.parse(reader).getAsJsonObject());
                 } finally {
                     connection.disconnect();
@@ -95,14 +74,14 @@ public class SkinFetcher {
     }
 
     /**
-     * Fetches the skin profile values.
+     * Gets the fetched skin values.
+     *
+     * @param skinResultCallback The callback to run.
      */
-    public void fetchProfile(
-            SkinFetcherResult skinResultCallback
-    ) {
-        getResponse().thenAcceptAsync(jsonObject -> {
-            jsonObject = jsonObject.getAsJsonObject(skinAPI == SkinAPI.GENERATE_API ? "data" : "textures");
-            JsonObject properties = (skinAPI == SkinAPI.GENERATE_API ?
+    public void fetchProfile(SkinFetcherResult skinResultCallback) {
+        doReadSkin().thenAcceptAsync(jsonObject -> {
+            jsonObject = jsonObject.getAsJsonObject(builder.isUrlType() ? "data" : "textures");
+            JsonObject properties = (builder.isUrlType()?
                     jsonObject.getAsJsonObject("texture") :
                     jsonObject.getAsJsonObject("raw"));
             skinResultCallback.onDone(new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() });
@@ -110,11 +89,9 @@ public class SkinFetcher {
     }
 
     /**
-     * Returns the real data for skin api.
-     *
-     * @return The data for skin api.
+     * Returns the url data for the builder api server.
      */
     private String getData() {
-        return skinAPI != SkinAPI.GENERATE_API ? "/" + builder.getData() : EMPTY_STRING;
+        return builder.isProfileType() ? "/" + builder.getData() : EMPTY_STRING;
     }
 }

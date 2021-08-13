@@ -1,17 +1,23 @@
 package ak.znetwork.znpcservers.commands;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * An annotation for the command as described in {@link Command}.
+ * Annotates methods on {@link Command}s instances to expose them as a sub command.
  */
-@Retention(RetentionPolicy.RUNTIME)
+@Target(METHOD)
+@Retention(RUNTIME)
+@Documented
 public @interface CommandInformation {
     /**
      * The possible command arguments.
      */
-    String[] aliases();
+    String[] arguments();
 
     /**
      * The command help message.

@@ -1,12 +1,11 @@
 package ak.znetwork.znpcservers.npc.conversation;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.hologram.replacer.LineReplacer;
-import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.types.ConfigTypes;
+import ak.znetwork.znpcservers.npc.hologram.replacer.LineReplacer;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.Utils;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -17,10 +16,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
+ * Handles a conversation for a {@link ConversationModel}.
  *
- * @author ZNetwork
- * @since 4/8/2021
+ * <p>
+ * <b>NOTE:</b> Don't use this directly, use {@link ConversationModel#startConversation(NPC, Player)} instead.
+ *
+ * @see ConversationModel
  */
 public class ConversationProcessor {
     /**
@@ -41,12 +42,12 @@ public class ConversationProcessor {
     /**
      * The npc that the player started the conversation with.
      */
-    private final ZNPC znpc;
+    private final NPC npc;
 
     /**
      * The conversation.
      */
-    private final ConversationModel conversationStorage;
+    private final ConversationModel conversationModel;
 
     /**
      * The player that started the conversation.
@@ -59,57 +60,58 @@ public class ConversationProcessor {
     private int conversationIndex = 0;
 
     /**
-     * Last key delay.
+     * Last send delay.
      */
     private long conversationIndexDelay = System.nanoTime();
 
     /**
-     * Creates a new conversation handler for an player.
+     * Creates a new {@link ConversationProcessor} for a player.
      *
-     * @param conversationStorage The conversation.
-     * @param znpc                The npc that the player started the conversation with.
-     * @param player              The player that started the conversation.
+     * @param conversationModel The conversation.
+     * @param npc The npc that the player started the conversation with.
+     * @param player The player that started the conversation.
+     * @throws IllegalStateException If the conversation have no text.
      */
-    public ConversationProcessor(ZNPC znpc,
-                                 ConversationModel conversationStorage,
+    public ConversationProcessor(NPC npc,
+                                 ConversationModel conversationModel,
                                  Player player) {
-        if (conversationStorage.getConversation().getTexts().isEmpty()) {
-            throw new IllegalStateException("conversation should have a text");
+        if (conversationModel.getConversation().getTexts().isEmpty()) {
+            throw new IllegalStateException("conversation should have a text.");
         }
-        this.znpc = znpc;
-        this.conversationStorage = conversationStorage;
+        this.npc = npc;
+        this.conversationModel = conversationModel;
         this.player = player;
-        RUNNING_CONVERSATIONS.put(player.getUniqueId(), conversationStorage.getConversationName());
+        RUNNING_CONVERSATIONS.put(player.getUniqueId(), conversationModel.getConversationName());
         start();
     }
 
     /**
-     * Starts the conversation with the npc.
+     * Starts the conversation task with the npc. The task will stop when the user disconnects
+     * or the current {@code conversationIndex} is greater than the size of the conversation texts.
      */
-    public void start() {
+    private void start() {
         ServersNPC.SCHEDULER.runTaskTimer(new BukkitRunnable() {
             @Override
             public void run() {
                 // basic conversation checks
                 if (Bukkit.getPlayer(player.getUniqueId()) == null ||
-                        conversationIndex > conversationStorage.getConversation().getTexts().size() - 1 ||
-                        conversationStorage.canRun(znpc, player)) {
+                        conversationIndex > conversationModel.getConversation().getTexts().size() - 1 ||
+                        conversationModel.canRun(npc, player)) {
                     // conversation end
                     RUNNING_CONVERSATIONS.remove(player.getUniqueId());
                     cancel();
                     return;
                 }
-                ConversationKey conversationKey = conversationStorage.getConversation().getTexts().get(conversationIndex);
+                ConversationKey conversationKey = conversationModel.getConversation().getTexts().get(conversationIndex);
                 // check for delay
                 long conversationDelayNanos = System.nanoTime() - conversationIndexDelay;
                 if (conversationIndex != 0 && conversationDelayNanos < Utils.SECOND_INTERVAL_NANOS * conversationKey.getDelay()) {
                     return;
                 }
+                final ZUser user = ZUser.find(player);
                 // send text to player
-                conversationKey.getLines().forEach(s -> player.sendMessage(LineReplacer.makeAll(player, s).replace(ConfigTypes.SPACE_SYMBOL, WHITE_SPACE)));
-                // check for conversation actions
-                if (conversationKey.getActions().size() > 0) {
-                    final ZUser user = ZUser.find(player);
+                conversationKey.getLines().forEach(s -> player.sendMessage(LineReplacer.makeAll(user, s).replace(ConfigTypes.SPACE_SYMBOL, WHITE_SPACE)));
+                if (conversationKey.getActions().size() > 0) { // check for conversation actions
                     conversationKey.getActions().forEach(action -> action.run(user, action.getAction()));
                 }
                 // send sound
@@ -130,9 +132,9 @@ public class ConversationProcessor {
     }
 
     /**
-     * Returns {@code true} if the player is conversing with an npc.
+     * Returns {@code true} if there is a player with the given {@code uuid} conversing with an npc.
      *
-     * @param uuid The player uuid.
+     * @param uuid The uuid.
      * @return If the player is conversing with an npc.
      */
     public static boolean isPlayerConversing(UUID uuid) {

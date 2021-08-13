@@ -1,47 +1,34 @@
 package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.ZNPC;
-
+import ak.znetwork.znpcservers.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 2/8/2021
+ * Runnable task for loading a {@link NPC}.
  */
 public class NPCLoadTask extends BukkitRunnable {
-    /**
-     * How often to check if the world is ready to load the npc.
-     */
-    private static final int DELAY = 40; // 40 ticks = 2 Seconds
+    /** How often to check if the world is ready to load the npc. */
+    private static final int DELAY = 40; // 40 ticks = 2 seconds
 
-    /**
-     * How many times to check if the npc is ready to load.
-     */
+    /** How many times to check if the npc can be load. */
     private static final int MAX_TRIES = 10;
 
-    /**
-     * The npc to load.
-     */
-    private final ZNPC npc;
+    /** The npc to load. */
+    private final NPC npc;
 
-    /**
-     * Current try to load npc.
-     */
+    /** Current try to load npc. */
     private int tries = 0;
 
     /**
-     * Creates a new task for a NPC,
-     * this task will handle the LOAD of the npc
-     * and wait until the world is loaded to load the npc.
+     * Creates a new task for an NPC. This task will wait until the world is loaded
+     * to load the npc.
      *
      * @param npc The npc to load.
      */
-    public NPCLoadTask(ZNPC npc) {
+    public NPCLoadTask(NPC npc) {
         this.npc = npc;
         ServersNPC.SCHEDULER.runTaskTimer(this, DELAY);
     }
@@ -52,14 +39,12 @@ public class NPCLoadTask extends BukkitRunnable {
             cancel();
             return;
         }
-        World world = Bukkit.getWorld(npc.getNpcPojo().getLocation().getWorld());
-        if (world == null) {
-            // world not loaded.. try again in 1 second
+        World world = Bukkit.getWorld(npc.getNpcPojo().getLocation().getWorldName());
+        if (world == null) { // world is not loaded..
             return;
         }
         // cancel task
         cancel();
-        // world found, load npc..
-        npc.init();
+        npc.onLoad(); // world found, load npc..
     }
 }

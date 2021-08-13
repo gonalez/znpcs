@@ -1,7 +1,6 @@
 package ak.znetwork.znpcservers.utility.itemstack;
 
 import ak.znetwork.znpcservers.utility.Utils;
-
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -11,10 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 3/8/2021
+ * Builder for a {@link ItemStack}.
  */
 public class ItemStackBuilder {
     /**
@@ -23,14 +19,14 @@ public class ItemStackBuilder {
     private final ItemStack itemStack;
 
     /**
-     * The {@link ItemStack} data.
+     * The {@link ItemStack#getItemMeta()} of the object {@code itemStack}.
      */
     private final ItemMeta itemMeta;
 
     /**
-     * Creates a new builder for a {@link ItemStack}.
+     * Creates a {@link ItemStackBuilder} for the given {@link ItemStack}.
      *
-     * @param stack The {@link ItemStack}.
+     * @param stack The item stack.
      */
     protected ItemStackBuilder(ItemStack stack) {
         this.itemStack = stack;
@@ -38,7 +34,7 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Creates a new {@link ItemStack} builder for a material.
+     * Creates a new {@link ItemStackBuilder} for the given material.
      *
      * @param material The material.
      * @return A {@link ItemStackBuilder} instance with the given material as a {@link ItemStack}.
@@ -51,9 +47,9 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Sets the new {@link ItemStack} name.
+     * Sets the {@link ItemMeta#getDisplayName()} of this item stack.
      *
-     * @param name The new {@link ItemStack} name.
+     * @param name The new item stack name.
      * @return The current instance.
      */
     public ItemStackBuilder setName(String name) {
@@ -62,9 +58,9 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Sets the new {@link ItemStack} lore.
+     * Sets the {@link ItemMeta#getLore()} of this item stack.
      *
-     * @param lore The new {@link ItemStack} lore.
+     * @param lore The new item stack lore.
      * @return The current instance.
      */
     public ItemStackBuilder setLore(Iterable<String> lore) {
@@ -75,9 +71,9 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Sets the new {@link ItemStack} lore.
+     * Sets the {@link ItemMeta#getLore()} of this item stack.
      *
-     * @param lore The new {@link ItemStack} lore.
+     * @param lore The new item stack lore.
      * @return The current instance.
      */
     public ItemStackBuilder setLore(String... lore) {
@@ -85,9 +81,9 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Sets the new {@link ItemStack} amount.
+     * Sets the {@link ItemStack#getAmount()} of this item stack.
      *
-     * @param amount The new {@link ItemStack} amount.
+     * @param amount The new item stack amount.
      * @return The current instance.
      */
     public ItemStackBuilder setAmount(int amount) {
@@ -96,9 +92,9 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Builds & updates the new {@link ItemStack}.
+     * Builds the new {@link ItemStack}.
      *
-     * @return The {@link ItemStack} with the new data.
+     * @return A {@link ItemStack} with the current instance data.
      */
     public ItemStack build() {
         itemStack.setItemMeta(itemMeta);

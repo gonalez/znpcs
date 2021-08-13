@@ -1,23 +1,34 @@
 package ak.znetwork.znpcservers.commands;
 
+import ak.znetwork.znpcservers.configuration.ConfigKey;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
-import ak.znetwork.znpcservers.configuration.ConfigType;
 import ak.znetwork.znpcservers.manager.ConfigManager;
-import ak.znetwork.znpcservers.types.ClassTypes;
-
+import ak.znetwork.znpcservers.cache.CacheRegistry;
 import com.google.common.collect.Iterables;
 import org.bukkit.Bukkit;
-import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.defaults.BukkitCommand;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
+ * Represents a command.
  *
- * @author ZNetwork
- * @since 07/02/2020
+ * <p>
+ * To create a new sub command for a {@link Command}, create a method
+ * with the parameters: ({@link CommandSender}, {@link Map<String>})
+ * annotated as {@link CommandInformation}.
+ * example:
+ * <pre>
+ * @CommandInformation(arguments = {"hello"}, name = "subCommandName", permission = "permission")
+ * void exampleCommand(CommandSender sender, Map<String, String> args) {
+ * // code
+ * }
+ * </pre>
+ *
+ * @see CommandInformation
+ * @see CommandSender
  */
 public class Command extends BukkitCommand {
     /**
@@ -32,7 +43,7 @@ public class Command extends BukkitCommand {
 
     static {
         try {
-            COMMAND_MAP = (CommandMap) ClassTypes.BUKKIT_COMMAND_MAP.get(Bukkit.getServer());
+            COMMAND_MAP = (CommandMap) CacheRegistry.BUKKIT_COMMAND_MAP.get(Bukkit.getServer());
         } catch (IllegalAccessException exception) {
             // Should not happen....
             throw new IllegalStateException("Cannot access command map.");
@@ -45,10 +56,10 @@ public class Command extends BukkitCommand {
     private final Map<CommandInformation, CommandInvoker> subCommands;
 
     /**
-     * Creates a new command.
+     * Creates a new {@link Command} with the given {@code name}.
      */
-    public Command(String command) {
-        super(command);
+    public Command(String name) {
+        super(name);
         subCommands = new HashMap<>();
         load();
     }
@@ -57,8 +68,9 @@ public class Command extends BukkitCommand {
      * Loads the command.
      */
     private void load() {
-        // Register the command
+        // register the command
         COMMAND_MAP.register(getName(), this);
+        // load sub commands
         for (Method method : getClass().getMethods()) {
             if (method.isAnnotationPresent(CommandInformation.class)) {
                 CommandInformation cmdInfo = method.getAnnotation(CommandInformation.class);
@@ -77,7 +89,7 @@ public class Command extends BukkitCommand {
     private Map<String, String> loadArgs(CommandInformation subCommand,
                                          Iterable<String> args) {
         int size = Iterables.size(args);
-        int subCommandsSize = subCommand.aliases().length;
+        int subCommandsSize = subCommand.arguments().length;
         Map<String, String> argsMap = new HashMap<>();
         if (size > 1) {
             if (subCommand.isMultiple()) {
@@ -90,7 +102,7 @@ public class Command extends BukkitCommand {
                         if (fixedLength == subCommandsSize) {
                             input = String.join(WHITESPACE, Iterables.skip(args, subCommandsSize));
                         }
-                        argsMap.put(subCommand.aliases()[i], input);
+                        argsMap.put(subCommand.arguments()[i], input);
                     }
                 }
             }
@@ -115,8 +127,7 @@ public class Command extends BukkitCommand {
                         .findFirst();
 
         if (!subCommandOptional.isPresent()) {
-            // sub-command not found
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);
+            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);
             return false;
         }
 
@@ -124,12 +135,11 @@ public class Command extends BukkitCommand {
             Map.Entry<CommandInformation, CommandInvoker> subCommand = subCommandOptional.get();
             subCommand.getValue().execute(new CommandSender(sender), loadArgs(subCommand.getKey(), Arrays.asList(args)));
         } catch (CommandExecuteException e) {
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_ERROR);
-
+            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_ERROR);
             // Logs enabled
             e.printStackTrace();
         } catch (CommandPermissionException e) {
-            ConfigManager.getByType(ConfigType.MESSAGES).sendMessage(sender, ConfigValue.NO_PERMISSION);
+            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.NO_PERMISSION);
         }
         return true;
     }

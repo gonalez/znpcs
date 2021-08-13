@@ -1,10 +1,8 @@
 package ak.znetwork.znpcservers.skin;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 25/7/2021
+ * Interface used for the {@link SkinFetcher#fetchProfile} method.
+ * use this interface for getting the texture values after a skin fetching is finish.
  */
 public interface SkinFetcherResult {
     /**

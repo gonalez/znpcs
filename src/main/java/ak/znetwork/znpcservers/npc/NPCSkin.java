@@ -4,102 +4,86 @@ import ak.znetwork.znpcservers.skin.SkinFetcherBuilder;
 import ak.znetwork.znpcservers.skin.SkinFetcherResult;
 import ak.znetwork.znpcservers.utility.Utils;
 
+import static ak.znetwork.znpcservers.skin.SkinFetcherBuilder.*;
+
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * This class is intended to contain the skin information,
+ * used for setting the skin of a {@link NPC}.
+ * <p />
+ * Create a new {@link NPCSkin} using {@link #forName(String, SkinFetcherResult)} or
+ * {@link #forValues(String...)} if you already know the skin values.
  */
-public final class ZNPCSkin {
-    /**
-     * A empty string.
-     */
+public class NPCSkin {
+    /** A empty string. */
     private static final String EMPTY_STRING = "";
 
-    /**
-     * A empty array of size 1.
-     */
-    private static final String[] EMPTY_ARRAY = new String[]{EMPTY_STRING,
-            EMPTY_STRING};
+    /** A empty string array of size 1. */
+    private static final String[] EMPTY_ARRAY = new String[]{EMPTY_STRING, EMPTY_STRING};
 
-    /**
-     * Layer index.
-     */
+    /** The skin layer index. */
     private static final int LAYER_INDEX = SkinLayerValues.findLayerByVersion();
 
-    /**
-     * The skin value.
-     */
-    private final String value;
+    /** The skin texture. */
+    private final String texture;
 
-    /**
-     * The skin signature.
-     */
+    /** The skin signature. */
     private final String signature;
 
     /**
-     * Creates a new skin cache.
-     *
-     * @param values The skin values.
+     * Constructor for creating a {@link NPCSkin} object with the texture values
+     * <p>The first element of the array will be used as the texture of the npc {@link com.mojang.authlib.GameProfile}
+     * and the second texture as the signature.
+     * @throws IllegalArgumentException If the array size is 0 or less.
      */
-    protected ZNPCSkin(String... values) {
+    protected NPCSkin(String... values) {
         if (values.length < 1) {
             throw new IllegalArgumentException("Length cannot be zero or negative.");
         }
-        this.value = values[0];
+        this.texture = values[0];
         this.signature = values[1];
     }
 
     /**
-     * Returns the skin value.
-     *
-     * @return The skin value.
+     * Returns the skin texture.
      */
-    public String getValue() {
-        return value;
+    public String getTexture() {
+        return texture;
     }
 
     /**
      * Returns the skin signature.
-     *
-     * @return The skin signature
      */
     public String getSignature() {
         return signature;
     }
 
     /**
-     * Skin layer index for current version.
+     * Returns the skin layer index for the current bukkit version.
      */
     public int getLayerIndex() {
         return LAYER_INDEX;
     }
 
     /**
-     * Creates a new skin cache.
-     *
      * @param values The skin values.
-     * @return A skin class with the given values.
+     * @return A {@link NPCSkin} instance with the given values.
      */
-    public static ZNPCSkin forValues(String...values) {
-        return new ZNPCSkin(values.length > 0 ? values : EMPTY_ARRAY);
+    public static NPCSkin forValues(String...values) {
+        return new NPCSkin(values.length > 0 ? values : EMPTY_ARRAY);
     }
 
     /**
-     * Creates a new skin cache.
+     * Fetches a skin profile by its name or url.
      *
      * @param skin The skin name or url.
+     * @param skinResultCallback The callback that will be invoked when the skin is fetched.
      */
-    public static void forName(String skin,
-                                   SkinFetcherResult skinResultCallback) {
-        SkinFetcherBuilder.withData(skin.toLowerCase().startsWith("http") ?
-                SkinFetcherBuilder.SkinAPI.GENERATE_API : SkinFetcherBuilder.SkinAPI.PROFILE_API, skin)
-                .toSkinFetcher()
-                .fetchProfile(skinResultCallback);
+    public static void forName(String skin, SkinFetcherResult skinResultCallback) {
+        SkinFetcherBuilder.withName(skin).toSkinFetcher().fetchProfile(skinResultCallback);
     }
 
     /**
-     * Used to find skin layer index by its version.
+     * Used to find the skin layer index for the current bukkit version.
      */
     enum SkinLayerValues {
         V8(8, 12),
@@ -119,7 +103,7 @@ public final class ZNPCSkin {
         final int layerValue;
 
         /**
-         * Creates a new layer identification.
+         * Creates a new skin layer identification.
          *
          * @param minVersion The minimum required version.
          * @param layerValue The layer index.
@@ -131,9 +115,7 @@ public final class ZNPCSkin {
         }
 
         /**
-         * Find a layer index by its version.
-         *
-         * @return The layer index.
+         * Returns the layer index for the current bukkit version.
          */
         static int findLayerByVersion() {
             int value = V8.layerValue;

@@ -1,10 +1,7 @@
 package ak.znetwork.znpcservers.cache;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * The possible packages categories when building a {@link TypeCache.CacheBuilder}.
  */
 public enum CacheCategory {
     NONE(),
@@ -25,11 +22,6 @@ public enum CacheCategory {
      * A empty string.
      */
     private static final String EMPTY_STRING = "";
-
-    /**
-     * A dot string.
-     */
-    private static final String DOT = ".";
 
     /**
      * The sub-package name.
@@ -58,6 +50,6 @@ public enum CacheCategory {
      * @return The sub-package name.
      */
     protected String getSubPackageName() {
-        return this == NONE ? EMPTY_STRING : DOT + subPackageName;
+        return this == NONE ? EMPTY_STRING : "." + subPackageName;
     }
 }

@@ -1,15 +1,16 @@
-package ak.znetwork.znpcservers.hologram;
+package ak.znetwork.znpcservers.npc.hologram;
 
-import ak.znetwork.znpcservers.hologram.replacer.LineReplacer;
-import ak.znetwork.znpcservers.npc.ZNPC;
 import ak.znetwork.znpcservers.UnexpectedCallException;
-import ak.znetwork.znpcservers.types.ClassTypes;
-import ak.znetwork.znpcservers.types.ConfigTypes;
-import ak.znetwork.znpcservers.utility.ReflectionUtils;
+import ak.znetwork.znpcservers.configuration.ConfigKey;
+import ak.znetwork.znpcservers.configuration.ConfigValue;
+import ak.znetwork.znpcservers.npc.hologram.replacer.LineReplacer;
+import ak.znetwork.znpcservers.manager.ConfigManager;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.cache.CacheRegistry;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
+import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.Utils;
-
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -17,17 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Represents a hologram.
  */
 public class Hologram {
-    /**
-     * The height between lines.
-     */
-    private static final double HOLOGRAM_SPACE = 0.3;
-
     /**
      * A string whitespace.
      */
@@ -39,6 +32,11 @@ public class Hologram {
     private static final boolean NEW_METHOD = Utils.BUKKIT_VERSION > 12;
 
     /**
+     * The height between lines.
+     */
+    static final double LINE_SPACING = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.LINE_SPACING);
+
+    /**
      * A list of hologram lines.
      */
     private final List<HologramLine> hologramLines;
@@ -46,66 +44,60 @@ public class Hologram {
     /**
      * The npc.
      */
-    private final ZNPC npc;
+    private final NPC npc;
 
     /**
-     * The hologram location.
-     */
-    private Location location;
-
-    /**
-     * Creates a new hologram for the given npc.
+     * Creates a new {@link Hologram} for the given npc.
      *
      * @param npc The npc.
      */
-    public Hologram(ZNPC npc) {
+    public Hologram(NPC npc) {
         this.npc = npc;
-        this.location = npc.getLocation();
         hologramLines = new ArrayList<>();
-        createHologram();
     }
 
     /**
-     * Creation of the hologram.
+     * Called when creating a {@link Hologram}.
      */
     public void createHologram() {
-        npc.getViewers().forEach(this::delete);
+        npc.getNpcViewers().forEach(this::delete);
         try {
             hologramLines.clear();
             double y = 0;
+            final Location location = npc.getLocation();
             for (String line : npc.getNpcPojo().getHologramLines()) {
-                // Determine if line should be seen
+                // determine if the line should be seen
                 boolean visible = !line.equalsIgnoreCase("%space%");
-                Object armorStand = ClassTypes.ENTITY_CONSTRUCTOR.newInstance(ClassTypes.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()),
+                Object armorStand = CacheRegistry.ENTITY_CONSTRUCTOR.newInstance(CacheRegistry.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()),
                         location.getX(), (location.getY() - 0.15) + (y), location.getZ());
                 if (visible) {
-                    ClassTypes.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, true); // Entity name is not visible by default
+                    CacheRegistry.SET_CUSTOM_NAME_VISIBLE_METHOD.invoke(armorStand, true); // entity name is not visible by default
                     updateLine(line, armorStand, null);
                 }
-                ClassTypes.SET_INVISIBLE_METHOD.invoke(armorStand, true);
+                CacheRegistry.SET_INVISIBLE_METHOD.invoke(armorStand, true);
                 hologramLines.add(new HologramLine(line.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE),
-                        armorStand, (Integer) ClassTypes.GET_ENTITY_ID.invoke(armorStand)));
-                y+=HOLOGRAM_SPACE;
+                        armorStand, (Integer) CacheRegistry.GET_ENTITY_ID.invoke(armorStand)));
+                y+=LINE_SPACING;
             }
             setLocation(location, 0);
-            npc.getViewers().forEach(this::spawn);
+            npc.getNpcViewers().forEach(this::spawn);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
     }
 
     /**
-     * Spawn the hologram for the given player.
+     * Spawns the hologram for the given player.
      *
-     * @param player The player to show the hologram.
+     * @param user The player to spawn the hologram for.
      */
-    public void spawn(Player player) {
+    public void spawn(ZUser user) {
         hologramLines.forEach(hologramLine -> {
             try {
-                Object entityPlayerPacketSpawn = ClassTypes.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(hologramLine.armorStand);
-                ReflectionUtils.sendPacket(player, entityPlayerPacketSpawn);
+                Object entityPlayerPacketSpawn = CacheRegistry.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(hologramLine.armorStand);
+                Utils.sendPackets(user, entityPlayerPacketSpawn);
             } catch (ReflectiveOperationException operationException) {
-                delete(player);
+                delete(user);
             }
         });
     }
@@ -113,12 +105,12 @@ public class Hologram {
     /**
      * Deletes the hologram for the given player.
      *
-     * @param player The player to remove the hologram for.
+     * @param user The player to remove the hologram for.
      */
-    public void delete(Player player) {
+    public void delete(ZUser user) {
         hologramLines.forEach(hologramLine -> {
             try {
-                ReflectionUtils.sendPacket(player, npc.getPackets().getDestroyPacket(hologramLine.id));
+                Utils.sendPackets(user, npc.getPackets().getDestroyPacket(hologramLine.id));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }
@@ -126,16 +118,17 @@ public class Hologram {
     }
 
     /**
-     * Updates the hologram text.
+     * Updates the hologram text for the given player.
+     *
+     * @param user The player to update the hologram for.
      */
-    public void updateNames(Player player) {
+    public void updateNames(ZUser user) {
         for (HologramLine hologramLine : hologramLines) {
             try {
-                updateLine(hologramLine.line, hologramLine.armorStand, player);
-                // Update the new line
-                ReflectionUtils.sendPacket(player,
-                        ClassTypes.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(hologramLine.id,
-                                ClassTypes.GET_DATA_WATCHER_METHOD.invoke(hologramLine.armorStand), true));
+                updateLine(hologramLine.line, hologramLine.armorStand, user);
+                // update the line
+                Utils.sendPackets(user, CacheRegistry.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(hologramLine.id,
+                                CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(hologramLine.armorStand), true));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }
@@ -148,8 +141,8 @@ public class Hologram {
     public void updateLocation() {
         hologramLines.forEach(hologramLine -> {
             try {
-                Object packet = ClassTypes.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(hologramLine.armorStand);
-                npc.getViewers().forEach(player -> ReflectionUtils.sendPacket(player, packet));
+                Object packet = CacheRegistry.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(hologramLine.armorStand);
+                npc.getNpcViewers().forEach(player -> Utils.sendPackets(player, packet));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }
@@ -162,14 +155,14 @@ public class Hologram {
      * @param location The new location.
      */
     public void setLocation(Location location, double height) {
-        this.location = location = location.clone().add(0, height, 0);
+        location = location.clone().add(0, height, 0);
         try {
             double y = npc.getNpcPojo().getHologramHeight();
             for (HologramLine hologramLine : hologramLines) {
-                ClassTypes.SET_LOCATION_METHOD.invoke(hologramLine.armorStand,
+                CacheRegistry.SET_LOCATION_METHOD.invoke(hologramLine.armorStand,
                         location.getX(), (location.getY() - 0.15) + y,
                         location.getZ(), location.getYaw(), location.getPitch());
-                y+=HOLOGRAM_SPACE;
+                y+=LINE_SPACING;
             }
             updateLocation();
         } catch (ReflectiveOperationException operationException) {
@@ -180,24 +173,24 @@ public class Hologram {
     /**
      * Updates a hologram line.
      *
-     * @param line The line string.
-     * @param armorStand The line entity.
-     * @param player The player to update the line for.
+     * @param line The new hologram line.
+     * @param armorStand The hologram entity line.
+     * @param user The player to update the line for.
      * @throws InvocationTargetException If cannot invoke method.
      * @throws IllegalAccessException If the method cannot be accessed.
      */
     private void updateLine(String line,
                             Object armorStand,
-                            @Nullable Player player) throws InvocationTargetException, IllegalAccessException {
+                            @Nullable ZUser user) throws InvocationTargetException, IllegalAccessException {
         if (NEW_METHOD) {
-            ClassTypes.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, ClassTypes.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(player, line)));
+            CacheRegistry.SET_CUSTOM_NAME_NEW_METHOD.invoke(armorStand, CacheRegistry.CRAFT_CHAT_MESSAGE_METHOD.invoke(null, LineReplacer.makeAll(user, line)));
         } else {
-            ClassTypes.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, LineReplacer.makeAll(player, line));
+            CacheRegistry.SET_CUSTOM_NAME_OLD_METHOD.invoke(armorStand, LineReplacer.makeAll(user, line));
         }
     }
 
     /**
-     * Used to create new lines for each hologram.
+     * Used to create new lines for a {@link Hologram}.
      */
     static class HologramLine {
         /**

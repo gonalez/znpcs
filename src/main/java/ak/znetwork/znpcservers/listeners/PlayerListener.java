@@ -1,11 +1,10 @@
 package ak.znetwork.znpcservers.listeners;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.events.NPCInteractEvent;
+import ak.znetwork.znpcservers.npc.event.NPCInteractEvent;
 import ak.znetwork.znpcservers.npc.conversation.ConversationModel;
 import ak.znetwork.znpcservers.user.EventService;
 import ak.znetwork.znpcservers.user.ZUser;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -13,10 +12,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * @inheritDoc
  */
 public class PlayerListener implements Listener {
     /**

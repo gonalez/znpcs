@@ -1,6 +1,6 @@
 package ak.znetwork.znpcservers.npc.conversation;
 
-import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.utility.Utils;
 import org.bukkit.entity.Player;
 
@@ -10,10 +10,14 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
+ * A struct data model for a {@link Conversation}.
  *
- * @author ZNetwork
- * @since 4/8/2021
+ * <p>
+ * To start a new conversation with a {@link Player} use {@link #startConversation(NPC, Player)}.
+ * <p />
+ * <b>NOTE:</b> the conversation must have 1 or more texts ({@link Conversation#getTexts()}).
+ *
+ * @see Conversation
  */
 public class ConversationModel {
     /**
@@ -27,14 +31,15 @@ public class ConversationModel {
     private final ConversationType conversationType;
 
     /**
-     * A map for checking the last started conversation time with an npc.
+     * A map for checking the last started conversation time with an npc for a player.
      */
     private final transient Map<UUID, Long> lastStarted = new HashMap<>();
 
     /**
-     * Creates a new conversation storage instance.
+     * Creates a new {@link ConversationModel}.
      *
      * @param conversationName The conversation name.
+     * @throws IllegalStateException If cannot find conversation type.
      */
     public ConversationModel(String conversationName,
                              String conversationType) {
@@ -44,15 +49,6 @@ public class ConversationModel {
         } catch (IllegalArgumentException exception) {
             throw new IllegalStateException("can't find conversation type " + conversationType);
         }
-    }
-
-    /**
-     * Default no-args constructor, this would be used by gson
-     * initializes default variables for missing fields since gson doesn't support it.
-     */
-    protected ConversationModel() {
-        conversationName = null;
-        conversationType = null;
     }
 
     /**
@@ -83,22 +79,23 @@ public class ConversationModel {
     }
 
     /**
-     * Starts the conversation with the npc.
+     * Starts the conversation with the given npc.
      *
-     * @param znpc The npc to start the conversation with.
+     * @param npc The npc to start the conversation with.
      * @param player The player that will start the conversation.
+     * @throws IllegalStateException If cannot find conversation.
      */
-    public void startConversation(ZNPC znpc,
+    public void startConversation(NPC npc,
                                   Player player) {
         if (!Conversation.exists(conversationName)) {
             throw new IllegalStateException("can't find conversation " + conversationName);
         }
-        // check if player is currently conversing with an npc
+        // check if the player is currently conversing with an npc
         if (ConversationProcessor.isPlayerConversing(player.getUniqueId())) {
-            // player already conversing with an npc return...
+            // the player is already conversing with an npc return...
             return;
         }
-        // check for last conversation time
+        // check for the last player conversation time
         if (lastStarted.containsKey(player.getUniqueId())) {
             long lastConversationNanos = System.nanoTime() - lastStarted.get(player.getUniqueId());
             if (lastConversationNanos < Utils.SECOND_INTERVAL_NANOS * getConversation().getDelay()) {
@@ -107,23 +104,21 @@ public class ConversationModel {
         }
         lastStarted.remove(player.getUniqueId());
         // conversation found, start
-        if (conversationType.canStart(znpc, getConversation(), player)) {
-            new ConversationProcessor(znpc, this, player);
+        if (conversationType.canStart(npc, getConversation(), player)) {
+            new ConversationProcessor(npc, this, player);
             lastStarted.put(player.getUniqueId(), System.nanoTime());
         }
     }
 
     /**
-     * Returns {@code true} if the player can start/continue a conversation.
+     * Returns {@code true} if the player can start/continue with the conversation.
      *
-     * @param znpc The npc.
+     * @param npc The npc.
      * @param player The player
-     * @return If the player can start/continue a conversation.
+     * @return If the player can start/continue with the conversation.
      */
-    public boolean canRun(ZNPC znpc,
-                          Player player) {
-        return Stream.of(ConversationType.values())
-                .anyMatch(conversationType1 -> !conversationType1.canStart(znpc, getConversation(), player));
+    public boolean canRun(NPC npc, Player player) {
+        return Stream.of(ConversationType.values()).anyMatch(conversationType1 -> !conversationType1.canStart(npc, getConversation(), player));
     }
 
     /**
@@ -135,11 +130,11 @@ public class ConversationModel {
          */
         RADIUS {
             @Override
-            public boolean canStart(ZNPC znpc,
+            public boolean canStart(NPC znpc,
                                     Conversation conversation,
                                     Player player) {
-                return player.getWorld() == znpc.getLocation().getWorld()
-                        && player.getLocation().distance(znpc.getLocation()) <= conversation.getRadius();
+                return player.getWorld() == znpc.getLocation().getWorld() &&
+                        player.getLocation().distance(znpc.getLocation()) <= conversation.getRadius();
             }
         },
         /**
@@ -147,7 +142,7 @@ public class ConversationModel {
          */
         CLICK {
             @Override
-            public boolean canStart(ZNPC znpc,
+            public boolean canStart(NPC znpc,
                                     Conversation conversation,
                                     Player player) {
                 // continue on npc interact event
@@ -156,13 +151,13 @@ public class ConversationModel {
         };
 
         /**
-         * Returns {@code true} if the player can start a conversation with an npc.
+         * Returns {@code true} if the player can start a conversation with the {@code npc}.
          *
-         * @param znpc The npc to start the conversation with.
+         * @param npc The npc to start the conversation with.
          * @param conversation The conversation.
          * @param player The player that will start the conversation.
-         * @return If the player can start a conversation with an npc.
+         * @return If the player can start a conversation with the npc.
          */
-        abstract boolean canStart(ZNPC znpc, Conversation conversation, Player player);
+        abstract boolean canStart(NPC npc, Conversation conversation, Player player);
     }
 }

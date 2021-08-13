@@ -3,53 +3,40 @@ package ak.znetwork.znpcservers.npc;
 import java.util.function.Function;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Used for parsing a primitive type for an {@link java.lang.String}.
  */
 public enum TypeProperty {
-    STRING(String.class, String::toString),
-    BOOLEAN(boolean.class, Boolean::parseBoolean),
-    INT(int.class, Integer::parseInt),
-    DOUBLE(double.class, Double::parseDouble),
-    FLOAT(float.class, Float::parseFloat),
-    SHORT(short.class, Short::parseShort),
-    LONG(long.class, Long::parseLong);
+    STRING(String::toString),
+    BOOLEAN(Boolean::parseBoolean),
+    INT(Integer::parseInt),
+    DOUBLE(Double::parseDouble),
+    FLOAT(Float::parseFloat),
+    SHORT(Short::parseShort),
+    LONG(Long::parseLong);
 
     /**
-     * The primitive type.
-     */
-    private final Class<?> primitiveType;
-
-    /**
-     * A function that parses an String to its corresponding primitive type.
+     * A function that parses a string to {@code this} parser.
      */
     private final Function<String, ?> function;
 
     /**
-     * Creates a new type class for a primitive type.
+     * Creates a new parser for a primitive type.
      *
-     * @param primitiveType The primitive type.
-     * @param function      The primitive type parse function.
+     * @param function The primitive type parse function.
      */
-    TypeProperty(Class<?> primitiveType,
-                 Function<String, ?> function) {
-        this.primitiveType = primitiveType;
+    TypeProperty(Function<String, ?> function) {
         this.function = function;
     }
 
     /**
      * Returns the type parse function.
-     *
-     * @return The type parse function.
      */
     public Function<String, ?> getFunction() {
         return function;
     }
 
     /**
-     * Locates a type property by its primitive type.
+     * Locates a parser by a primitive type.
      *
      * @param primitiveType The primitive type
      * @return The corresponding enum or {@code null} if not found.

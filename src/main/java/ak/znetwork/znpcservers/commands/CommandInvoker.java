@@ -4,10 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Used for invoking a command method.
  */
 public class CommandInvoker {
     /**
@@ -28,9 +25,9 @@ public class CommandInvoker {
     /**
      * Creates a new sub-command invoker for the given command.
      *
-     * @param command       The command instance.
+     * @param command The command instance.
      * @param commandMethod The command method.
-     * @param permission    The command permission.
+     * @param permission The command permission.
      */
     public CommandInvoker(Command command,
                           Method commandMethod,
@@ -43,17 +40,17 @@ public class CommandInvoker {
     /**
      * Invokes the command.
      *
-     * @param sender                       The commandSender to run the command for.
-     * @param subCommand                   The subCommand.
-     * @throws CommandPermissionException  If commandSender does not have permission to execute the subCommand.
-     * @throws CommandExecuteException     If subCommand cannot be executed.
+     * @param sender The command sender to run the command for.
+     * @param command The command.
+     * @throws CommandPermissionException If commandSender does not have permission to execute the subCommand.
+     * @throws CommandExecuteException If subCommand cannot be executed.
      */
-    public void execute(CommandSender sender, Object subCommand) throws CommandPermissionException, CommandExecuteException {
+    public void execute(CommandSender sender, Object command) throws CommandPermissionException, CommandExecuteException {
         if (permission.length() > 0 && !sender.getCommandSender().hasPermission(permission)) {
-            throw new CommandPermissionException("Insufficient permission");
+            throw new CommandPermissionException("Insufficient permission.");
         }
         try {
-            commandMethod.invoke(command, sender, subCommand);
+            commandMethod.invoke(this.command, sender, command);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new CommandExecuteException(e.getMessage(), e.getCause());
         }

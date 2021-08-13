@@ -1,140 +1,127 @@
 package ak.znetwork.znpcservers.skin;
+
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Builder for a {@link SkinFetcher}.
  */
 public class SkinFetcherBuilder {
-    /**
-     * A empty string.
-     */
-    private static final String EMPTY_STRING = "";
+    /** The rest API server to use. */
+    private final SkinServer apiServer;
+
+    /** The skin name. */
+    private final String name;
 
     /**
-     * The Rest API server to use.
-     */
-    private final SkinAPI apiUrl;
-
-    /**
-     * The data to send.
-     */
-    private final String data;
-
-    /**
-     * Creates a builder.
+     * Creates a new {@link SkinFetcherBuilder}.
      *
-     * @param apiUrl     The skin url type.
-     * @param data       The data to send.
+     * @param apiServer The skin api server.
+     * @param name The data to send.
      */
-    private SkinFetcherBuilder(SkinAPI apiUrl,
-                               String data) {
-        this.apiUrl = apiUrl;
-        this.data = data;
+    protected SkinFetcherBuilder(SkinServer apiServer,
+                                 String name) {
+        this.apiServer = apiServer;
+        this.name = name;
     }
 
     /**
-     * Returns the skin url type.
-     *
-     * @return The skin url type.
+     * Returns the skin api server.
      */
-    public SkinAPI getApiUrl() {
-        return apiUrl;
+    public SkinServer getAPIServer() {
+        return apiServer;
     }
 
     /**
-     * Returns the skin data.
-     *
-     * @return The skin data.
+     * Returns the skin name/url.
      */
     public String getData() {
-        return data;
+        return name;
+    }
+
+    public boolean isUrlType() {
+        return apiServer == SkinServer.GENERATE_API;
+    }
+
+    public boolean isProfileType() {
+        return apiServer == SkinServer.PROFILE_API;
     }
 
     /**
-     * Creates a new builder for an API Server.
+     * Creates a {@link SkinFetcherBuilder} with the given data.
      *
-     * @param skinAPIURL The API url.
-     * @return           A builder for an API Server.
+     * @param skinAPIURL The API server url.
+     * @param name The skin name.
+     * @return A builder with the additional name.
      */
-    public static SkinFetcherBuilder ofType(SkinAPI skinAPIURL) {
-        return new SkinFetcherBuilder(skinAPIURL, EMPTY_STRING);
+    public static SkinFetcherBuilder create(SkinServer skinAPIURL,
+                                            String name) {
+        return new SkinFetcherBuilder(skinAPIURL, name);
     }
 
     /**
-     * Creates a new builder with the additional data.
-     *
-     * @param skinAPIURL The API url.
-     * @param data       The data.
-     * @return           A builder with the additional data.
+     * Returns a new {@link SkinFetcherBuilder} with the given skin {@code name}.
+     * <p>
+     * This method will solve which api server to use when calling {@link SkinFetcher#fetchProfile}.
+     * If the given {@code name#startsWith("http")} the builder will use {@link SkinServer#GENERATE_API}
+     * to generate the skin from the given url image otherwise the method will use
+     * {@link SkinServer#PROFILE_API} to fetch the skin from a player name.
+     * <p>
+     * <b>NOTE:</b> If using a url make sure it is a valid skin image with a size of 64x64.
+     * @param name The skin name/url.
+     * @see SkinServer
      */
-    public static SkinFetcherBuilder withData(SkinAPI skinAPIURL, String data) {
-        return new SkinFetcherBuilder(skinAPIURL, data);
+    public static SkinFetcherBuilder withName(String name) {
+        return create(name.startsWith("http") ? SkinServer.GENERATE_API : SkinServer.PROFILE_API, name);
     }
 
     /**
-     * Creates a new skin fetcher for the given builder.
-     *
-     * @return A skin fetcher definition for the given builder.
+     * Creates a new {@link SkinFetcher} from the current instance.
      */
     public SkinFetcher toSkinFetcher() {
         return new SkinFetcher(this);
     }
 
     /**
-     * This enum represents the possible API servers to use,
-     * for fetching a skin.
+     * The possible API servers to use when  fetching a skin.
      */
-    public enum SkinAPI {
-
+    public enum SkinServer {
         /**
          * Used for retrieving a profile linked to a name.
          */
         PROFILE_API("GET", "https://api.ashcon.app/mojang/v2/user"),
-
         /**
          * Used to generate a profile from an image URL.
          */
         GENERATE_API("POST", "https://api.mineskin.org/generate/url");
 
-        /**
-         * The HTTP request method.
-         */
+        /** The HTTP request method. */
         private final String method;
 
-        /**
-         * The Rest API URL.
-         */
-        private final String apiURL;
+        /** The rest api server url. */
+        private final String url;
 
         /**
-         * Creates a new api url.
+         * Creates a new {@link SkinServer}.
          *
-         * @param method The HTTP request method.
-         * @param apiURL The url api server.
+         * @param method The http request method.
+         * @param url The rest api url.
          */
-        SkinAPI(String method,
-                String apiURL) {
-            this.apiURL = apiURL;
+        SkinServer(String method,
+                   String url) {
             this.method = method;
+            this.url = url;
         }
 
         /**
-         * Returns the api url.
-         *
-         * @return The api url.
-         */
-        public String getApiURL() {
-            return apiURL;
-        }
-
-        /**
-         * Returns the request method (GET,POST).
-         *
-         * @return The request method
+         * Returns the http request method.
          */
         public String getMethod() {
             return method;
+        }
+
+        /**
+         * Returns the rest api server url.
+         */
+        public String getURL() {
+            return url;
         }
     }
 }

@@ -1,56 +1,51 @@
 package ak.znetwork.znpcservers.utility.location;
 
+import com.google.gson.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-import lombok.Getter;
+import java.lang.reflect.Type;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Simple struct class to hold information for an {@link Location}.
  */
-@Getter
 public class ZLocation {
-    /**
-     * The location world name.
-     */
-    private final String world;
+    public static final ZLocationSerializer SERIALIZER = new ZLocationSerializer();
 
-    /**
-     * The location x,y,z.
-     */
+    /** The location world name. */
+    private final String worldName;
+
+    /** The location world coordinates. */
     private final double x,y,z;
 
-    /**
-     * The location yaw,pitch.
-     */
+    /** The location yaw & pitch. */
     private final float yaw,pitch;
 
     /**
-     * The saved location.
+     * Represents the {@link Location} that this instance refers to.
+     * @see #bukkitLocation()
      */
-    private Location locationCache;
+    private Location bukkitLocation;
 
     /**
-     * Creates a new cache location off values.
+     * Creates a {@link ZLocation} for the given values.
      *
-     * @param world The location world name
-     * @param x     The location x.
-     * @param y     The location y.
-     * @param z     The location z.
-     * @param yaw   The location yaw.
+     * @param worldName The location world name
+     * @param x The location x-coordinate.
+     * @param y The location y-coordinate.
+     * @param z The location z-coordinate.
+     * @param yaw The location yaw.
      * @param pitch The location pitch.
      */
-    public ZLocation(String world,
+    public ZLocation(String worldName,
                      double x,
                      double y,
                      double z,
                      float yaw,
                      float pitch) {
-        this.world = world;
+        this.worldName = worldName;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -59,9 +54,9 @@ public class ZLocation {
     }
 
     /**
-     * Creates a new cache location off a bukkit-location.
+     * Creates a {@link ZLocation} for the given bukkit location.
      *
-     * @param location The bukkit-location.
+     * @param location The bukkit location.
      */
     public ZLocation(Location location) {
         this(location.getWorld().getName(),
@@ -74,15 +69,58 @@ public class ZLocation {
     }
 
     /**
-     * Returns the bukkit location.
-     *
-     * @return The bukkit-location.
+     * Returns the location world name.
      */
-    public Location toBukkitLocation() {
-        if (locationCache != null) {
-            return locationCache;
+    public String getWorldName() {
+        return worldName;
+    }
+
+    /**
+     * Returns the location x-coordinate.
+     */
+    public double getX() {
+        return x;
+    }
+
+    /**
+     * Returns the location y-coordinate.
+     */
+    public double getY() {
+        return y;
+    }
+
+    /**
+     * Returns the location z-coordinate.
+     */
+    public double getZ() {
+        return z;
+    }
+
+    /**
+     * Returns the location yaw.
+     */
+    public float getYaw() {
+        return yaw;
+    }
+
+    /**
+     * Returns the location pitch.
+     */
+    public float getPitch() {
+        return pitch;
+    }
+
+    /**
+     * Converts this instance to an {@link Location}.
+     *
+     * @return A {@link org.bukkit.Location} with the instance information.
+     */
+    public Location bukkitLocation() {
+        if (bukkitLocation != null) {
+            return bukkitLocation;
         }
-        return locationCache = new Location(Bukkit.getWorld(world),
+        return bukkitLocation = new Location(
+                Bukkit.getWorld(worldName),
                 x,
                 y,
                 z,
@@ -92,9 +130,39 @@ public class ZLocation {
     }
 
     /**
-     * Converts the location to vector.
+     * Converts the instance {@link #bukkitLocation} to an {@link Vector}.
      */
     public Vector toVector() {
-        return toBukkitLocation().toVector();
+        return bukkitLocation().toVector();
+    }
+
+    /**
+     * Provides serialization and deserialization for a {@link ZLocation}.
+     */
+    static class ZLocationSerializer implements JsonSerializer<ZLocation>, JsonDeserializer<ZLocation> {
+
+        @Override
+        public JsonElement serialize(ZLocation src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("world", src.getWorldName());
+            jsonObject.addProperty("x", src.getX());
+            jsonObject.addProperty("y", src.getY());
+            jsonObject.addProperty("z", src.getZ());
+            jsonObject.addProperty("yaw", src.getYaw());
+            jsonObject.addProperty("pitch", src.getPitch());
+            return jsonObject;
+        }
+
+        @Override
+        public ZLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObject = json.getAsJsonObject();
+            return new ZLocation(jsonObject.get("world").getAsString(),
+                    jsonObject.get("x").getAsDouble(),
+                    jsonObject.get("y").getAsDouble(),
+                    jsonObject.get("z").getAsDouble(),
+                    jsonObject.get("yaw").getAsFloat(),
+                    jsonObject.get("pitch").getAsFloat()
+            );
+        }
     }
 }

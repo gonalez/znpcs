@@ -2,14 +2,14 @@ package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.utility.Utils;
-
 import com.google.gson.JsonElement;
-import com.google.gson.internal.$Gson$Types;
 import com.google.gson.JsonParser;
-
+import com.google.gson.internal.$Gson$Types;
 import org.bukkit.command.CommandSender;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,10 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Represents the configuration.
  */
 public class Config {
     /**
@@ -39,7 +36,7 @@ public class Config {
     /**
      * The configuration type.
      */
-    private final ConfigType configType;
+    private final ConfigKey configType;
 
     /**
      * The configuration path.
@@ -52,30 +49,29 @@ public class Config {
     private final Map<ConfigValue, Object> configValues;
 
     /**
-     * Creates a new configuration.
+     * Creates a new {@link Config}.
      *
      * @param configType The configuration type.
      * @param path The configuration path.
      */
-    public Config(ConfigType configType,
+    public Config(ConfigKey configType,
                   Path path) {
         this.configType = configType;
         this.path = path;
         this.configValues = Arrays.stream(ConfigValue.values())
                 .filter(znConfigValue -> znConfigValue.getConfigType() == configType)
                 .collect(Collectors.toMap(key -> key, ConfigValue::getValue));
-        load();
+        onLoad();
     }
 
     /**
-     * Loads the configuration.
+     * Loads the configuration, called when creating a new {@link Config}.
      */
-    public void load() {
+    protected void onLoad() {
         synchronized (path) {
             try (Reader reader = Files.newBufferedReader(path, CHARSET)) {
                 JsonElement data = JSON_PARSER.parse(reader);
                 if (data == null) {
-                    // No data found
                     return;
                 }
                 for (ConfigValue configValue : configValues.keySet()) {
@@ -94,11 +90,11 @@ public class Config {
                 }
             } catch (NoSuchFileException e) {
                 // File not found, create the configuration with
-                // The default provided values.
+                // the default provided values.
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to read config: " + configType.name());
             } finally {
-                // Save configuration to file
+                // save configuration to file
                 save();
             }
         }
@@ -130,7 +126,7 @@ public class Config {
     }
 
     /**
-     * Sends configuration message to the given command sender.
+     * Sends a configuration message value to the given command sender.
      *
      * @param sender The sender to send the message for.
      * @param configValue The configuration message value.

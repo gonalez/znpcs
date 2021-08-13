@@ -1,24 +1,21 @@
 package ak.znetwork.znpcservers.tasks;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.ZNPC;
+import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.conversation.ConversationModel;
-import ak.znetwork.znpcservers.types.ConfigTypes;
-
+import ak.znetwork.znpcservers.npc.ToggleType;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
+import ak.znetwork.znpcservers.user.ZUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Runnable task for handling the {@link NPC}s.
  */
 public class NPCManagerTask extends BukkitRunnable {
     /**
-     * Creates a new task for all NPC.
-     * This task will handle each npc.
+     * Creates a new task. This task will handle all the {@link NPC}s.
      *
      * @param serversNPC The plugin instance.
      */
@@ -28,28 +25,25 @@ public class NPCManagerTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (ZNPC npc : ZNPC.all()) {
+        for (NPC npc : NPC.all()) {
             boolean hasPath = npc.getNpcPath() != null;
-            // Manage npc path
             if (hasPath) {
                 npc.getNpcPath().handle();
             }
             for (Player player : Bukkit.getOnlinePlayers()) {
-                boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
-                if (npc.getViewers().contains(player) && !canSeeNPC)
-                    // delete npc if player is not in range
-                    npc.delete(player, true);
+                ZUser zUser = ZUser.find(player);
+                final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
+                if (npc.getNpcViewers().contains(zUser) && !canSeeNPC) // delete the npc for the player if player is not in range
+                    npc.delete(zUser, true);
                 else if (canSeeNPC) {
-                    // update npc for player
-                    if (!npc.getViewers().contains(player)) {
-                        npc.spawn(player);
+                    if (!npc.getNpcViewers().contains(zUser)) {
+                        npc.spawn(zUser);
                     }
-                    // look npc at player
-                    if (npc.getNpcPojo().isHasLookAt() && !hasPath) {
-                        npc.lookAt(player, player.getLocation(), false);
+                    if (ToggleType.isTrue(npc,
+                            ToggleType.LOOK) && !hasPath) { // look npc at player
+                        npc.lookAt(zUser, player.getLocation(), false);
                     }
-                    // update hologram lines for player
-                    npc.getHologram().updateNames(player);
+                    npc.getHologram().updateNames(zUser);
                     // handle npc conversation
                     ConversationModel conversationStorage = npc.getNpcPojo().getConversation();
                     if (conversationStorage != null && conversationStorage.getConversationType() == ConversationModel.ConversationType.RADIUS) {

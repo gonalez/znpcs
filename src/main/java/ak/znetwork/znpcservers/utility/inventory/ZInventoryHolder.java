@@ -3,20 +3,12 @@ package ak.znetwork.znpcservers.utility.inventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-/**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 2/8/2021
- */
 public class ZInventoryHolder implements InventoryHolder {
-    /**
-     * The inventory.
-     */
+    /** The inventory in which the holder will be created for. */
     private final ZInventory zInventory;
 
     /**
-     * Creates a new inventory holder for a {@link ZInventory}.
+     * Creates a new {@link InventoryHolder} for a {@link ZInventory}.
      *
      * @param zInventory The inventory.
      */
@@ -25,9 +17,7 @@ public class ZInventoryHolder implements InventoryHolder {
     }
 
     /**
-     * Returns the holder inventory.
-     *
-     * @return Returns the holder inventory.
+     * Returns the inventory.
      */
     public ZInventory getzInventory() {
         return zInventory;

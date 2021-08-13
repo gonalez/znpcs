@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.cache.CachePackage;
-import ak.znetwork.znpcservers.cache.CacheType;
+import ak.znetwork.znpcservers.cache.TypeCache;
 
 import com.google.common.collect.Iterables;
 
@@ -12,53 +12,43 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
- */
-public class CustomizationProcessor {
-    /**
-     * The bukkit entity class.
-     */
+public class CustomizationLoader {
+    /** The bukkit entity class. */
     private final Class<? extends Entity> entityClass;
 
-    /**
-     * A map containing the loaded provided entity methods.
-     */
+    /** A map containing the provided entity methods. */
     private final Map<String, Method> methods;
 
     /**
-     * Creates a new customization processor for an entity type.
+     * Creates a new {@link CustomizationLoader} for an entity type.
      *
      * @param entityType The entity type.
-     * @param methodsName The methods to load.
+     * @param methodsName The entity method names to load.
      */
-    public CustomizationProcessor(EntityType entityType,
-                                  Iterable<String> methodsName) {
+    public CustomizationLoader(EntityType entityType,
+                               Iterable<String> methodsName) {
         this(entityType.getEntityClass(), methodsName);
     }
 
     /**
-     * Creates a new customization processor for an entity type.
+     * Creates a new {@link CustomizationLoader} for an entity type.
      *
      * @param entityClass The bukkit entity type class.
      * @param methodsName The methods to load.
      */
-    protected CustomizationProcessor(Class<? extends Entity> entityClass,
-                                     Iterable<String> methodsName) {
+    protected CustomizationLoader(Class<? extends Entity> entityClass,
+                                  Iterable<String> methodsName) {
         this.entityClass = entityClass;
-        this.methods = getMethods(methodsName);
+        this.methods = loadMethods(methodsName);
     }
 
     /**
-     * Returns a map of all loaded methods that were provided.
+     * Returns a map of all the loaded methods that were provided.
      *
      * @param iterable The method names.
-     * @return A map of all loaded methods that were provided.
+     * @return A map of all the loaded methods that were provided.
      */
-    protected Map<String, Method> getMethods(Iterable<String> iterable) {
+    protected Map<String, Method> loadMethods(Iterable<String> iterable) {
         Map<String, Method> builder = new HashMap<>();
         for (Method method : entityClass.getMethods()) {
             if (builder.containsKey(method.getName()) ||
@@ -68,11 +58,10 @@ public class CustomizationProcessor {
             }
             for (Class<?> parameter : method.getParameterTypes()) {
                 TypeProperty typeProperty = TypeProperty.forType(parameter);
-                if (typeProperty == null
-                        && parameter.isEnum()) {
+                if (typeProperty == null && parameter.isEnum()) {
                     // create a new cache for the values on the enum class for late use
-                    new CacheType.AbstractCache.EnumLoader(
-                            new CacheType.CacheBuilder(CachePackage.DEFAULT)
+                    new TypeCache.BaseCache.EnumLoader(
+                            new TypeCache.CacheBuilder(CachePackage.DEFAULT)
                             .withClassName(parameter.getTypeName())).load();
                 }
             }
@@ -92,9 +81,9 @@ public class CustomizationProcessor {
     }
 
     /**
-     * Returns A map containing the loaded provided entity methods.
+     * Returns a map containing the found entity methods.
      *
-     * @return A map containing the loaded provided entity methods.
+     * @return A map containing the found entity methods.
      */
     public Map<String, Method> getMethods() {
         return methods;

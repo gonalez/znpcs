@@ -3,21 +3,17 @@ package ak.znetwork.znpcservers.listeners;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.utility.inventory.ZInventory;
 import ak.znetwork.znpcservers.utility.inventory.ZInventoryHolder;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 2/8/2021
+ * @inheritDoc
  */
 public class InventoryListener implements Listener {
     /**
-     * Creates and register the necessary events for a {@link ZInventory}.
+     * Creates and register the necessary events for the {@link ZInventory}.
      *
      * @param serversNPC The plugin instance.
      */
@@ -43,11 +39,11 @@ public class InventoryListener implements Listener {
         event.setCancelled(true);
         ZInventory zInventory = ((ZInventoryHolder) event.getInventory().getHolder()).getzInventory();
         // check if clicked item exists in the inventory
-        if (!zInventory.getCurrentPage().hasItem(event.getRawSlot())) {
+        if (!zInventory.getPage().containsItem(event.getRawSlot())) {
             return;
         }
         // handle item click event
-        zInventory.getCurrentPage().findItem(event.getRawSlot()).getInventoryCallback().onClick(event);
+        zInventory.getPage().findItem(event.getRawSlot()).getInventoryCallback().onClick(event);
         ((Player) event.getWhoClicked()).updateInventory();
     }
 }

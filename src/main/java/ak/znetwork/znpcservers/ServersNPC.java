@@ -4,22 +4,20 @@ import ak.znetwork.znpcservers.commands.list.DefaultCommand;
 import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.listeners.InventoryListener;
 import ak.znetwork.znpcservers.listeners.PlayerListener;
-import ak.znetwork.znpcservers.npc.ZNPCModel;
+import ak.znetwork.znpcservers.npc.NPCModel;
 import ak.znetwork.znpcservers.utility.BungeeUtils;
 import ak.znetwork.znpcservers.utility.itemstack.ItemStackSerializer;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
-import ak.znetwork.znpcservers.npc.ZNPC;
-import ak.znetwork.znpcservers.npc.ZNPCType;
+import ak.znetwork.znpcservers.npc.NPC;
+import ak.znetwork.znpcservers.npc.NPCType;
 import ak.znetwork.znpcservers.tasks.NPCSaveTask;
-import ak.znetwork.znpcservers.types.ConfigTypes;
+import ak.znetwork.znpcservers.configuration.ConfigTypes;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.MetricsLite;
-import ak.znetwork.znpcservers.npc.ZNPCSkin;
 import ak.znetwork.znpcservers.utility.SchedulerUtils;
 
-import ak.znetwork.znpcservers.utility.location.ZLocationSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -31,14 +29,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.*;
 import java.util.Collections;
 
-import static ak.znetwork.znpcservers.npc.ZNPCPath.AbstractTypeWriter.*;
+import static ak.znetwork.znpcservers.npc.NPCPath.AbstractTypeWriter.*;
 
-/**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
- */
 public class ServersNPC extends JavaPlugin {
     /**
      * The plugin name.
@@ -71,7 +63,7 @@ public class ServersNPC extends JavaPlugin {
      * custom type adapters.
      */
     public final static Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(ZLocation.class, new ZLocationSerializer())
+            .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
             .setPrettyPrinting()
             .disableHtmlEscaping()
@@ -89,41 +81,36 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Load paths
         loadAllPaths();
 
-        // Register BungeeCord channel
+        // register BungeeCord channel
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
-        // Setup metrics
+        // setup metrics
         new MetricsLite(this, PLUGIN_ID);
 
-        // Register commands
-        new DefaultCommand("znpcs");
+        // create commands
+        new DefaultCommand();
 
-        // Default executor
+        // utils
         SCHEDULER = new SchedulerUtils(this);
-
-        // Bungee Utils
         BUNGEE_UTILS = new BungeeUtils(this);
 
-        // Setup users again for online players
+        // setup users again for online players
         Bukkit.getOnlinePlayers().forEach(ZUser::find);
 
-        // Init NPC task
+        // init NPC task
         new NPCManagerTask(this);
         new NPCSaveTask(this, ConfigTypes.SAVE_DELAY);
 
-        // Register listeners
+        // register listeners
         new PlayerListener(this);
         new InventoryListener(this);
     }
 
     @Override
     public void onDisable() {
-        // save configurations
         ConfigManager.all().forEach(Config::save);
-        // unregister users
         Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
         // delete all npc for viewers
         removeAllViewers();
@@ -151,7 +138,7 @@ public class ServersNPC extends JavaPlugin {
      * Deletes all NPC for viewers.
      */
     public void removeAllViewers() {
-        ZNPC.all().forEach(ZNPC::deleteViewers);
+        NPC.all().forEach(NPC::deleteViewers);
     }
 
     /**
@@ -161,16 +148,19 @@ public class ServersNPC extends JavaPlugin {
      * @param npcType  The npc entity type.
      * @param location The npc location.
      * @param name     The npc skin name.
-     * @return The created zNPC.
+     * @return The created NPC.
      */
-    public static ZNPC createNPC(int id, ZNPCType npcType, Location location, String name) {
-        final ZNPC find = ZNPC.find(id);
+    public static NPC createNPC(int id, NPCType npcType, Location location, String name) {
+        NPC find = NPC.find(id);
         if (find != null) {
             return find;
         }
-        ZNPCModel pojo = new ZNPCModel(id, Collections.singletonList(name), ZNPCSkin.forValues(), new ZLocation(location), npcType);
+        NPCModel pojo = new NPCModel(id)
+                .withHologramLines(Collections.singletonList(name))
+                .withLocation(new ZLocation(location))
+                .withNpcType(npcType);
         ConfigTypes.NPC_LIST.add(pojo);
-        return new ZNPC(pojo);
+        return new NPC(pojo, true);
     }
 
     /**
@@ -179,11 +169,11 @@ public class ServersNPC extends JavaPlugin {
      * @param npcID The npc ID.
      */
     public static void deleteNPC(int npcID) {
-        ZNPC npc = ZNPC.find(npcID);
+        NPC npc = NPC.find(npcID);
         if (npc == null) {
             throw new IllegalStateException("can't find npc " + npcID);
         }
-        ZNPC.unregister(npcID);
+        NPC.unregister(npcID);
         ConfigTypes.NPC_LIST.remove(npc.getNpcPojo());
     }
 }

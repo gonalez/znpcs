@@ -2,27 +2,23 @@ package ak.znetwork.znpcservers.manager;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.configuration.Config;
-import ak.znetwork.znpcservers.configuration.ConfigType;
+import ak.znetwork.znpcservers.configuration.ConfigKey;
 
-import ak.znetwork.znpcservers.configuration.ConfigValue;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * @inheritDoc
  */
 public final class ConfigManager {
     /**
      * The configuration types.
      */
-    private static final ImmutableMap<ConfigType, Config> CONFIG_IMMUTABLE_MAP;
+    private static final ImmutableMap<ConfigKey, Config> CONFIG_IMMUTABLE_MAP;
 
     static {
-        final ImmutableMap.Builder<ConfigType, Config> builder = ImmutableMap.builder();
-        for (ConfigType configType : ConfigType.values()) {
+        final ImmutableMap.Builder<ConfigKey, Config> builder = ImmutableMap.builder();
+        for (ConfigKey configType : ConfigKey.values()) {
             builder.put(configType, new Config(configType, ServersNPC.PLUGIN_FOLDER.toPath().resolve(String.format("%s.json", configType.name().toLowerCase()))));
         }
         CONFIG_IMMUTABLE_MAP = builder.build();
@@ -34,7 +30,7 @@ public final class ConfigManager {
      * @param type The configuration type.
      * @return The configuration.
      */
-    public static Config getByType(ConfigType type) {
+    public static Config getByType(ConfigKey type) {
         return CONFIG_IMMUTABLE_MAP.get(type);
     }
 

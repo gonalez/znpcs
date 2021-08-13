@@ -2,24 +2,18 @@ package ak.znetwork.znpcservers.utility;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Helper functions for the bukkit scheduler.
  */
 public class SchedulerUtils {
-    /**
-     * The plugin instance.
-     */
+    /** The plugin instance. */
     private final Plugin plugin;
 
     /**
-     * Initializes the scheduler utils.
+     * Initializes the scheduler utils for the plugin.
      *
      * @param plugin The plugin instance.
      */
@@ -28,11 +22,11 @@ public class SchedulerUtils {
     }
 
     /**
-     * Schedules a repeated runnable.
+     * Schedules a new repeated runnable.
      *
-     * @param bukkitRunnable The runnable class to execute.
-     * @param delay The delay for the runnable to be executed.
-     * @return The bukkit task.
+     * @param bukkitRunnable The runnable instance to execute.
+     * @param delay The delay to wait before executing the runnable.
+     * @return The bukkit task for the runnable.
      */
     public BukkitTask runTaskTimer(BukkitRunnable bukkitRunnable,
                                         int delay) {
@@ -40,24 +34,42 @@ public class SchedulerUtils {
     }
 
     /**
-     * Schedules a repeated runnable.
+     * Schedules a new repeated runnable.
      *
-     * @param bukkitRunnable The runnable class to execute.
-     * @param startDelay The first delay for the runnable to be executed
-     * @param delay The delay for the runnable to be executed.
-     * @return The bukkit task.
+     * @param bukkitRunnable The runnable instance to execute.
+     * @param delay The first delay to wait before executing the runnable.
+     * @param continuousDelay The delay to wait before execute the runnable.
+     * @return  The bukkit task for the runnable.
      */
     public BukkitTask runTaskTimer(BukkitRunnable bukkitRunnable,
-                                   int startDelay,
-                                   int delay) {
-        return bukkitRunnable.runTaskTimer(plugin, startDelay, delay);
+                                   int delay,
+                                   int continuousDelay) {
+        return bukkitRunnable.runTaskTimer(plugin, delay, continuousDelay);
     }
 
     /**
-     * Schedules a runnable at a later time.
+     * Schedules a new repeated asynchronous task.
      *
      * @param runnable The runnable to execute.
-     * @param delay The delay for the runnable to be executed
+     * @param delay The first delay to wait before executing the runnable.
+     * @param continuousDelay The delay to wait before execute the runnable.
+     * @return The bukkit task for the runnable.
+     */
+    public BukkitTask runTaskTimerAsynchronously(Runnable runnable,
+                                                 int delay,
+                                                 int continuousDelay) {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin,
+                runnable,
+                delay,
+                continuousDelay
+        );
+    }
+
+    /**
+     * Schedules a new runnable at a later time.
+     *
+     * @param runnable The runnable to execute.
+     * @param delay The delay to wait before execute the runnable.
      */
     public void scheduleSyncDelayedTask(Runnable runnable, int delay) {
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin,
@@ -67,18 +79,12 @@ public class SchedulerUtils {
     }
 
     /**
-     * Schedules a repeatedly asynchronous task.
+     * Schedules a new runnable.
      *
      * @param runnable The runnable to execute.
-     * @param start The start delay for the runnable to be executed
-     * @param delay The delay for the runnable to be executed
-     * @return The bukkit task.
+     * @return The bukkit task for the runnable.
      */
-    public BukkitTask runTaskTimerAsynchronously(Runnable runnable, long start, long delay) {
-        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin,
-                runnable,
-                start,
-                delay
-        );
+    public BukkitTask runTask(Runnable runnable) {
+        return Bukkit.getScheduler().runTask(plugin, runnable);
     }
 }

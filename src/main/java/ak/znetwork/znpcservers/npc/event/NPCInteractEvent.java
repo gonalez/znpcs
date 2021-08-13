@@ -1,17 +1,13 @@
-package ak.znetwork.znpcservers.events;
+package ak.znetwork.znpcservers.npc.event;
 
-import ak.znetwork.znpcservers.events.type.ClickType;
-import ak.znetwork.znpcservers.npc.ZNPC;
-
+import ak.znetwork.znpcservers.npc.event.type.ClickType;
+import ak.znetwork.znpcservers.npc.NPC;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
+ * Used when a {@link ak.znetwork.znpcservers.user.ZUser} interacts with an {@link NPC}.
  */
 public class NPCInteractEvent extends Event {
     /**
@@ -27,21 +23,21 @@ public class NPCInteractEvent extends Event {
     /**
      * The npc that was interacted with.
      */
-    private final ZNPC npc;
+    private final NPC npc;
 
     /** ... */
     private static final HandlerList handlerList = new HandlerList();
 
     /**
-     * Creates a new interact event for a npc.
+     * Creates a new interact event for a {@link NPC}.
      *
-     * @param player    The player who clicked the npc.
+     * @param player The player who clicked the npc.
      * @param clickType The click type.
-     * @param npc       The npc that was clicked.
+     * @param npc The npc that was clicked.
      */
     public NPCInteractEvent(Player player,
                             ClickType clickType,
-                            ZNPC npc) {
+                            NPC npc) {
         this.player = player;
         this.clickType = clickType;
         this.npc = npc;
@@ -50,13 +46,13 @@ public class NPCInteractEvent extends Event {
     /**
      * Creates a new interact event for a npc.
      *
-     * @param player    The player who clicked the npc.
+     * @param player The player who clicked the npc.
      * @param clickType The click type.
-     * @param npc       The npc that was clicked.
+     * @param npc The npc that was clicked.
      */
     public NPCInteractEvent(Player player,
                             String clickType,
-                            ZNPC npc) {
+                            NPC npc) {
         this(player, ClickType.forName(clickType), npc);
     }
 
@@ -70,23 +66,23 @@ public class NPCInteractEvent extends Event {
     /**
      * Returns the npc that was clicked.
      */
-    public ZNPC getNpc() {
+    public NPC getNpc() {
         return npc;
     }
 
     /**
-     * Returns if the npc was interacted with right click
+     * Returns {@code true} if the npc was interacted with right click.
      *
-     * @return {@code true} If the npc was interacted with right click
+     * @return If the npc was interacted with right click.
      */
     public boolean isRightClick() {
         return clickType == ClickType.RIGHT;
     }
 
     /**
-     * Returns if the npc was interacted with left click
+     * Returns {@code true} if the npc was interacted with left click.
      *
-     * @return {@code true} If the npc was interacted with left click
+     * @return If the npc was interacted with left click.
      */
     public boolean isLeftClick() {
         return clickType == ClickType.LEFT;

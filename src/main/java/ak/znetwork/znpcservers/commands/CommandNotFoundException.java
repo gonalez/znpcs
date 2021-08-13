@@ -2,11 +2,6 @@ package ak.znetwork.znpcservers.commands;
 
 /**
  * Thrown when a command is not found.
- *
- * <p>Copyright (c) ZNetwork, 2020.</p>
- *
- * @author ZNetwork
- * @since 07/02/2020
  */
 public class CommandNotFoundException extends Exception {
     /**
