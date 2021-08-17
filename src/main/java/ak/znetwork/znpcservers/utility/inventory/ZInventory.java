@@ -80,7 +80,7 @@ public class ZInventory {
         if (page == null) {
             throw new IllegalStateException("page is null");
         }
-        if (page.getRows() > MAX_ROWS) {
+        if (page.getRows() / 9 > MAX_ROWS) {
             throw new IllegalArgumentException(String.format("Unexpected rows size. Has %d, max %d",
                     page.getRows(), MAX_ROWS));
         }

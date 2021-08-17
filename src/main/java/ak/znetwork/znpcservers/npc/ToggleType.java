@@ -13,7 +13,7 @@ public enum ToggleType {
     LOOK(false);
 
     /**
-     * {@code true} If should execute {@link #doToggle(NPC, String)} for a npc.
+     * {@code true} If should update the npc after running {@link #doToggle(NPC, String)}.
      */
     private final boolean autoUpdate;
 
@@ -57,11 +57,11 @@ public enum ToggleType {
     }
 
     /**
-     * The toggle function.
+     * The toggle type function.
      *
-     * @param npc The npc to execute the toggle function for.
+     * @param npc The npc to execute that function for.
      * @param toggleValue The optional value for the toggle, i.e for getting a glow color, etc ..
-     * @throws UnsupportedOperationException If this type of toggle does overrides this method.
+     * @throws UnsupportedOperationException If this toggle type does not provide a function.
      */
     protected void onToggle(NPC npc, String toggleValue) {
         throw new UnsupportedOperationException();

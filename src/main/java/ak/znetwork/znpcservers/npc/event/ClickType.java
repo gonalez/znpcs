@@ -1,4 +1,4 @@
-package ak.znetwork.znpcservers.npc.event.type;
+package ak.znetwork.znpcservers.npc.event;
 
 /**
  * Used to determine the click type when interacting with a npc.

@@ -449,7 +449,7 @@ public class DefaultCommand extends Command {
             if (foundNPC.getNpcPojo().getClickActions().isEmpty()) {
                 ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.NO_ACTION_FOUND);
             } else {
-                foundNPC.getNpcPojo().getClickActions().forEach(s -> sender.sendMessage("&8(&a" + foundNPC.getNpcPojo().getClickActions().indexOf(s) + "&8) &6" + s));
+                foundNPC.getNpcPojo().getClickActions().forEach(s -> sender.sendMessage("&8(&a" + foundNPC.getNpcPojo().getClickActions().indexOf(s) + "&8) &6" + s.toString()));
             }
         }
     }
@@ -482,7 +482,7 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        ToggleType.valueOf(args.get("type")).doToggle(foundNPC, args.get("value"));
+        ToggleType.valueOf(args.get("type").toUpperCase()).doToggle(foundNPC, args.get("value"));
         ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
     }
 
@@ -621,7 +621,7 @@ public class DefaultCommand extends Command {
             name = "teleport",
             permission = "znpcs.cmd.teleport",
             help = {
-                    " &f&l* &e/znpcs teleport -id <npc_id>",
+                    " &f&l* &e/znpcs teleport <npc_id>",
             }
     )
     public void teleport(CommandSender sender, Map<String, String> args) {
@@ -653,7 +653,7 @@ public class DefaultCommand extends Command {
             name = "height",
             permission = "znpcs.cmd.height",
             help = {
-                    " &f&l* &e/znpcs height -id <npc_id> 2",
+                    " &f&l* &e/znpcs height <npc_id> 2",
                     "&8Add more height to the hologram of the npc"
             }
     )

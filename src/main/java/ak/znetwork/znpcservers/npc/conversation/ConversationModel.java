@@ -23,12 +23,12 @@ public class ConversationModel {
     /**
      * The conversation name.
      */
-    private final String conversationName;
+    private String conversationName;
 
     /**
      * The conversation type.
      */
-    private final ConversationType conversationType;
+    private ConversationType conversationType;
 
     /**
      * A map for checking the last started conversation time with an npc for a player.
@@ -90,9 +90,7 @@ public class ConversationModel {
         if (!Conversation.exists(conversationName)) {
             throw new IllegalStateException("can't find conversation " + conversationName);
         }
-        // check if the player is currently conversing with an npc
-        if (ConversationProcessor.isPlayerConversing(player.getUniqueId())) {
-            // the player is already conversing with an npc return...
+        if (ConversationProcessor.isPlayerConversing(player.getUniqueId())) { // check if the player is currently conversing with an npc
             return;
         }
         // check for the last player conversation time
@@ -103,8 +101,7 @@ public class ConversationModel {
             }
         }
         lastStarted.remove(player.getUniqueId());
-        // conversation found, start
-        if (conversationType.canStart(npc, getConversation(), player)) {
+        if (conversationType.canStart(npc, getConversation(), player)) {  // conversation found, start
             new ConversationProcessor(npc, this, player);
             lastStarted.put(player.getUniqueId(), System.nanoTime());
         }
@@ -115,7 +112,7 @@ public class ConversationModel {
      *
      * @param npc The npc.
      * @param player The player
-     * @return If the player can start/continue with the conversation.
+     * @return {@code true} If the player can start/continue with the conversation.
      */
     public boolean canRun(NPC npc, Player player) {
         return Stream.of(ConversationType.values()).anyMatch(conversationType1 -> !conversationType1.canStart(npc, getConversation(), player));
@@ -130,11 +127,11 @@ public class ConversationModel {
          */
         RADIUS {
             @Override
-            public boolean canStart(NPC znpc,
+            public boolean canStart(NPC npc,
                                     Conversation conversation,
                                     Player player) {
-                return player.getWorld() == znpc.getLocation().getWorld() &&
-                        player.getLocation().distance(znpc.getLocation()) <= conversation.getRadius();
+                return player.getWorld() == npc.getLocation().getWorld() &&
+                        player.getLocation().distance(npc.getLocation()) <= conversation.getRadius();
             }
         },
         /**
@@ -142,7 +139,7 @@ public class ConversationModel {
          */
         CLICK {
             @Override
-            public boolean canStart(NPC znpc,
+            public boolean canStart(NPC npc,
                                     Conversation conversation,
                                     Player player) {
                 // continue on npc interact event
@@ -151,7 +148,7 @@ public class ConversationModel {
         };
 
         /**
-         * Returns {@code true} if the player can start a conversation with the {@code npc}.
+         * Returns {@code true} if the player can start a conversation with given npc.
          *
          * @param npc The npc to start the conversation with.
          * @param conversation The conversation.
@@ -160,4 +157,7 @@ public class ConversationModel {
          */
         abstract boolean canStart(NPC npc, Conversation conversation, Player player);
     }
+
+    /** Required by gson */
+    private ConversationModel() {}
 }

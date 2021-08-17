@@ -48,7 +48,7 @@ public abstract class ZInventoryPage {
                           int rows) {
         this.zInventory = zInventory;
         this.pageName = inventoryName;
-        this.rows = 9 * rows;
+        this.rows = rows*9;
         this.inventoryItems = new ArrayList<>();
         if (zInventory.getInventory() != null) { // check if the inventory opened a page before
             final ZInventoryPage zInventoryPage = zInventory.getPage();

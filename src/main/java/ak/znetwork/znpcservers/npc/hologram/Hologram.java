@@ -66,8 +66,7 @@ public class Hologram {
             double y = 0;
             final Location location = npc.getLocation();
             for (String line : npc.getNpcPojo().getHologramLines()) {
-                // determine if the line should be seen
-                boolean visible = !line.equalsIgnoreCase("%space%");
+                boolean visible = !line.equalsIgnoreCase("%space%"); // determine if the line should be seen
                 Object armorStand = CacheRegistry.ENTITY_CONSTRUCTOR.newInstance(CacheRegistry.GET_HANDLE_WORLD_METHOD.invoke(location.getWorld()),
                         location.getX(), (location.getY() - 0.15) + (y), location.getZ());
                 if (visible) {

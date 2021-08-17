@@ -74,11 +74,10 @@ public class CommandSender {
      *
      * @param message The message to send.
      */
-    public void sendMessage(String message, Iterable<String> hover) {
-        final TextComponent textComponent = new TextComponent();
-        for (BaseComponent baseComponent : TextComponent.fromLegacyText(Utils.toColor(message))) {
-            textComponent.addExtra(baseComponent);
-        }
+    public void sendMessage(String message,
+                            Iterable<String> hover) {
+        final TextComponent textComponent = new TextComponent(TextComponent.fromLegacyText(
+                Utils.toColor(message)));
         // set hover event for help messages
         if (hover != null) {
             textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
@@ -99,15 +98,13 @@ public class CommandSender {
      */
     public Player getPlayer() {
         if (type != SenderType.PLAYER) {
-            throw new IllegalStateException("Sender is not a player.");
+            throw new IllegalStateException("sender is not a player.");
         }
         return (Player) getCommandSender();
     }
 
     /**
      * Returns the bukkit command sender.
-     *
-     * @return The bukkit command sender
      */
     public org.bukkit.command.CommandSender getCommandSender() {
         return commandSender;

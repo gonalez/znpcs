@@ -1,5 +1,7 @@
 package ak.znetwork.znpcservers.user;
 
+import ak.znetwork.znpcservers.ServersNPC;
+import ak.znetwork.znpcservers.utility.SchedulerUtils;
 import org.bukkit.event.Event;
 
 import java.util.ArrayList;
@@ -11,7 +13,7 @@ import java.util.function.Consumer;
  * <p />
  * Create a new {@link EventService<T>} using the {@link #addService(ZUser, Class)} method.
  * <p>
- * <b>NOTE</b> For the service to be executed for the user you need to create a method with the {@link org.bukkit.event.Event} class type.
+ * <b>NOTE</b> For the service to be executed for a user you need to create a method with the {@link org.bukkit.event.Event} class type.
  * annotated with {@link org.bukkit.event.EventHandler}.
  * </p>
  * @param <T> The event class type.
@@ -58,6 +60,16 @@ public class EventService<T extends Event> {
     public EventService<T> addConsumer(Consumer<T> consumer) {
         getEventConsumers().add(consumer);
         return this;
+    }
+
+    /**
+     * Executes all the provided {@link #getEventConsumers()} for the instance event.
+     *
+     * @param event The event type {@link T}.
+     */
+    public void runAll(T event) {
+        ServersNPC.SCHEDULER.runTask(() ->
+                eventConsumers.forEach(consumer -> consumer.accept(event)));
     }
 
     /**

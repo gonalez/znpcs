@@ -3,7 +3,7 @@ package ak.znetwork.znpcservers.user;
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.NPCAction;
 import ak.znetwork.znpcservers.npc.event.NPCInteractEvent;
-import ak.znetwork.znpcservers.npc.event.type.ClickType;
+import ak.znetwork.znpcservers.npc.event.ClickType;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.cache.CacheRegistry;
 
@@ -213,8 +213,7 @@ public class ZUser {
                         }
                         if (npcAction.getDelay() > 0) { // handle delay for action
                             int actionId = npc.getNpcPojo().getClickActions().indexOf(npcAction);
-                            // check for action interact time
-                            if (lastClicked.containsKey(actionId)) {
+                            if (lastClicked.containsKey(actionId)) { // check for action interact time
                                 long lastClickNanos = System.nanoTime() - lastClicked.get(actionId);
                                 if (lastClickNanos < npcAction.getFixedDelay()) {
                                     continue;

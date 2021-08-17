@@ -54,7 +54,7 @@ public class NPCModel {
      * Default no-args constructor, this would be used by gson. Initializes variables
      * for missing fields since gson doesn't support it.
      */
-    protected NPCModel() {
+    private NPCModel() {
         hologramLines = Collections.singletonList("/znpcs lines");
         clickActions = new ArrayList<>();
         npcEquip = new HashMap<>();

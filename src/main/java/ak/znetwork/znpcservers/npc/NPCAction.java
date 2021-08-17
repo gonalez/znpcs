@@ -1,7 +1,7 @@
 package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.npc.event.type.ClickType;
+import ak.znetwork.znpcservers.npc.event.ClickType;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.Utils;
 import org.bukkit.Bukkit;
@@ -27,7 +27,7 @@ public class NPCAction {
     private final String action;
 
     /**
-     * The action delay to be able to be executed again for a user.
+     * The action delay to be able to execute again for a user.
      */
     private int delay;
 
@@ -97,7 +97,7 @@ public class NPCAction {
     }
 
     /**
-     * Sets the {@link #getDelay()} ()} of this action.
+     * Sets the {@link #getDelay()} of this action.
      *
      * @param delay The new delay.
      */
@@ -120,6 +120,16 @@ public class NPCAction {
      */
     public void run(ZUser user, String action) {
         actionType.run(user, Utils.PLACEHOLDER_SUPPORT ? Utils.getWithPlaceholders(action, user.toPlayer()) : action);
+    }
+
+    @Override
+    public String toString() {
+        return "NPCAction{" +
+                "actionType=" + actionType +
+                ", clickType=" + clickType +
+                ", action='" + action + '\'' +
+                ", delay=" + delay +
+                '}';
     }
 
     /**
