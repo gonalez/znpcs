@@ -1,9 +1,8 @@
 package ak.znetwork.znpcservers.npc;
 
 import ak.znetwork.znpcservers.ServersNPC;
-import ak.znetwork.znpcservers.configuration.ConfigKey;
+import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
-import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
 import org.bukkit.Location;
@@ -358,7 +357,7 @@ public interface NPCPath {
             /**
              * The maximum locations that the path can have.
              */
-            private static final int MAX_LOCATIONS = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.MAX_PATH_LOCATIONS);
+            private static final int MAX_LOCATIONS = Config.CONFIGURATION.getValue(ConfigValue.MAX_PATH_LOCATIONS);
 
             /**
              * The player who is creating the path.

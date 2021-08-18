@@ -1,8 +1,7 @@
 package ak.znetwork.znpcservers.commands;
 
-import ak.znetwork.znpcservers.configuration.ConfigKey;
+import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
-import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.cache.CacheRegistry;
 import com.google.common.collect.Iterables;
 import org.bukkit.Bukkit;
@@ -127,7 +126,7 @@ public class Command extends BukkitCommand {
                         .findFirst();
 
         if (!subCommandOptional.isPresent()) {
-            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);
+            Config.MESSAGES.sendMessage(sender, ConfigValue.COMMAND_NOT_FOUND);
             return false;
         }
 
@@ -135,11 +134,11 @@ public class Command extends BukkitCommand {
             Map.Entry<CommandInformation, CommandInvoker> subCommand = subCommandOptional.get();
             subCommand.getValue().execute(new CommandSender(sender), loadArgs(subCommand.getKey(), Arrays.asList(args)));
         } catch (CommandExecuteException e) {
-            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.COMMAND_ERROR);
+            Config.MESSAGES.sendMessage(sender, ConfigValue.COMMAND_ERROR);
             // Logs enabled
             e.printStackTrace();
         } catch (CommandPermissionException e) {
-            ConfigManager.getByType(ConfigKey.MESSAGES).sendMessage(sender, ConfigValue.NO_PERMISSION);
+            Config.MESSAGES.sendMessage(sender, ConfigValue.NO_PERMISSION);
         }
         return true;
     }

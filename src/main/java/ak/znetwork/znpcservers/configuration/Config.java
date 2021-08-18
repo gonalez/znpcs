@@ -2,6 +2,7 @@ package ak.znetwork.znpcservers.configuration;
 
 import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.utility.Utils;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.$Gson$Types;
@@ -15,14 +16,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Represents the configuration.
+ * Represents a configuration.
  */
 public class Config {
+    /** The configuration format. */
+    static final String CONFIG_FORMAT = ".json";
+
     /**
      * Creates a new parser.
      */
@@ -34,9 +37,9 @@ public class Config {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
-     * The configuration type.
+     * The configuration name.
      */
-    private final ConfigKey configType;
+    private final String name;
 
     /**
      * The configuration path.
@@ -46,26 +49,46 @@ public class Config {
     /**
      * A map that contains the configuration values.
      */
-    private final Map<ConfigValue, Object> configValues;
+    private final Map<ConfigValue, Object> configurationValues;
+
+    public static final Config CONFIGURATION = new Config("config");
+    public static final Config MESSAGES = new Config("messages");
+    public static final Config CONVERSATIONS = new Config("conversations");
+    public static final Config DATA = new Config("data");
+
+    /** List of configurations that need to be saved. */
+    public static final ImmutableList<Config> SAVE_CONFIGURATIONS = ImmutableList.of(CONVERSATIONS, DATA);
 
     /**
      * Creates a new {@link Config}.
      *
-     * @param configType The configuration type.
+     * @param name The configuration name.
+     */
+    protected Config(String name) {
+        this(name, ServersNPC.PLUGIN_FOLDER.toPath().resolve(name + CONFIG_FORMAT));
+    }
+
+    /**
+     * Creates a new {@link Config}.
+     *
+     * @param name The configuration name.
      * @param path The configuration path.
      */
-    public Config(ConfigKey configType,
-                  Path path) {
-        this.configType = configType;
+    private Config(String name,
+                   Path path) {
+        if (!path.getFileName().toString().endsWith(CONFIG_FORMAT)) {
+            throw new IllegalStateException("invalid configuration format for: " + path.getFileName());
+        }
+        this.name = name;
         this.path = path;
-        this.configValues = Arrays.stream(ConfigValue.values())
-                .filter(znConfigValue -> znConfigValue.getConfigType() == configType)
-                .collect(Collectors.toMap(key -> key, ConfigValue::getValue));
+        configurationValues = ConfigValue.VALUES_BY_NAME.get(name)
+                .stream()
+                .collect(Collectors.toMap(c -> c, ConfigValue::getValue));
         onLoad();
     }
 
     /**
-     * Loads the configuration, called when creating a new {@link Config}.
+     * Loads the configuration. Called when creating a new {@link Config}.
      */
     protected void onLoad() {
         synchronized (path) {
@@ -74,28 +97,27 @@ public class Config {
                 if (data == null) {
                     return;
                 }
-                for (ConfigValue configValue : configValues.keySet()) {
-                    boolean single = configValues.size() == 1;
+                for (ConfigValue configValue : configurationValues.keySet()) {
+                    boolean single = configurationValues.size() == 1;
                     JsonElement jsonElement = single ?
                             data : data.isJsonObject() ?
                             data.getAsJsonObject().get(configValue.name()) : null;
                     if (jsonElement != null && !jsonElement.isJsonNull()) {
                         if (!single && configValue.getPrimitiveType().isEnum()) {
-                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, configValue.getPrimitiveType()));
+                            configurationValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement, configValue.getPrimitiveType()));
                         } else {
-                            configValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement,
+                            configurationValues.put(configValue, ServersNPC.GSON.fromJson(jsonElement,
                                     $Gson$Types.newParameterizedTypeWithOwner(null, configValue.getValue().getClass(), configValue.getPrimitiveType())));
                         }
                     }
                 }
             } catch (NoSuchFileException e) {
-                // File not found, create the configuration with
+                // file not found, create the configuration with
                 // the default provided values.
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to read config: " + configType.name());
+                throw new IllegalStateException("Failed to read config: " + name);
             } finally {
-                // save configuration to file
-                save();
+                save(); // save configuration to file
             }
         }
     }
@@ -106,29 +128,27 @@ public class Config {
     public void save() {
         synchronized (path) {
             try (Writer writer = Files.newBufferedWriter(path, CHARSET)) {
-                ServersNPC.GSON.toJson(configValues.size() == 1 ?
-                        configValues.values().iterator().next() : configValues, writer);
+                ServersNPC.GSON.toJson(configurationValues.size() == 1 ?
+                        configurationValues.values().iterator().next() : configurationValues, writer);
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to save config: " + configType.name());
+                throw new IllegalStateException("Failed to save config: " + name);
             }
         }
     }
 
     /**
      * Returns the configuration key value.
-     *
-     * @param configValue The configuration key.
      */
     public <T> T getValue(ConfigValue configValue) {
         synchronized (path) {
-            return (T) configValues.get(configValue);
+            return (T) configurationValues.get(configValue);
         }
     }
 
     /**
-     * Sends a configuration message value to the given command sender.
+     * Sends a configuration message to the given command sender.
      *
-     * @param sender The sender to send the message for.
+     * @param sender      The sender to send the message for.
      * @param configValue The configuration message value.
      */
     public void sendMessage(CommandSender sender, ConfigValue configValue) {

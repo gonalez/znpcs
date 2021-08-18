@@ -8,7 +8,6 @@ import ak.znetwork.znpcservers.npc.NPCModel;
 import ak.znetwork.znpcservers.utility.BungeeUtils;
 import ak.znetwork.znpcservers.utility.itemstack.ItemStackSerializer;
 import ak.znetwork.znpcservers.utility.location.ZLocation;
-import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.tasks.NPCManagerTask;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.NPCType;
@@ -110,10 +109,8 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        ConfigManager.all().forEach(Config::save);
+        Config.SAVE_CONFIGURATIONS.forEach(Config::save);
         Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
-        // delete all npc for viewers
-        removeAllViewers();
     }
 
     /**
@@ -132,13 +129,6 @@ public class ServersNPC extends JavaPlugin {
                 abstractTypeWriter.load();
             }
         }
-    }
-
-    /**
-     * Deletes all NPC for viewers.
-     */
-    public void removeAllViewers() {
-        NPC.all().forEach(NPC::deleteViewers);
     }
 
     /**

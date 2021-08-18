@@ -1,6 +1,5 @@
 package ak.znetwork.znpcservers.configuration;
 
-import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.npc.NPCModel;
 import ak.znetwork.znpcservers.npc.conversation.Conversation;
@@ -13,22 +12,22 @@ import java.util.List;
  */
 public final class ConfigTypes {
     /** The symbol that will be used as spaces for each string. */
-    public static final String SPACE_SYMBOL = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.REPLACE_SYMBOL);
+    public static final String SPACE_SYMBOL = Config.CONFIGURATION.getValue(ConfigValue.REPLACE_SYMBOL);
 
     /** The render distance for the NPCs. */
-    public static final int VIEW_DISTANCE = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.VIEW_DISTANCE);
+    public static final int VIEW_DISTANCE = Config.CONFIGURATION.getValue(ConfigValue.VIEW_DISTANCE);
 
     /** How often the NPCs will be saved. in seconds */
-    public static final int SAVE_DELAY = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.SAVE_NPCS_DELAY_SECONDS);
+    public static final int SAVE_DELAY = Config.CONFIGURATION.getValue(ConfigValue.SAVE_NPCS_DELAY_SECONDS);
 
     /** Determines if rgb animation should be used. */
-    public static final boolean RGB_ANIMATION = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.ANIMATION_RGB);
+    public static final boolean RGB_ANIMATION = Config.CONFIGURATION.getValue(ConfigValue.ANIMATION_RGB);
 
     /** The npc list. */
-    public static final List<NPCModel> NPC_LIST = ConfigManager.getByType(ConfigKey.DATA).getValue(ConfigValue.NPC_LIST);
+    public static final List<NPCModel> NPC_LIST = Config.DATA.getValue(ConfigValue.NPC_LIST);
 
     /** The npc conversation list. */
-    public static final List<Conversation> NPC_CONVERSATIONS = ConfigManager.getByType(ConfigKey.CONVERSATIONS).getValue(ConfigValue.CONVERSATION_LIST);
+    public static final List<Conversation> NPC_CONVERSATIONS = Config.CONVERSATIONS.getValue(ConfigValue.CONVERSATION_LIST);
 
     static {
         NPC_LIST.stream()

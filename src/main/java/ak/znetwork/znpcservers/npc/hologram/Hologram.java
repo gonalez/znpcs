@@ -1,10 +1,9 @@
 package ak.znetwork.znpcservers.npc.hologram;
 
 import ak.znetwork.znpcservers.UnexpectedCallException;
-import ak.znetwork.znpcservers.configuration.ConfigKey;
+import ak.znetwork.znpcservers.configuration.Config;
 import ak.znetwork.znpcservers.configuration.ConfigValue;
 import ak.znetwork.znpcservers.npc.hologram.replacer.LineReplacer;
-import ak.znetwork.znpcservers.manager.ConfigManager;
 import ak.znetwork.znpcservers.npc.NPC;
 import ak.znetwork.znpcservers.cache.CacheRegistry;
 import ak.znetwork.znpcservers.configuration.ConfigTypes;
@@ -34,7 +33,7 @@ public class Hologram {
     /**
      * The height between lines.
      */
-    static final double LINE_SPACING = ConfigManager.getByType(ConfigKey.CONFIG).getValue(ConfigValue.LINE_SPACING);
+    static final double LINE_SPACING = Config.CONFIGURATION.getValue(ConfigValue.LINE_SPACING);
 
     /**
      * A list of hologram lines.
