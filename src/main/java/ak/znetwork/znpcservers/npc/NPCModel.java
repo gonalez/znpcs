@@ -407,24 +407,24 @@ public class NPCModel {
      *
      * @return The npc toggle values.
      */
-    public Map<ToggleType, Boolean> getNpcToggleValues() {
+    public Map<ToggleType, Boolean> getToggleValues() {
         return npcToggleValues;
     }
 
     /**
-     * Sets the {@link #getNpcToggleValues()} of this object.
+     * Sets the {@link #getToggleValues()} of this object.
      *
      * @param npcToggleValues The npc toggle values.
      */
-    public void setNpcToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
+    public void setToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
         this.npcToggleValues = npcToggleValues;
     }
 
     /**
      * Returns the current object with the new {@code npcToggleValues}.
      */
-    public NPCModel withNpcToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
-        setNpcToggleValues(npcToggleValues);
+    public NPCModel withToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
+        setToggleValues(npcToggleValues);
         return this;
     }
 }

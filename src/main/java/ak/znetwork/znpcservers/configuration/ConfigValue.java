@@ -3,14 +3,14 @@ package ak.znetwork.znpcservers.configuration;
 import ak.znetwork.znpcservers.npc.NPCModel;
 import ak.znetwork.znpcservers.npc.NamingType;
 import ak.znetwork.znpcservers.npc.conversation.Conversation;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Configuration values.
@@ -65,11 +65,11 @@ public enum ConfigValue {
     /** The value primitive type. */
     private final Class<?> primitiveType;
 
-    /** Configuration values grouped by its config name */
-    public static final Map<String, List<ConfigValue>> VALUES_BY_NAME = Arrays.stream(values())
+    /** values grouped by config name */
+    public static final Map<String, ImmutableSet<ConfigValue>> VALUES_BY_NAME = Arrays.stream(values())
             .collect(groupingBy(
                     ConfigValue::getConfigName,
-                    toList()));
+                    toImmutableSet()));
 
     /**
      * Creates a new configuration entry.

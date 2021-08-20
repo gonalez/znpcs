@@ -4,6 +4,7 @@ import ak.znetwork.znpcservers.ServersNPC;
 import ak.znetwork.znpcservers.npc.event.ClickType;
 import ak.znetwork.znpcservers.user.ZUser;
 import ak.znetwork.znpcservers.utility.Utils;
+import com.google.common.base.MoreObjects;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -124,12 +125,12 @@ public class NPCAction {
 
     @Override
     public String toString() {
-        return "NPCAction{" +
-                "actionType=" + actionType +
-                ", clickType=" + clickType +
-                ", action='" + action + '\'' +
-                ", delay=" + delay +
-                '}';
+        return MoreObjects.toStringHelper(this)
+            .add("actionType", actionType)
+            .add("clickType", clickType)
+            .add("action", action)
+            .add("delay", delay)
+            .toString();
     }
 
     /**
