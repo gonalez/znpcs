@@ -17,6 +17,10 @@ ZNPCS is a plugin for minecraft written with the Spigot/Bukkit API made by ZNetw
 </dependency>
 ```
 
+## Documentation
+
+* See [API Javadoc](https://javadoc.io/doc/io.github.znetworkw.znpcservers/znpcservers)
+
 ## Need help?
 
 Open a ticket in GitHub [issue tracker](https://github.com/ZNetworkW/znpc-servers/issues).
