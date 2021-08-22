@@ -17,6 +17,28 @@
 
     <name>ServersNPC</name>
     <description>NPC plugin for minecraft written with the Spigot/Bukkit API.</description>
+    <url>https://github.com/ZNetworkW/znpc-servers</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License v3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Gaston Gonzalez</name>
+            <email>gastongaga202@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/ZNetworkW/znpc-servers.git</connection>
+        <developerConnection>scm:git:ssh://github.com:ZNetworkW/znpc-servers.git</developerConnection>
+        <url>https://github.com/ZNetworkW/znpc-servers/tree/master</url>
+    </scm>
+
 
     <repositories>
         <repository>
@@ -25,7 +47,7 @@
         </repository>
         <repository>
             <id>placeholderapi</id>
-            <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
         <repository>
             <id>mojang</id>
@@ -66,7 +88,7 @@
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -104,10 +126,17 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <source>8</source>
+                    <additionalOptions>
+                        <additionalOption>-XDignore.symbol.file</additionalOption>
+                        <additionalOption>-Xdoclint:-html</additionalOption>
+                    </additionalOptions>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
+                    <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.6</version>
                 <executions>
                     <execution>
@@ -126,7 +155,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
