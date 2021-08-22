@@ -1,5 +1,5 @@
-name: ${project.artifactId}
-main: ak.znetwork.znpcservers.ServersNPC
+name: ${project.name}
+main: ${project.groupId}.${project.name}
 version: ${project.version}
 api-version: 1.13
 softdepend: [ PlaceholderAPI ]
