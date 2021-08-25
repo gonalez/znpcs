@@ -1,7 +1,7 @@
 package io.github.znetworkw.znpcservers.utility;
 
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.math.NumberUtils;
@@ -73,7 +73,7 @@ public final class Utils {
      * @return The parsed string.
      */
     public static String getWithPlaceholders(String string, Player player) {
-        return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigTypes.SPACE_SYMBOL, " ");
+        return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigurationConstants.SPACE_SYMBOL, " ");
     }
 
     /**
@@ -154,8 +154,5 @@ public final class Utils {
         }
     }
 
-    /** Default constructor */
-    private Utils() {
-        throw new AssertionError("This class is not intended to be initialized.");
-    }
+    private Utils() {}
 }

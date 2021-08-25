@@ -11,9 +11,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-/**
- * @inheritDoc
- */
 public class PlayerListener implements Listener {
     /**
      * Creates and register the necessary events for players.
@@ -50,7 +47,8 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onConversation(NPCInteractEvent event) {
         ConversationModel conversationStorage = event.getNpc().getNpcPojo().getConversation();
-        if (conversationStorage == null || conversationStorage.getConversationType() != ConversationModel.ConversationType.CLICK) {
+        if (conversationStorage == null ||
+            conversationStorage.getConversationType() != ConversationModel.ConversationType.CLICK) {
             return;
         }
         event.getNpc().tryStartConversation(event.getPlayer());

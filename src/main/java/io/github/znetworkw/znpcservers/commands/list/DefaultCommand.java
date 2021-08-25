@@ -5,12 +5,12 @@ import io.github.znetworkw.znpcservers.commands.Command;
 import io.github.znetworkw.znpcservers.commands.CommandInformation;
 import io.github.znetworkw.znpcservers.commands.CommandSender;
 import io.github.znetworkw.znpcservers.commands.list.inventory.ConversationGUI;
-import io.github.znetworkw.znpcservers.configuration.Config;
-import io.github.znetworkw.znpcservers.configuration.ConfigValue;
+import io.github.znetworkw.znpcservers.configuration.Configuration;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationValue;
 import io.github.znetworkw.znpcservers.npc.*;
 import io.github.znetworkw.znpcservers.npc.conversation.Conversation;
 import io.github.znetworkw.znpcservers.npc.conversation.ConversationModel;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -27,9 +27,6 @@ import java.util.Map;
 import static io.github.znetworkw.znpcservers.npc.NPCPath.AbstractTypeWriter.AbstractTypeWriter;
 import static io.github.znetworkw.znpcservers.npc.NPCPath.AbstractTypeWriter.TypeWriter;
 
-/**
- * @inheritDoc
- */
 public class DefaultCommand extends Command {
     /**
      * A string whitespace.
@@ -72,35 +69,35 @@ public class DefaultCommand extends Command {
     )
     public void createNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 3) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
-        boolean foundNPC = ConfigTypes.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id);
+        boolean foundNPC = ConfigurationConstants.NPC_LIST.stream().anyMatch(npc -> npc.getId() == id);
 
         if (foundNPC) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_FOUND);
             return;
         }
 
         String name = args.get("name").trim();
 
         if (name.length() < 3 || name.length() > 16) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NAME_LENGTH);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NAME_LENGTH);
             return;
         }
 
         NPC npc = ServersNPC.createNPC(id, NPCType.valueOf(args.get("type").toUpperCase()), sender.getPlayer().getLocation(), name);
         NPCSkin.forName(args.get("name"), (values) ->
                 npc.changeSkin(NPCSkin.forValues(values)));
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -113,26 +110,26 @@ public class DefaultCommand extends Command {
     )
     public void deleteNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         ServersNPC.deleteNPC(id);
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -141,10 +138,10 @@ public class DefaultCommand extends Command {
             permission = "znpcs.cmd.list"
     )
     public void list(CommandSender sender, Map<String, String> args) {
-        if (ConfigTypes.NPC_LIST.isEmpty()) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_NPC_FOUND);
+        if (ConfigurationConstants.NPC_LIST.isEmpty()) {
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_NPC_FOUND);
         } else {
-            ConfigTypes.NPC_LIST.forEach(npc ->
+            ConfigurationConstants.NPC_LIST.forEach(npc ->
                     sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString()
                             + " &7(&e" + npc.getLocation().getWorldName() + " " + npc.getLocation().getX()
                             + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
@@ -161,26 +158,26 @@ public class DefaultCommand extends Command {
     )
     public void setSkin(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         NPCSkin.forName(args.get("skin"), (values) -> {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
             foundNPC.changeSkin(NPCSkin.forValues(values));
         });
     }
@@ -196,26 +193,26 @@ public class DefaultCommand extends Command {
     )
     public void equip(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         foundNPC.updateEquipment(ItemSlot.valueOf(args.get("slot").toUpperCase()), sender.getPlayer().getInventory().getItemInHand());
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -228,27 +225,27 @@ public class DefaultCommand extends Command {
     )
     public void changeLines(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         foundNPC.getNpcPojo().setHologramLines(Lists.reverse(SPACE_SPLITTER.splitToList(args.get("lines"))));
         foundNPC.getHologram().createHologram(); // update
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -261,27 +258,27 @@ public class DefaultCommand extends Command {
     )
     public void move(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         foundNPC.setLocation(sender.getPlayer().getLocation());
         foundNPC.setLastMove(System.nanoTime());
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -294,33 +291,33 @@ public class DefaultCommand extends Command {
     )
     public void changeType(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         NPCType npcType = NPCType.valueOf(args.get("type").toUpperCase());
 
         if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.UNSUPPORTED_ENTITY);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.UNSUPPORTED_ENTITY);
             return;
         }
 
         foundNPC.changeType(npcType);
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -338,81 +335,81 @@ public class DefaultCommand extends Command {
     )
     public void action(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
         if (args.containsKey("add")) {
             List<String> split = SPACE_SPLITTER.splitToList(args.get("add"));
 
             if (split.size() < 3) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.ACTION_ADD_INCORRECT_USAGE);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.ACTION_ADD_INCORRECT_USAGE);
                 return;
             }
 
             Integer id = Ints.tryParse(split.get(0));
 
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
 
             NPC foundNPC = NPC.find(id);
 
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
 
             foundNPC.getNpcPojo().getClickActions().add(new NPCAction(split.get(1).toUpperCase(), SPACE_JOINER.join(Iterables.skip(split, 2))));
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         } else if (args.containsKey("remove")) {
             List<String> split = SPACE_SPLITTER.splitToList(args.get("remove"));
 
             Integer id = Ints.tryParse(split.get(0));
 
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
 
             NPC foundNPC = NPC.find(id);
 
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
 
             Integer actionId = Ints.tryParse(split.get(1));
 
             if (actionId == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             } else {
                 if (actionId >= foundNPC.getNpcPojo().getClickActions().size()) {
-                    Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_ACTION_FOUND);
+                    Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_ACTION_FOUND);
                     return;
                 }
                 foundNPC.getNpcPojo().getClickActions().remove(actionId.intValue());
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
             }
         } else if (args.containsKey("cooldown")) {
             List<String> split = SPACE_SPLITTER.splitToList(args.get("cooldown"));
 
             if (split.size() < 2) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.ACTION_DELAY_INCORRECT_USAGE);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.ACTION_DELAY_INCORRECT_USAGE);
                 return;
             }
 
             Integer id = Ints.tryParse(split.get(0));
 
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
 
             NPC foundNPC = NPC.find(id);
 
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
 
@@ -420,32 +417,32 @@ public class DefaultCommand extends Command {
             Integer actionDelay = Ints.tryParse(split.get(2));
 
             if (actionId == null || id == null || actionDelay == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             } else {
                 if (actionId >= foundNPC.getNpcPojo().getClickActions().size()) {
-                    Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_ACTION_FOUND);
+                    Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_ACTION_FOUND);
                     return;
                 }
                 foundNPC.getNpcPojo().getClickActions().get(actionId).setDelay(actionDelay);
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
             }
         } else if (args.containsKey("list")) {
             Integer id = Ints.tryParse(args.get("list"));
 
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
 
             NPC foundNPC = NPC.find(id);
 
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
 
             if (foundNPC.getNpcPojo().getClickActions().isEmpty()) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_ACTION_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_ACTION_FOUND);
             } else {
                 foundNPC.getNpcPojo().getClickActions().forEach(s -> sender.sendMessage("&8(&a" + foundNPC.getNpcPojo().getClickActions().indexOf(s) + "&8) &6" + s.toString()));
             }
@@ -462,26 +459,26 @@ public class DefaultCommand extends Command {
     )
     public void toggle(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         ToggleType.valueOf(args.get("type").toUpperCase()).doToggle(foundNPC, args.get("value"));
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -494,21 +491,21 @@ public class DefaultCommand extends Command {
     )
     public void customize(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
@@ -521,15 +518,15 @@ public class DefaultCommand extends Command {
             Method method = npcType.getCustomizationLoader().getMethods().get(methodName);
             Iterable<String> split = Iterables.skip(customizeOptions, 1);
             if (Iterables.size(split) < method.getParameterTypes().length) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.TOO_FEW_ARGUMENTS);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.TOO_FEW_ARGUMENTS);
                 return;
             }
             final String[] values = Iterables.toArray(split, String.class);
             npcType.updateCustomization(foundNPC, methodName, values);
             foundNPC.getNpcPojo().getCustomizationMap().put(methodName, values);
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         } else {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.METHOD_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.METHOD_NOT_FOUND);
             for (Map.Entry<String, Method> method : npcType.getCustomizationLoader().getMethods().entrySet()) {
                 sender.sendMessage(ChatColor.YELLOW + method.getKey() + " " + SPACE_JOINER.join(method.getValue().getParameterTypes()));
             }
@@ -549,7 +546,7 @@ public class DefaultCommand extends Command {
     )
     public void path(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
@@ -561,36 +558,36 @@ public class DefaultCommand extends Command {
         if (args.containsKey("set")) {
             List<String> split = SPACE_SPLITTER.splitToList(args.get("set"));
             if (split.size() < 2) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.PATH_SET_INCORRECT_USAGE);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.PATH_SET_INCORRECT_USAGE);
                 return;
             }
 
             Integer id = Ints.tryParse(split.get(0));
 
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
 
             NPC foundNPC = NPC.find(id);
 
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
 
             foundNPC.setPath(AbstractTypeWriter.find(split.get(1)));
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         } else if (args.containsKey("create")) {
             String pathName = args.get("create");
 
             if (pathName.length() < 3 || pathName.length() > 16) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NAME_LENGTH);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NAME_LENGTH);
                 return;
             }
 
             if (AbstractTypeWriter.find(pathName) != null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.PATH_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.PATH_FOUND);
                 return;
             }
 
@@ -600,14 +597,14 @@ public class DefaultCommand extends Command {
             }
 
             AbstractTypeWriter.forCreation(pathName, znpcUser, TypeWriter.MOVEMENT);
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.PATH_START);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.PATH_START);
         } else if (args.containsKey("exit")) {
             znpcUser.setHasPath(false);
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.EXIT_PATH);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.EXIT_PATH);
             ;
         } else if (args.containsKey("list")) {
             if (AbstractTypeWriter.getPaths().isEmpty()) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_PATH_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_PATH_FOUND);
             } else {
                 AbstractTypeWriter.getPaths().forEach(path -> sender.getPlayer().sendMessage(ChatColor.GREEN + path.getName()));
             }
@@ -624,21 +621,21 @@ public class DefaultCommand extends Command {
     )
     public void teleport(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
@@ -657,34 +654,34 @@ public class DefaultCommand extends Command {
     )
     public void changeHologramHeight(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
 
         Integer id = Ints.tryParse(args.get("id"));
 
         if (id == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         NPC foundNPC = NPC.find(id);
 
         if (foundNPC == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
             return;
         }
 
         Double givenHeight = Doubles.tryParse(args.get("height"));
 
         if (givenHeight == null) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
             return;
         }
 
         foundNPC.getNpcPojo().setHologramHeight(givenHeight);
         foundNPC.getHologram().createHologram(); // Update hologram
-        Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+        Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
     @CommandInformation(
@@ -703,45 +700,45 @@ public class DefaultCommand extends Command {
     )
     public void conversations(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INCORRECT_USAGE);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INCORRECT_USAGE);
             return;
         }
         if (args.containsKey("create")) {
             String conversationName = args.get("create");
             if (Conversation.exists(conversationName)) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.CONVERSATION_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.CONVERSATION_FOUND);
                 return;
             }
             if (conversationName.length() < 3 || conversationName.length() > 16) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NAME_LENGTH);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NAME_LENGTH);
                 return;
             }
-            ConfigTypes.NPC_CONVERSATIONS.add(new Conversation(conversationName));
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            ConfigurationConstants.NPC_CONVERSATIONS.add(new Conversation(conversationName));
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         } else if (args.containsKey("remove")) {
             String conversationName = args.get("remove");
             if (!Conversation.exists(conversationName)) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NO_CONVERSATION_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_CONVERSATION_FOUND);
                 return;
             }
-            ConfigTypes.NPC_CONVERSATIONS.remove(Conversation.forName(conversationName));
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            ConfigurationConstants.NPC_CONVERSATIONS.remove(Conversation.forName(conversationName));
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         } else if (args.containsKey("gui")) {
             sender.getPlayer().openInventory(new ConversationGUI(sender.getPlayer()).build());
         } else if (args.containsKey("set")) {
             List<String> split = SPACE_SPLITTER.splitToList(args.get("set"));
             if (split.size() < 2) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.CONVERSATION_SET_INCORRECT_USAGE);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.CONVERSATION_SET_INCORRECT_USAGE);
                 return;
             }
             Integer id = Ints.tryParse(split.get(0));
             if (id == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.INVALID_NUMBER);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.INVALID_NUMBER);
                 return;
             }
             NPC foundNPC = NPC.find(id);
             if (foundNPC == null) {
-                Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.NPC_NOT_FOUND);
+                Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NPC_NOT_FOUND);
                 return;
             }
             String conversationName = split.get(1);
@@ -750,7 +747,7 @@ public class DefaultCommand extends Command {
             } else {
                 foundNPC.getNpcPojo().setConversation(null);
             }
-            Config.MESSAGES.sendMessage(sender.getCommandSender(), ConfigValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
         }
     }
 }

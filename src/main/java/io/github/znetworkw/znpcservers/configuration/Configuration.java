@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Represents a configuration.
  */
-public class Config {
+public class Configuration {
     /** The configuration format. */
     static final String CONFIG_FORMAT = ".json";
 
@@ -49,46 +49,46 @@ public class Config {
     /**
      * A map that contains the configuration values.
      */
-    private final Map<ConfigValue, Object> configurationValues;
+    private final Map<ConfigurationValue, Object> configurationValues;
 
-    public static final Config CONFIGURATION = new Config("config");
-    public static final Config MESSAGES = new Config("messages");
-    public static final Config CONVERSATIONS = new Config("conversations");
-    public static final Config DATA = new Config("data");
+    public static final Configuration CONFIGURATION = new Configuration("config");
+    public static final Configuration MESSAGES = new Configuration("messages");
+    public static final Configuration CONVERSATIONS = new Configuration("conversations");
+    public static final Configuration DATA = new Configuration("data");
 
     /** List of configurations that need to be saved. */
-    public static final ImmutableList<Config> SAVE_CONFIGURATIONS = ImmutableList.of(CONVERSATIONS, DATA);
+    public static final ImmutableList<Configuration> SAVE_CONFIGURATIONS = ImmutableList.of(CONVERSATIONS, DATA);
 
     /**
-     * Creates a new {@link Config}.
+     * Creates a new {@link Configuration}.
      *
      * @param name The configuration name.
      */
-    protected Config(String name) {
+    protected Configuration(String name) {
         this(name, ServersNPC.PLUGIN_FOLDER.toPath().resolve(name + CONFIG_FORMAT));
     }
 
     /**
-     * Creates a new {@link Config}.
+     * Creates a new {@link Configuration}.
      *
      * @param name The configuration name.
      * @param path The configuration path.
      */
-    private Config(String name,
-                   Path path) {
+    private Configuration(String name,
+                          Path path) {
         if (!path.getFileName().toString().endsWith(CONFIG_FORMAT)) {
             throw new IllegalStateException("invalid configuration format for: " + path.getFileName());
         }
         this.name = name;
         this.path = path;
-        configurationValues = ConfigValue.VALUES_BY_NAME.get(name)
+        configurationValues = ConfigurationValue.VALUES_BY_NAME.get(name)
                 .stream()
-                .collect(Collectors.toMap(c -> c, ConfigValue::getValue));
+                .collect(Collectors.toMap(c -> c, ConfigurationValue::getValue));
         onLoad();
     }
 
     /**
-     * Loads the configuration. Called when creating a new {@link Config}.
+     * Loads the configuration. Called when creating a new {@link Configuration}.
      */
     protected void onLoad() {
         synchronized (path) {
@@ -97,7 +97,7 @@ public class Config {
                 if (data == null) {
                     return;
                 }
-                for (ConfigValue configValue : configurationValues.keySet()) {
+                for (ConfigurationValue configValue : configurationValues.keySet()) {
                     boolean single = configurationValues.size() == 1;
                     JsonElement jsonElement = single ?
                             data : data.isJsonObject() ?
@@ -139,7 +139,7 @@ public class Config {
     /**
      * Returns the configuration key value.
      */
-    public <T> T getValue(ConfigValue configValue) {
+    public <T> T getValue(ConfigurationValue configValue) {
         synchronized (path) {
             return (T) configurationValues.get(configValue);
         }
@@ -151,7 +151,7 @@ public class Config {
      * @param sender      The sender to send the message for.
      * @param configValue The configuration message value.
      */
-    public void sendMessage(CommandSender sender, ConfigValue configValue) {
+    public void sendMessage(CommandSender sender, ConfigurationValue configValue) {
         sender.sendMessage(Utils.toColor(getValue(configValue)));
     }
 }

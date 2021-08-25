@@ -1,8 +1,8 @@
 package io.github.znetworkw.znpcservers.npc;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
-import io.github.znetworkw.znpcservers.configuration.Config;
-import io.github.znetworkw.znpcservers.configuration.ConfigValue;
+import io.github.znetworkw.znpcservers.configuration.Configuration;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationValue;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.location.ZLocation;
 import org.bukkit.Location;
@@ -19,9 +19,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @inheritDoc
- */
 public interface NPCPath {
     /**
      * Reads all the path attributes.
@@ -50,9 +47,6 @@ public interface NPCPath {
      */
     PathInitializer getPath(NPC npc);
 
-    /**
-     * {@inheritDoc}
-     */
     interface PathInitializer {
         /**
          * Handles the path for the npc.
@@ -131,9 +125,6 @@ public interface NPCPath {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     class ZNPCPathDelegator {
         /**
          * The path file.
@@ -268,9 +259,6 @@ public interface NPCPath {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public static AbstractTypeWriter forCreation(String pathName, ZUser user, TypeWriter typeWriter) {
             if (typeWriter == TypeWriter.MOVEMENT) {
                 return new TypeMovement(pathName, user);
@@ -279,9 +267,6 @@ public interface NPCPath {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public static AbstractTypeWriter forFile(File file, TypeWriter typeWriter) {
             if (typeWriter == TypeWriter.MOVEMENT) {
                 return new TypeMovement(file);
@@ -343,21 +328,15 @@ public interface NPCPath {
             return PATH_TYPES.values();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         public enum TypeWriter {
             MOVEMENT
         }
 
-        /**
-         * {@inheritDoc}
-         */
         private static class TypeMovement extends AbstractTypeWriter {
             /**
              * The maximum locations that the path can have.
              */
-            private static final int MAX_LOCATIONS = Config.CONFIGURATION.getValue(ConfigValue.MAX_PATH_LOCATIONS);
+            private static final int MAX_LOCATIONS = Configuration.CONFIGURATION.getValue(ConfigurationValue.MAX_PATH_LOCATIONS);
 
             /**
              * The player who is creating the path.
@@ -478,9 +457,6 @@ public interface NPCPath {
                 return (xDiff + yDiff + zDiff) > 0.01;
             }
 
-            /**
-             * {@inheritDoc}
-             */
             protected static class MovementPath extends PathInitializer.AbstractPath {
                 /**
                  * The current path location index.
@@ -514,9 +490,6 @@ public interface NPCPath {
                     }
                 }
 
-                /**
-                 * @inheritDoc
-                 */
                 private int getNextLocation() {
                     return pathReverse ? currentEntryPath - 1 : currentEntryPath + 1;
                 }

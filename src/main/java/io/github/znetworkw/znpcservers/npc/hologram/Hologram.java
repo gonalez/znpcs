@@ -1,12 +1,12 @@
 package io.github.znetworkw.znpcservers.npc.hologram;
 
 import io.github.znetworkw.znpcservers.UnexpectedCallException;
-import io.github.znetworkw.znpcservers.configuration.Config;
-import io.github.znetworkw.znpcservers.configuration.ConfigValue;
+import io.github.znetworkw.znpcservers.configuration.Configuration;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationValue;
 import io.github.znetworkw.znpcservers.npc.hologram.replacer.LineReplacer;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.Utils;
 import org.bukkit.Location;
@@ -33,7 +33,7 @@ public class Hologram {
     /**
      * The height between lines.
      */
-    static final double LINE_SPACING = Config.CONFIGURATION.getValue(ConfigValue.LINE_SPACING);
+    static final double LINE_SPACING = Configuration.CONFIGURATION.getValue(ConfigurationValue.LINE_SPACING);
 
     /**
      * A list of hologram lines.
@@ -73,7 +73,7 @@ public class Hologram {
                     updateLine(line, armorStand, null);
                 }
                 CacheRegistry.SET_INVISIBLE_METHOD.invoke(armorStand, true);
-                hologramLines.add(new HologramLine(line.replace(ConfigTypes.SPACE_SYMBOL, WHITESPACE),
+                hologramLines.add(new HologramLine(line.replace(ConfigurationConstants.SPACE_SYMBOL, WHITESPACE),
                         armorStand, (Integer) CacheRegistry.GET_ENTITY_ID.invoke(armorStand)));
                 y+=LINE_SPACING;
             }

@@ -8,9 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-/**
- * @inheritDoc
- */
 public class InventoryListener implements Listener {
     /**
      * Creates and register the necessary events for the {@link ZInventory}.
@@ -35,7 +32,6 @@ public class InventoryListener implements Listener {
         if (!(event.getInventory().getHolder() instanceof ZInventoryHolder)) {
             return;
         }
-        // cancel event
         event.setCancelled(true);
         ZInventory zInventory = ((ZInventoryHolder) event.getInventory().getHolder()).getzInventory();
         // check if clicked item exists in the inventory

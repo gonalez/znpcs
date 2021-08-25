@@ -1,7 +1,8 @@
 package io.github.znetworkw.znpcservers;
 
+import com.google.common.collect.ImmutableList;
 import io.github.znetworkw.znpcservers.commands.list.DefaultCommand;
-import io.github.znetworkw.znpcservers.configuration.Config;
+import io.github.znetworkw.znpcservers.configuration.Configuration;
 import io.github.znetworkw.znpcservers.listeners.InventoryListener;
 import io.github.znetworkw.znpcservers.listeners.PlayerListener;
 import io.github.znetworkw.znpcservers.npc.NPCModel;
@@ -12,7 +13,7 @@ import io.github.znetworkw.znpcservers.tasks.NPCManagerTask;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.npc.NPCType;
 import io.github.znetworkw.znpcservers.tasks.NPCSaveTask;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.MetricsLite;
 import io.github.znetworkw.znpcservers.utility.SchedulerUtils;
@@ -47,9 +48,11 @@ public class ServersNPC extends JavaPlugin {
     public static final File PATH_FOLDER = new File("plugins/" + PLUGIN_NAME + "/paths");
 
     static {
-        // create the folders if it doesn't exist
-        PLUGIN_FOLDER.mkdirs();
-        PATH_FOLDER.mkdirs();
+        ImmutableList<File> files =
+            ImmutableList.of(PLUGIN_FOLDER, PATH_FOLDER);
+        for (File file : files) {
+            file.mkdirs();
+        }
     }
 
     /**
@@ -58,8 +61,7 @@ public class ServersNPC extends JavaPlugin {
     private static final int PLUGIN_ID = 8054;
 
     /**
-     * Creates a new Gson instance with
-     * custom type adapters.
+     * Creates a new Gson instance with custom type adapters.
      */
     public final static Gson GSON = new GsonBuilder()
             .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
@@ -100,7 +102,7 @@ public class ServersNPC extends JavaPlugin {
 
         // init NPC task
         new NPCManagerTask(this);
-        new NPCSaveTask(this, ConfigTypes.SAVE_DELAY);
+        new NPCSaveTask(this, ConfigurationConstants.SAVE_DELAY);
 
         // register listeners
         new PlayerListener(this);
@@ -109,7 +111,7 @@ public class ServersNPC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Config.SAVE_CONFIGURATIONS.forEach(Config::save);
+        Configuration.SAVE_CONFIGURATIONS.forEach(Configuration::save);
         Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
     }
 
@@ -149,21 +151,21 @@ public class ServersNPC extends JavaPlugin {
                 .withHologramLines(Collections.singletonList(name))
                 .withLocation(new ZLocation(location))
                 .withNpcType(npcType);
-        ConfigTypes.NPC_LIST.add(pojo);
+        ConfigurationConstants.NPC_LIST.add(pojo);
         return new NPC(pojo, true);
     }
 
     /**
-     * Deletes a npc.
+     * Deletes a npc with the given id.
      *
      * @param npcID The npc ID.
      */
     public static void deleteNPC(int npcID) {
         NPC npc = NPC.find(npcID);
         if (npc == null) {
-            throw new IllegalStateException("can't find npc " + npcID);
+            throw new IllegalStateException("can't find npc: " + npcID);
         }
         NPC.unregister(npcID);
-        ConfigTypes.NPC_LIST.remove(npc.getNpcPojo());
+        ConfigurationConstants.NPC_LIST.remove(npc.getNpcPojo());
     }
 }

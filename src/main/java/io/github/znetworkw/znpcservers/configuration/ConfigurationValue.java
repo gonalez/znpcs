@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.groupingBy;
 /**
  * Configuration values.
  */
-public enum ConfigValue {
+public enum ConfigurationValue {
     /** data */
     NPC_LIST("data", new ArrayList<>(), NPCModel.class),
     /** config */
@@ -66,9 +66,9 @@ public enum ConfigValue {
     private final Class<?> primitiveType;
 
     /** values grouped by config name */
-    public static final Map<String, ImmutableSet<ConfigValue>> VALUES_BY_NAME = Arrays.stream(values())
+    public static final Map<String, ImmutableSet<ConfigurationValue>> VALUES_BY_NAME = Arrays.stream(values())
             .collect(groupingBy(
-                    ConfigValue::getConfigName,
+                    ConfigurationValue::getConfigName,
                     toImmutableSet()));
 
     /**
@@ -78,9 +78,9 @@ public enum ConfigValue {
      * @param value The key value.
      * @param primitiveType The value primitive type.
      */
-    ConfigValue(String configName,
-                Object value,
-                Class<?> primitiveType) {
+    ConfigurationValue(String configName,
+                       Object value,
+                       Class<?> primitiveType) {
         this.configName = configName;
         this.value = value;
         this.primitiveType = primitiveType;

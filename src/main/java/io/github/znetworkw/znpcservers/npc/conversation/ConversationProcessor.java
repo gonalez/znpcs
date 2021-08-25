@@ -3,7 +3,7 @@ package io.github.znetworkw.znpcservers.npc.conversation;
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.npc.hologram.replacer.LineReplacer;
 import io.github.znetworkw.znpcservers.npc.NPC;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.Utils;
 import org.bukkit.Bukkit;
@@ -110,7 +110,7 @@ public class ConversationProcessor {
                 }
                 final ZUser user = ZUser.find(player);
                 // send text to player
-                conversationKey.getLines().forEach(s -> player.sendMessage(LineReplacer.makeAll(user, s).replace(ConfigTypes.SPACE_SYMBOL, WHITE_SPACE)));
+                conversationKey.getLines().forEach(s -> player.sendMessage(LineReplacer.makeAll(user, s).replace(ConfigurationConstants.SPACE_SYMBOL, WHITE_SPACE)));
                 if (conversationKey.getActions().size() > 0) { // check for conversation actions
                     conversationKey.getActions().forEach(action -> action.run(user, action.getAction()));
                 }

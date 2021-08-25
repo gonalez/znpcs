@@ -1,6 +1,6 @@
 package io.github.znetworkw.znpcservers.npc.hologram.replacer;
 
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -31,7 +31,7 @@ public class RGBLine implements LineReplacer<String> {
                         break;
                     }
                     char hexCode = rgbString.charAt(i2);
-                    hexCodeStringBuilder.append(ConfigTypes.RGB_ANIMATION
+                    hexCodeStringBuilder.append(ConfigurationConstants.RGB_ANIMATION
                             && hexCode != '#' ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
                 }
                 // found RGB Color!

@@ -12,9 +12,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @inheritDoc
- */
 public interface TypeCache {
     /**
      * A cache for storing loaded classes.
@@ -134,7 +131,7 @@ public interface TypeCache {
          */
         public CacheBuilder(CachePackage cachePackage) {
             this(cachePackage,
-                    CacheCategory.NONE,
+                    CacheCategory.DEFAULT,
                     EMPTY_STRING,
                     EMPTY_STRING,
                     EMPTY_STRING,
@@ -296,9 +293,6 @@ public interface TypeCache {
             );
         }
 
-        /**
-         * {@inheritDoc}
-         */
         protected String formatClass(String className) {
             switch (cachePackage) {
                 case MINECRAFT_SERVER:

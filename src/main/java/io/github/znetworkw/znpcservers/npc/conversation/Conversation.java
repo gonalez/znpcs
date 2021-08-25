@@ -1,6 +1,6 @@
 package io.github.znetworkw.znpcservers.npc.conversation;
 
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +128,7 @@ public class Conversation {
      * @return The found conversation.
      */
     public static Conversation forName(String name) {
-        return ConfigTypes.NPC_CONVERSATIONS.stream()
+        return ConfigurationConstants.NPC_CONVERSATIONS.stream()
                 .filter(conversation -> conversation.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
@@ -141,6 +141,6 @@ public class Conversation {
      * @return If a conversation with the given name exists.
      */
     public static boolean exists(String name) {
-        return ConfigTypes.NPC_CONVERSATIONS.stream().anyMatch(conversation -> conversation.getName().equalsIgnoreCase(name));
+        return ConfigurationConstants.NPC_CONVERSATIONS.stream().anyMatch(conversation -> conversation.getName().equalsIgnoreCase(name));
     }
 }

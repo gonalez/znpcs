@@ -40,9 +40,9 @@ public enum CachePackage {
      * @param packageName The package name.
      */
     CachePackage(String packageName) {
-        this.fixedPackageName = Utils.BUKKIT_VERSION > 16 ? // v1.17+
+        this.fixedPackageName = Utils.versionNewer(17) ?
                 packageName :
-                packageName + (packageName.contains("minecraft") ? DOT + "server" + DOT + Utils.getBukkitPackage() : EMPTY_STRING);
+                packageName + (packageName.contains("minecraft") ? ".server." + Utils.getBukkitPackage() : EMPTY_STRING);
     }
 
     /**
@@ -60,8 +60,8 @@ public enum CachePackage {
      */
     public String getForCategory(CacheCategory packetCategory,
                                  String extra) {
-        return Utils.BUKKIT_VERSION > 16 ?
-                fixedPackageName + packetCategory.getSubPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
+        return Utils.versionNewer(17) ?
+                packetCategory.getPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
                 fixedPackageName;
     }
 
