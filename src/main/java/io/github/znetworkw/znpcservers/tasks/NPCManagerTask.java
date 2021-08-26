@@ -1,10 +1,10 @@
 package io.github.znetworkw.znpcservers.tasks;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
+import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.npc.conversation.ConversationModel;
 import io.github.znetworkw.znpcservers.npc.ToggleType;
-import io.github.znetworkw.znpcservers.configuration.ConfigTypes;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -32,7 +32,7 @@ public class NPCManagerTask extends BukkitRunnable {
             }
             for (Player player : Bukkit.getOnlinePlayers()) {
                 ZUser zUser = ZUser.find(player);
-                final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigTypes.VIEW_DISTANCE;
+                final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigurationConstants.VIEW_DISTANCE;
                 if (npc.getNpcViewers().contains(zUser) && !canSeeNPC) // delete the npc for the player if player is not in range
                     npc.delete(zUser, true);
                 else if (canSeeNPC) {

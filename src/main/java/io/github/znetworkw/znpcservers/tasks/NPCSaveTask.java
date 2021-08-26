@@ -1,7 +1,7 @@
 package io.github.znetworkw.znpcservers.tasks;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
-import io.github.znetworkw.znpcservers.configuration.Config;
+import io.github.znetworkw.znpcservers.configuration.Configuration;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -23,6 +23,6 @@ public class NPCSaveTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        Config.SAVE_CONFIGURATIONS.forEach(Config::save);
+        Configuration.SAVE_CONFIGURATIONS.forEach(Configuration::save);
     }
 }

@@ -1,5 +1,6 @@
 package io.github.znetworkw.znpcservers.npc;
 
+import io.github.znetworkw.znpcservers.UnexpectedCallException;
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
 import io.github.znetworkw.znpcservers.utility.Utils;
 import org.bukkit.entity.EntityType;
@@ -61,28 +62,14 @@ public enum NPCType {
 
     /** A empty string. */
     private static final String EMPTY_STRING = "";
-
-    /** The default entity type id. */
-    static final int DEFAULT_ID = -1;
-
-    /** The entity type class. */
-    private final Class<?> entityClass;
-
-    /** The entity type bukkit id. */
-    private final int id;
-
     /** The hologram height for the entity type. */
     private final double holoHeight;
-
     /** The entity customization loader. */
     private final CustomizationLoader customizationLoader;
-
     /** The entity spawn packet. */
     private final Constructor<?> constructor;
-
     /** The entity bukkit type. */
     private EntityType bukkitEntityType;
-
     /** The entity nms type. */
     private Object nmsEntityType;
 
@@ -91,22 +78,35 @@ public enum NPCType {
      *
      * @param entityClass The entity class.
      * @param newName The entity name for newer versions.
-     * @param id The bukkit entity ID;
      * @param holoHeight The hologram height for the entity.
      * @param methods The possible customization methods for the entity.
      */
     NPCType(Class<?> entityClass,
             String newName,
-            int id,
             double holoHeight,
             String... methods) {
-        this.entityClass = entityClass;
-        this.id = id;
         this.holoHeight = holoHeight;
         this.customizationLoader = entityClass == null ?
             null : new CustomizationLoader(this.bukkitEntityType =
             EntityType.valueOf(newName.length() > 0 ? newName : name()), Arrays.asList(methods));
-        this.constructor = load();
+        // onLoad #constructor
+        if (entityClass == null
+            || entityClass.isAssignableFrom(CacheRegistry.ENTITY_PLAYER_CLASS)) { // check if entity constructor can be load
+            constructor = null;
+            return;
+        }
+
+        try {
+            if (Utils.versionNewer(14)) {
+                nmsEntityType = ((Optional<?>) CacheRegistry.ENTITY_TYPES_A_METHOD.invoke(null, bukkitEntityType.getKey().getKey().toLowerCase())).get();
+                constructor = entityClass.getConstructor(CacheRegistry.ENTITY_TYPES_CLASS, CacheRegistry.WORLD_CLASS);
+            } else {
+                constructor = entityClass.getConstructor(CacheRegistry.WORLD_CLASS);
+            }
+        } catch (ReflectiveOperationException operationException) {
+            // can't get entity constructor
+            throw new UnexpectedCallException(operationException);
+        }
     }
 
     /**
@@ -119,7 +119,7 @@ public enum NPCType {
     NPCType(Class<?> entityClass,
             double holoHeight,
             String... customization) {
-        this(entityClass, EMPTY_STRING, DEFAULT_ID, holoHeight, customization);
+        this(entityClass, EMPTY_STRING, holoHeight, customization);
     }
 
     /**
@@ -148,25 +148,6 @@ public enum NPCType {
      */
     public CustomizationLoader getCustomizationLoader() {
         return customizationLoader;
-    }
-
-    /**
-     * Loads the entity type.
-     */
-    protected Constructor<?> load() {
-        if (entityClass == null || entityClass.isAssignableFrom(CacheRegistry.ENTITY_PLAYER_CLASS)) { // the entity type is not available for the current bukkit version
-            return null;
-        }
-        try {
-            if (Utils.versionNewer(14)) {
-                // get nms entityType for the npc bukkit entity type
-                nmsEntityType = ((Optional<?>) CacheRegistry.ENTITY_TYPES_A_METHOD.invoke(null, bukkitEntityType.getKey().getKey().toLowerCase())).get();
-                return entityClass.getConstructor(CacheRegistry.ENTITY_TYPES_CLASS, CacheRegistry.WORLD_CLASS);
-            }
-            return entityClass.getConstructor(CacheRegistry.WORLD_CLASS);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException noSuchMethodException) {
-            throw new AssertionError(noSuchMethodException);
-        }
     }
 
     /**
@@ -211,7 +192,7 @@ public enum NPCType {
             // update new customization for the npc
             npc.updateMetaData();
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("can't invoke method " + name, e);
+            throw new IllegalStateException("can't invoke method: " + name, e);
         }
     }
 }

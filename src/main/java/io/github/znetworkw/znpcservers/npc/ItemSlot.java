@@ -24,7 +24,7 @@ public enum ItemSlot {
      */
     ItemSlot(int slot) {
         this.slot = slot;
-        this.slotOld = slot-1;
+        this.slotOld = slot == 0 ? 0 : slot-1;
     }
 
     /**

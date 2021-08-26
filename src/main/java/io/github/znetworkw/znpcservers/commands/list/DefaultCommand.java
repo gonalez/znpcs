@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -28,20 +29,30 @@ import static io.github.znetworkw.znpcservers.npc.NPCPath.AbstractTypeWriter.Abs
 import static io.github.znetworkw.znpcservers.npc.NPCPath.AbstractTypeWriter.TypeWriter;
 
 public class DefaultCommand extends Command {
-    /**
-     * A string whitespace.
-     */
+    /** A string whitespace. */
     private static final String WHITESPACE = " ";
-
-    /**
-     * Creates a new splitter instance for a whitespace (' ').
-     */
+    /** Creates a new splitter instance for a whitespace (' '). */
     private static final Splitter SPACE_SPLITTER = Splitter.on(WHITESPACE);
+    /** Creates a new joiner instance for a whitespace (' '). */
+    private static final Joiner SPACE_JOINER = Joiner.on(WHITESPACE);
 
     /**
-     * Creates a new joiner instance for a whitespace (' ').
+     * Callback interface for setting the skin of a npc.
      */
-    private static final Joiner SPACE_JOINER = Joiner.on(WHITESPACE);
+    interface SkinFunction {
+        /** Sets the new skin of the given npc. */
+        void apply(Player sender, NPC npc, String skin);
+    }
+
+    private static final SkinFunction DO_APPLY_SKIN =
+        (sender, npc, skin) -> NPCSkin.forName(skin, (skinValues, throwable) -> {
+            if (throwable != null) {
+                Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.CANT_GET_SKIN, skin);
+                return;
+            }
+            npc.changeSkin(NPCSkin.forValues(skinValues));
+            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        });
 
     /**
      * Creates a new command.
@@ -60,12 +71,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "type", "name"},
-            name = "create",
-            permission = "znpcs.cmd.create",
-            help = {
-                    " &f&l* &e/znpcs create <npc_id> PLAYER Qentin"
-            }
+        arguments = {"id", "type", "name"},
+        name = "create",
+        permission = "znpcs.cmd.create",
+        help = {
+            " &f&l* &e/znpcs create <npc_id> PLAYER Qentin"
+        }
     )
     public void createNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 3) {
@@ -94,19 +105,22 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        NPC npc = ServersNPC.createNPC(id, NPCType.valueOf(args.get("type").toUpperCase()), sender.getPlayer().getLocation(), name);
-        NPCSkin.forName(args.get("name"), (values) ->
-                npc.changeSkin(NPCSkin.forValues(values)));
+        NPCType npcType = NPCType.valueOf(args.get("type").toUpperCase());
+        NPC npc = ServersNPC.createNPC(id, npcType, sender.getPlayer().getLocation(), name);
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
+
+        if (npcType == NPCType.PLAYER) {
+            DO_APPLY_SKIN.apply(sender.getPlayer(), npc, name);
+        }
     }
 
     @CommandInformation(
-            arguments = {"id"},
-            name = "delete",
-            permission = "znpcs.cmd.delete",
-            help = {
-                    " &f&l* &e/znpcs delete <npc_id>"
-            }
+        arguments = {"id"},
+        name = "delete",
+        permission = "znpcs.cmd.delete",
+        help = {
+            " &f&l* &e/znpcs delete <npc_id>"
+        }
     )
     public void deleteNPC(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
@@ -133,28 +147,28 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {},
-            name = "list",
-            permission = "znpcs.cmd.list"
+        arguments = {},
+        name = "list",
+        permission = "znpcs.cmd.list"
     )
     public void list(CommandSender sender, Map<String, String> args) {
         if (ConfigurationConstants.NPC_LIST.isEmpty()) {
             Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.NO_NPC_FOUND);
         } else {
             ConfigurationConstants.NPC_LIST.forEach(npc ->
-                    sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString()
-                            + " &7(&e" + npc.getLocation().getWorldName() + " " + npc.getLocation().getX()
-                            + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
+                sender.sendMessage("&f&l * &a" + npc.getId() + " " + npc.getHologramLines().toString()
+                    + " &7(&e" + npc.getLocation().getWorldName() + " " + npc.getLocation().getX()
+                    + " " + npc.getLocation().getY() + " " + npc.getLocation().getZ() + "&7)"));
         }
     }
 
     @CommandInformation(
-            arguments = {"id", "skin"},
-            name = "skin",
-            permission = "znpcs.cmd.skin",
-            help = {
-                    " &f&l* &e/znpcs skin <npc_id> Notch"
-            }
+        arguments = {"id", "skin"},
+        name = "skin",
+        permission = "znpcs.cmd.skin",
+        help = {
+            " &f&l* &e/znpcs skin <npc_id> Notch"
+        }
     )
     public void setSkin(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
@@ -176,20 +190,17 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        NPCSkin.forName(args.get("skin"), (values) -> {
-            Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
-            foundNPC.changeSkin(NPCSkin.forValues(values));
-        });
+        DO_APPLY_SKIN.apply(sender.getPlayer(), foundNPC, args.get("skin"));
     }
 
     @CommandInformation(
-            arguments = {"id", "slot"},
-            name = "equip",
-            permission = "znpcs.cmd.equip",
-            help = {
-                    " &f&l* &e/znpcs equip <npc_id> [HAND,OFFHAND,HELMET,CHESTPLATE,LEGGINGS,BOOTS]",
-                    "&8(You need to have the item in your hand.)"
-            }
+        arguments = {"id", "slot"},
+        name = "equip",
+        permission = "znpcs.cmd.equip",
+        help = {
+            " &f&l* &e/znpcs equip <npc_id> [HAND,OFFHAND,HELMET,CHESTPLATE,LEGGINGS,BOOTS]",
+            "&8(You need to have the item in your hand.)"
+        }
     )
     public void equip(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -216,12 +227,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "lines"},
-            name = "lines",
-            permission = "znpcs.cmd.lines",
-            help = {
-                    " &f&l* &e/znpcs lines <npc_id> First Second Third-Space"
-            }
+        arguments = {"id", "lines"},
+        name = "lines",
+        permission = "znpcs.cmd.lines",
+        help = {
+            " &f&l* &e/znpcs lines <npc_id> First Second Third-Space"
+        }
     )
     public void changeLines(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -249,12 +260,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id"},
-            name = "move",
-            permission = "znpcs.cmd.move",
-            help = {
-                    " &f&l* &e/znpcs move <npc_id>"
-            }
+        arguments = {"id"},
+        name = "move",
+        permission = "znpcs.cmd.move",
+        help = {
+            " &f&l* &e/znpcs move <npc_id>"
+        }
     )
     public void move(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
@@ -282,12 +293,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "type"},
-            name = "type",
-            permission = "znpcs.cmd.type",
-            help = {
-                    " &f&l* &e/znpcs type <npc_id> ZOMBIE"
-            }
+        arguments = {"id", "type"},
+        name = "type",
+        permission = "znpcs.cmd.type",
+        help = {
+            " &f&l* &e/znpcs type <npc_id> ZOMBIE"
+        }
     )
     public void changeType(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -321,17 +332,17 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"add", "remove", "cooldown", "list"},
-            name = "action",
-            isMultiple = true,
-            permission = "znpcs.cmd.action",
-            help = {
-                    " &f&l* &e/znpcs action add <npc_id> SERVER skywars",
-                    " &f&l* &e/znpcs action add <npc_id> CMD spawn",
-                    " &f&l* &e/znpcs action remove <npc_id> <action_id>",
-                    " &f&l* &e/znpcs action cooldown <npc_id> <action_id> <delay_in_seconds>",
-                    " &f&l* &e/znpcs action list <npc_id>"
-            }
+        arguments = {"add", "remove", "cooldown", "list"},
+        name = "action",
+        isMultiple = true,
+        permission = "znpcs.cmd.action",
+        help = {
+            " &f&l* &e/znpcs action add <npc_id> SERVER skywars",
+            " &f&l* &e/znpcs action add <npc_id> CMD spawn",
+            " &f&l* &e/znpcs action remove <npc_id> <action_id>",
+            " &f&l* &e/znpcs action cooldown <npc_id> <action_id> <delay_in_seconds>",
+            " &f&l* &e/znpcs action list <npc_id>"
+        }
     )
     public void action(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
@@ -450,12 +461,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "type", "value"},
-            name = "toggle",
-            permission = "znpcs.cmd.toggle",
-            help = {
-                    " &f&l* &e/znpcs toggle <npc_id> look"
-            }
+        arguments = {"id", "type", "value"},
+        name = "toggle",
+        permission = "znpcs.cmd.toggle",
+        help = {
+            " &f&l* &e/znpcs toggle <npc_id> look"
+        }
     )
     public void toggle(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -482,12 +493,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "customizeValues"},
-            name = "customize",
-            permission = "znpcs.cmd.customize",
-            help = {
-                    " &f&l* &e/znpcs customize <npc_id> <customization>",
-            }
+        arguments = {"id", "customizeValues"},
+        name = "customize",
+        permission = "znpcs.cmd.customize",
+        help = {
+            " &f&l* &e/znpcs customize <npc_id> <customization>",
+        }
     )
     public void customize(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -534,14 +545,14 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"set", "create", "exit", "path", "list"},
-            name = "path",
-            isMultiple = true,
-            permission = "znpcs.cmd.path",
-            help = {
-                    " &f&l* &e/znpcs path create name",
-                    " &f&l* &e/znpcs path set <npc_id> name",
-            }
+        arguments = {"set", "create", "exit", "path", "list"},
+        name = "path",
+        isMultiple = true,
+        permission = "znpcs.cmd.path",
+        help = {
+            " &f&l* &e/znpcs path create name",
+            " &f&l* &e/znpcs path set <npc_id> name",
+        }
 
     )
     public void path(CommandSender sender, Map<String, String> args) {
@@ -612,12 +623,12 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id"},
-            name = "teleport",
-            permission = "znpcs.cmd.teleport",
-            help = {
-                    " &f&l* &e/znpcs teleport <npc_id>",
-            }
+        arguments = {"id"},
+        name = "teleport",
+        permission = "znpcs.cmd.teleport",
+        help = {
+            " &f&l* &e/znpcs teleport <npc_id>",
+        }
     )
     public void teleport(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {
@@ -644,13 +655,13 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"id", "height"},
-            name = "height",
-            permission = "znpcs.cmd.height",
-            help = {
-                    " &f&l* &e/znpcs height <npc_id> 2",
-                    "&8Add more height to the hologram of the npc"
-            }
+        arguments = {"id", "height"},
+        name = "height",
+        permission = "znpcs.cmd.height",
+        help = {
+            " &f&l* &e/znpcs height <npc_id> 2",
+            "&8Add more height to the hologram of the npc"
+        }
     )
     public void changeHologramHeight(CommandSender sender, Map<String, String> args) {
         if (args.size() < 2) {
@@ -685,18 +696,18 @@ public class DefaultCommand extends Command {
     }
 
     @CommandInformation(
-            arguments = {"create", "remove", "gui", "set"},
-            name = "conversation",
-            isMultiple = true,
-            permission = "znpcs.cmd.conversation",
-            help = {
-                    " &f&l* &e/znpcs conversation create first",
-                    " &f&l* &e/znpcs conversation remove first",
-                    " &f&l* &e/znpcs conversation set <npc_id> first [CLICK:RADIUS]",
-                    " &f&l* &e/znpcs conversation gui &8(&7Open a gui to manage the conversations&8)",
-                    "&8RADIUS: &7it is activated when the player is near the npc",
-                    "&8CLICK: &7it is activated when the player interacts with the npc"
-            }
+        arguments = {"create", "remove", "gui", "set"},
+        name = "conversation",
+        isMultiple = true,
+        permission = "znpcs.cmd.conversation",
+        help = {
+            " &f&l* &e/znpcs conversation create first",
+            " &f&l* &e/znpcs conversation remove first",
+            " &f&l* &e/znpcs conversation set <npc_id> first [CLICK:RADIUS]",
+            " &f&l* &e/znpcs conversation gui &8(&7Open a gui to manage the conversations&8)",
+            "&8RADIUS: &7it is activated when the player is near the npc",
+            "&8CLICK: &7it is activated when the player interacts with the npc"
+        }
     )
     public void conversations(CommandSender sender, Map<String, String> args) {
         if (args.size() < 1) {

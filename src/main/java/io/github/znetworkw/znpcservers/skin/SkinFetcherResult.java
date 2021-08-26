@@ -9,6 +9,7 @@ public interface SkinFetcherResult {
      * Called when a skin is fetched.
      *
      * @param values The skin values.
+     * @param throwable The throwable cause.
      */
-    void onDone(String[] values);
+    void onDone(String[] values, Throwable throwable);
 }

@@ -16,22 +16,29 @@ import java.util.concurrent.Executors;
 
 /**
  * Retrieves the skin textures for a {@link SkinFetcherBuilder}.
+ *
  * @see SkinFetcherBuilder
  */
 public class SkinFetcher {
-    /** A empty string. */
+    /**
+     * A empty string.
+     */
     private static final String EMPTY_STRING = "";
-
-    /** The charset that will be used when making the skin request. */
+    /**
+     * The charset that will be used when making the skin request.
+     */
     private static final String DEFAULT_CHARSET = "UTF-8";
-
-    /** A executor service to delegate the work. */
+    /**
+     * A executor service to delegate the work.
+     */
     private static final ExecutorService SKIN_EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-
-    /** Creates a new parser. */
+    /**
+     * Creates a new parser.
+     */
     private static final JsonParser JSON_PARSER = new JsonParser();
-
-    /** The skin builder. */
+    /**
+     * The skin builder.
+     */
     private final SkinFetcherBuilder builder;
 
     /**
@@ -44,10 +51,11 @@ public class SkinFetcher {
     }
 
     /**
-     * Fetches the json object of the skin from the specified
+     * Fetches the the skin from the specified
      * builder {@link SkinFetcherBuilder#getAPIServer()}.
+     * @return
      */
-    protected CompletableFuture<JsonObject> doReadSkin() {
+    public CompletableFuture<JsonObject> doReadSkin(SkinFetcherResult skinFetcherResult) {
         CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
         SKIN_EXECUTOR_SERVICE.submit(() -> {
             try {
@@ -70,22 +78,16 @@ public class SkinFetcher {
                 completableFuture.completeExceptionally(throwable);
             }
         });
-        return completableFuture;
-    }
-
-    /**
-     * Gets the fetched skin values.
-     *
-     * @param skinResultCallback The callback to run.
-     */
-    public void fetchProfile(SkinFetcherResult skinResultCallback) {
-        doReadSkin().thenAcceptAsync(jsonObject -> {
-            jsonObject = jsonObject.getAsJsonObject(builder.isUrlType() ? "data" : "textures");
-            JsonObject properties = (builder.isUrlType() ?
-                jsonObject.getAsJsonObject("texture") :
-                jsonObject.getAsJsonObject("raw"));
-            skinResultCallback.onDone(new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() });
+        completableFuture.whenComplete((response, throwable) -> {
+            if (completableFuture.isCompletedExceptionally()) {
+                skinFetcherResult.onDone(null, throwable);
+            } else {
+                JsonObject jsonObject = response.getAsJsonObject(builder.getAPIServer().getValueKey());
+                JsonObject properties = jsonObject.getAsJsonObject(builder.getAPIServer().getSignatureKey());
+                skinFetcherResult.onDone(new String[]{properties.get("value").getAsString(), properties.get("signature").getAsString()}, null);
+            }
         });
+        return completableFuture;
     }
 
     /**

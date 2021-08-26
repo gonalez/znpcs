@@ -151,7 +151,7 @@ public class Configuration {
      * @param sender      The sender to send the message for.
      * @param configValue The configuration message value.
      */
-    public void sendMessage(CommandSender sender, ConfigurationValue configValue) {
-        sender.sendMessage(Utils.toColor(getValue(configValue)));
+    public void sendMessage(CommandSender sender, ConfigurationValue configValue, Object... replaces) {
+        sender.sendMessage(Utils.toColor(String.format(getValue(configValue), replaces)));
     }
 }

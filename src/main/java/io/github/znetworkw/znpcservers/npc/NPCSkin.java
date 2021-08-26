@@ -4,6 +4,8 @@ import io.github.znetworkw.znpcservers.skin.SkinFetcherBuilder;
 import io.github.znetworkw.znpcservers.skin.SkinFetcherResult;
 import io.github.znetworkw.znpcservers.utility.Utils;
 
+import java.util.concurrent.Future;
+
 /**
  * This class is intended to contain the skin information,
  * used for setting the skin of a {@link NPC}.
@@ -74,10 +76,9 @@ public class NPCSkin {
      * Fetches a skin profile by its name or url.
      *
      * @param skin The skin name or url.
-     * @param skinResultCallback The callback that will be invoked when the skin is fetched.
      */
-    public static void forName(String skin, SkinFetcherResult skinResultCallback) {
-        SkinFetcherBuilder.withName(skin).toSkinFetcher().fetchProfile(skinResultCallback);
+    public static void forName(String skin, SkinFetcherResult skinFetcherResult) {
+        SkinFetcherBuilder.withName(skin).toSkinFetcher().doReadSkin(skinFetcherResult);
     }
 
     /**

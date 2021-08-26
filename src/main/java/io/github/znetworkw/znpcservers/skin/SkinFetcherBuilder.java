@@ -86,17 +86,30 @@ public class SkinFetcherBuilder {
         /**
          * Used for retrieving a profile linked to a name.
          */
-        PROFILE_API("GET", "https://api.ashcon.app/mojang/v2/user"),
+        PROFILE_API(
+            "GET",
+            "https://api.ashcon.app/mojang/v2/user",
+            "textures",
+            "raw"
+        ),
         /**
          * Used to generate a profile from an image URL.
          */
-        GENERATE_API("POST", "https://api.mineskin.org/generate/url");
+        GENERATE_API(
+            "POST",
+            "https://api.mineskin.org/generate/url",
+            "data",
+            "textures"
+        );
 
         /** The HTTP request method. */
         private final String method;
 
         /** The rest api server url. */
         private final String url;
+
+        private final String valueKey;
+        private final String signatureKey;
 
         /**
          * Creates a new {@link SkinServer}.
@@ -105,9 +118,13 @@ public class SkinFetcherBuilder {
          * @param url The rest api url.
          */
         SkinServer(String method,
-                   String url) {
+                   String url,
+                   String valueKey,
+                   String signatureKey) {
             this.method = method;
             this.url = url;
+            this.valueKey = valueKey;
+            this.signatureKey = signatureKey;
         }
 
         /**
@@ -122,6 +139,14 @@ public class SkinFetcherBuilder {
          */
         public String getURL() {
             return url;
+        }
+
+        public String getValueKey() {
+            return valueKey;
+        }
+
+        public String getSignatureKey() {
+            return signatureKey;
         }
     }
 }
