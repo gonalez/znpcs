@@ -81,9 +81,9 @@ public class SkinFetcher {
     public void fetchProfile(SkinFetcherResult skinResultCallback) {
         doReadSkin().thenAcceptAsync(jsonObject -> {
             jsonObject = jsonObject.getAsJsonObject(builder.isUrlType() ? "data" : "textures");
-            JsonObject properties = (builder.isUrlType()?
-                    jsonObject.getAsJsonObject("texture") :
-                    jsonObject.getAsJsonObject("raw"));
+            JsonObject properties = (builder.isUrlType() ?
+                jsonObject.getAsJsonObject("texture") :
+                jsonObject.getAsJsonObject("raw"));
             skinResultCallback.onDone(new String[]{ properties.get("value").getAsString(), properties.get("signature").getAsString() });
         });
     }

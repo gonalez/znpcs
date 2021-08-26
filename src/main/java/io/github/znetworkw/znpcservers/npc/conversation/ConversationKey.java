@@ -52,7 +52,8 @@ public class ConversationKey {
      * @param line The conversation text lines.
      */
     public ConversationKey(Iterable<String> line) {
-        this.lines = StreamSupport.stream(line.spliterator(), false).map(String::toString).collect(Collectors.toList());
+        this.lines = StreamSupport.stream(line.spliterator(), false)
+            .map(String::toString).collect(Collectors.toList());
         actions = new ArrayList<>();
     }
 

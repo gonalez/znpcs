@@ -66,10 +66,9 @@ public enum ConfigurationValue {
     private final Class<?> primitiveType;
 
     /** values grouped by config name */
-    public static final Map<String, ImmutableSet<ConfigurationValue>> VALUES_BY_NAME = Arrays.stream(values())
-            .collect(groupingBy(
-                    ConfigurationValue::getConfigName,
-                    toImmutableSet()));
+    public static final Map<String, ImmutableSet<ConfigurationValue>> VALUES_BY_NAME =
+        Arrays.stream(values())
+            .collect(groupingBy(ConfigurationValue::getConfigName, toImmutableSet()));
 
     /**
      * Creates a new configuration entry.

@@ -17,7 +17,13 @@ public enum NamingType {
     private static final int FIXED_LENGTH = 6;
 
     /**
-     * {@inheritDoc}
+     * Resolves a npc name for the given npc.
+     *
+     * @param npc
+     *      The npc for which the name will be resolved.
+     * @return
+     *      A new string for the npc name referenced
+     *      from this implementation.
      */
     public abstract String resolve(NPC npc);
 }

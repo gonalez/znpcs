@@ -118,7 +118,7 @@ public abstract class AbstractPacket {
         // +v1.9
         final boolean isVersion9 = Utils.BUKKIT_VERSION > 8;
         Object scoreboardTeamPacket = isVersion17 ?
-                CacheRegistry.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName()) : CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
+            CacheRegistry.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, getNPC().getGameProfile().getName()) : CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();
         if (!isVersion17) {
             Utils.setValue(scoreboardTeamPacket, "a", getNPC().getGameProfile().getName());
             Utils.setValue(scoreboardTeamPacket, isVersion9 ? "i" : "h", 1);
@@ -147,8 +147,8 @@ public abstract class AbstractPacket {
             collection.add(getNPC().getUUID().toString());
         }
         // check if version support glow color and the npc has glow activated
-        if (ToggleType.isTrue(npc,
-                ToggleType.GLOW) && allowGlowColor()) {
+        if (ToggleType.isTrue(npc, ToggleType.GLOW)
+            && allowGlowColor()) {
             // update scoreboard with glow
             updateGlowPacket(scoreboardTeamPacket);
         }

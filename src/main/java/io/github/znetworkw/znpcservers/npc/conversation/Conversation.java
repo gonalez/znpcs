@@ -50,8 +50,8 @@ public class Conversation {
     public Conversation(String name,
                         Iterable<String> text) {
         this(name, StreamSupport.stream(text.spliterator(), false)
-                .map(ConversationKey::new)
-                .collect(Collectors.toList()));
+            .map(ConversationKey::new)
+            .collect(Collectors.toList()));
     }
 
     /**
@@ -129,9 +129,9 @@ public class Conversation {
      */
     public static Conversation forName(String name) {
         return ConfigurationConstants.NPC_CONVERSATIONS.stream()
-                .filter(conversation -> conversation.getName().equalsIgnoreCase(name))
-                .findFirst()
-                .orElse(null);
+            .filter(conversation -> conversation.getName().equalsIgnoreCase(name))
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -141,6 +141,7 @@ public class Conversation {
      * @return If a conversation with the given name exists.
      */
     public static boolean exists(String name) {
-        return ConfigurationConstants.NPC_CONVERSATIONS.stream().anyMatch(conversation -> conversation.getName().equalsIgnoreCase(name));
+        return ConfigurationConstants.NPC_CONVERSATIONS.stream()
+            .anyMatch(conversation -> conversation.getName().equalsIgnoreCase(name));
     }
 }

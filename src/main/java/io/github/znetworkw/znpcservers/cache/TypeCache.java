@@ -175,13 +175,13 @@ public interface TypeCache {
          */
         public CacheBuilder withCategory(CacheCategory cacheCategory) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    className,
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -193,13 +193,13 @@ public interface TypeCache {
          */
         public CacheBuilder withClassName(String className) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    formatClass(className),
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                formatClass(className),
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -211,13 +211,13 @@ public interface TypeCache {
          */
         public CacheBuilder withClassName(Class<?> clazz) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    clazz == null ? EMPTY_STRING : clazz.getName(),
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                clazz == null ? EMPTY_STRING : clazz.getName(),
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -229,13 +229,13 @@ public interface TypeCache {
          */
         public CacheBuilder withMethodName(String methodName) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    className,
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -247,13 +247,13 @@ public interface TypeCache {
          */
         public CacheBuilder withFieldName(String fieldName) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    className,
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -265,13 +265,13 @@ public interface TypeCache {
          */
         public CacheBuilder withAdditionalData(String additionalData) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    className,
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    parameterTypes
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                parameterTypes
             );
         }
 
@@ -283,13 +283,13 @@ public interface TypeCache {
          */
         public CacheBuilder withParameterTypes(Class<?>... types) {
             return new CacheBuilder(
-                    cachePackage,
-                    cacheCategory,
-                    className,
-                    methodName,
-                    fieldName,
-                    additionalData,
-                    Iterables.concat(parameterTypes, ImmutableList.of(types))
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                Iterables.concat(parameterTypes, ImmutableList.of(types))
             );
         }
 
@@ -401,8 +401,8 @@ public interface TypeCache {
             @Override
             protected Method onLoad() throws NoSuchMethodException {
                 return Iterables.size(cacheBuilder.parameterTypes) > 0 ?
-                        BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName, Iterables.get(cacheBuilder.parameterTypes, 0)) :
-                        BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName);
+                    BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName, Iterables.get(cacheBuilder.parameterTypes, 0)) :
+                    BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName);
             }
         }
 
@@ -449,7 +449,7 @@ public interface TypeCache {
                     }
                 } else {
                     constructor = Iterables.size(cacheBuilder.parameterTypes) > 0 ?
-                            BUILDER_CLASS.getDeclaredConstructor(Iterables.get(cacheBuilder.parameterTypes, 0)) : BUILDER_CLASS.getDeclaredConstructor();
+                        BUILDER_CLASS.getDeclaredConstructor(Iterables.get(cacheBuilder.parameterTypes, 0)) : BUILDER_CLASS.getDeclaredConstructor();
                 }
 
                 // Set accessible

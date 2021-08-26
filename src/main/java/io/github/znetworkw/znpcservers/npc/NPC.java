@@ -341,8 +341,7 @@ public class NPC {
             deleteViewers();
             entityID = ((Integer) CacheRegistry.GET_ENTITY_ID.invoke(nmsEntity));
             // update npc glow color
-            if (ToggleType.isTrue(this,
-                    ToggleType.GLOW) && packets.allowGlowColor()) {
+            if (ToggleType.isTrue(this, ToggleType.GLOW) && packets.allowGlowColor()) {
                 doToggleGlow(npcPojo.getGlowName());
             } else {
                 packets.update();
@@ -366,14 +365,14 @@ public class NPC {
         try {
             final boolean npcIsPlayer = npcPojo.getNpcType() == NPCType.PLAYER;
             // check for scoreboard packets
-            if (ToggleType.isTrue(this, ToggleType.GLOW) || npcIsPlayer) {
+            if (ToggleType.isTrue(this, ToggleType.GLOW)
+                || npcIsPlayer) {
                 // update scoreboard packets
                 Utils.sendPackets(user, packets.scoreboardDeletePacket);
                 Utils.sendPackets(user, packets.scoreboardSpawnPacket);
             }
             if (npcIsPlayer) {
-                if (ToggleType.isTrue(this,
-                        ToggleType.MIRROR)) {
+                if (ToggleType.isTrue(this, ToggleType.MIRROR)) {
                     // set npc skin to the player skin
                     updateProfile(user.getGameProfile().getProperties());
                 }
@@ -382,8 +381,7 @@ public class NPC {
             }
             // send npc spawn packets
             Utils.sendPackets(user, npcIsPlayer ? CacheRegistry.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(nmsEntity) : CacheRegistry.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(nmsEntity));
-            if (ToggleType.isTrue(this,
-                    ToggleType.HOLO)) {
+            if (ToggleType.isTrue(this, ToggleType.HOLO)) {
                 hologram.spawn(user);
             }
             npcViewers.add(user);
@@ -391,11 +389,9 @@ public class NPC {
             sendEquipPackets(user);
             // fix npc rotation
             lookAt(user, getLocation(), true);
-            if (npcIsPlayer)
-                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() ->
-                                hideFromTab(user),
-                        60
-                );
+            if (npcIsPlayer) {
+                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> hideFromTab(user), 60);
+            }
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
@@ -565,8 +561,8 @@ public class NPC {
      */
     public Location getLocation() {
         return npcPath != null ?
-                npcPath.getLocation().bukkitLocation() :
-                npcPojo.getLocation().bukkitLocation();
+            npcPath.getLocation().bukkitLocation() :
+            npcPojo.getLocation().bukkitLocation();
     }
 
     /**

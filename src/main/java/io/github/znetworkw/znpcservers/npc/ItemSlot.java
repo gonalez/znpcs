@@ -4,36 +4,34 @@ package io.github.znetworkw.znpcservers.npc;
  * Used to determine the position of a item when equipping a {@link NPC}.
  */
 public enum ItemSlot {
-    HELMET(4, 5),
-    CHESTPLATE(3, 4),
-    LEGGINGS(2, 3),
-    BOOTS(1, 2),
-    OFFHAND(0, 1),
-    HAND(0, 0);
+    HELMET(5),
+    CHESTPLATE(4),
+    LEGGINGS(3),
+    BOOTS(2),
+    OFFHAND(1),
+    HAND(0);
 
-    /** The equipment slot id for oldest versions. */
+    /** The equipment slot id. */
+    private final int slot;
+
+    /** The equipment slot id for oldest versions. 1.8 */
     private final int slotOld;
-
-    /** The equipment slot id for newer versions. */
-    private final int slotNew;
 
     /**
      * Creates a new equipment identifier.
      *
-     * @param slotOld The equipment id for oldest versions.
-     * @param slotNew The equipment id for newer versions.
+     * @param slot The equipment id.
      */
-    ItemSlot(int slotOld,
-             int slotNew) {
-        this.slotOld = slotOld;
-        this.slotNew = slotNew;
+    ItemSlot(int slot) {
+        this.slot = slot;
+        this.slotOld = slot-1;
     }
 
     /**
-     * Returns the equipment position for newer versions.
+     * Returns the equipment position.
      */
-    public int getSlotNew() {
-        return slotNew;
+    public int getSlot() {
+        return slot;
     }
 
     /**

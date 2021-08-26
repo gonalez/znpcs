@@ -170,8 +170,8 @@ public class ZUser {
         USER_MAP.remove(player.getUniqueId());
         // delete all npc for the player
         NPC.all().stream()
-                .filter(npc -> npc.getNpcViewers().contains(zUser))
-                .forEach(npc -> npc.delete(zUser, true));
+            .filter(npc -> npc.getNpcViewers().contains(zUser))
+            .forEach(npc -> npc.delete(zUser, true));
     }
 
     /**
@@ -192,9 +192,9 @@ public class ZUser {
                 int entityId = CacheRegistry.PACKET_IN_USE_ENTITY_ID_FIELD.getInt(packet);
                 // try find npc
                 NPC npc = NPC.all().stream()
-                        .filter(npc1 -> npc1.getEntityID() == entityId)
-                        .findFirst()
-                        .orElse(null);
+                    .filter(npc1 -> npc1.getEntityID() == entityId)
+                    .findFirst()
+                    .orElse(null);
                 if (npc == null) {
                     return;
                 }

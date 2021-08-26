@@ -94,9 +94,9 @@ public class ConversationProcessor {
             @Override
             public void run() {
                 // basic conversation checks
-                if (Bukkit.getPlayer(player.getUniqueId()) == null ||
-                        conversationIndex > conversationModel.getConversation().getTexts().size() - 1 ||
-                        conversationModel.canRun(npc, player)) {
+                if (Bukkit.getPlayer(player.getUniqueId()) == null
+                    || conversationIndex > conversationModel.getConversation().getTexts().size() - 1
+                    || conversationModel.canRun(npc, player)) {
                     // conversation end
                     RUNNING_CONVERSATIONS.remove(player.getUniqueId());
                     cancel();
@@ -105,7 +105,8 @@ public class ConversationProcessor {
                 ConversationKey conversationKey = conversationModel.getConversation().getTexts().get(conversationIndex);
                 // check for delay
                 long conversationDelayNanos = System.nanoTime() - conversationIndexDelay;
-                if (conversationIndex != 0 && conversationDelayNanos < Utils.SECOND_INTERVAL_NANOS * conversationKey.getDelay()) {
+                if (conversationIndex != 0
+                    && conversationDelayNanos < Utils.SECOND_INTERVAL_NANOS * conversationKey.getDelay()) {
                     return;
                 }
                 final ZUser user = ZUser.find(player);
@@ -115,8 +116,8 @@ public class ConversationProcessor {
                     conversationKey.getActions().forEach(action -> action.run(user, action.getAction()));
                 }
                 // send sound
-                if (conversationKey.getSoundName() != null &&
-                        conversationKey.getSoundName().length() > 0) {
+                if (conversationKey.getSoundName() != null
+                    && conversationKey.getSoundName().length() > 0) {
                     try {
                         Sound sound = Sound.valueOf(conversationKey.getSoundName().toUpperCase());
                         player.playSound(player.getLocation(), sound, 0.2f, 1.0f);

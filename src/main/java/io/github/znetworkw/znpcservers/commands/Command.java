@@ -120,9 +120,9 @@ public class Command extends BukkitCommand {
     @Override
     public boolean execute(org.bukkit.command.CommandSender sender, String commandLabel, String[] args) {
         Optional<Map.Entry<CommandInformation, CommandInvoker>> subCommandOptional =
-                subCommands.entrySet().stream()
-                        .filter(command -> command.getKey().name().contentEquals(args.length > 0 ? args[0] : ""))
-                        .findFirst();
+            subCommands.entrySet().stream()
+                .filter(command -> command.getKey().name().contentEquals(args.length > 0 ? args[0] : ""))
+                .findFirst();
 
         if (!subCommandOptional.isPresent()) {
             sender.sendMessage(ChatColor.RED + "can't find command: " + commandLabel + ".");

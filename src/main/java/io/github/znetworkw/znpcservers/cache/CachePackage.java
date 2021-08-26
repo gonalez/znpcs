@@ -41,8 +41,8 @@ public enum CachePackage {
      */
     CachePackage(String packageName) {
         this.fixedPackageName = Utils.versionNewer(17) ?
-                packageName :
-                packageName + (packageName.contains("minecraft") ? ".server." + Utils.getBukkitPackage() : EMPTY_STRING);
+            packageName :
+            packageName + (packageName.contains("minecraft") ? ".server." + Utils.getBukkitPackage() : EMPTY_STRING);
     }
 
     /**
@@ -61,8 +61,8 @@ public enum CachePackage {
     public String getForCategory(CacheCategory packetCategory,
                                  String extra) {
         return Utils.versionNewer(17) ?
-                packetCategory.getPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
-                fixedPackageName;
+            packetCategory.getPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
+            fixedPackageName;
     }
 
     /**

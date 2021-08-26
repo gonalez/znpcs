@@ -34,8 +34,8 @@ public class PacketsV9 extends PacketsV8 {
     @Override
     public void updateEquipPacket(ItemSlot itemSlot, ItemStack item) throws ReflectiveOperationException {
         equipPackets.put(itemSlot.name(), CacheRegistry.PACKET_PLAY_OUT_ENTITY_EQUIPMENT_CONSTRUCTOR_NEWEST_OLD
-                .newInstance(getNPC().getEntityID(), CacheRegistry.ENUM_ITEM_SLOT.getEnumConstants()[itemSlot.getSlotNew()],
-                        CacheRegistry.AS_NMS_COPY_METHOD.invoke(CacheRegistry.CRAFT_ITEM_STACK_CLASS, item)));
+            .newInstance(getNPC().getEntityID(), CacheRegistry.ENUM_ITEM_SLOT.getEnumConstants()[itemSlot.getSlot()],
+                CacheRegistry.AS_NMS_COPY_METHOD.invoke(CacheRegistry.CRAFT_ITEM_STACK_CLASS, item)));
     }
 
     @Override

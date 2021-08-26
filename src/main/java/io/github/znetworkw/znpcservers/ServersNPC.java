@@ -148,9 +148,9 @@ public class ServersNPC extends JavaPlugin {
             return find;
         }
         NPCModel pojo = new NPCModel(id)
-                .withHologramLines(Collections.singletonList(name))
-                .withLocation(new ZLocation(location))
-                .withNpcType(npcType);
+            .withHologramLines(Collections.singletonList(name))
+            .withLocation(new ZLocation(location))
+            .withNpcType(npcType);
         ConfigurationConstants.NPC_LIST.add(pojo);
         return new NPC(pojo, true);
     }
@@ -163,7 +163,7 @@ public class ServersNPC extends JavaPlugin {
     public static void deleteNPC(int npcID) {
         NPC npc = NPC.find(npcID);
         if (npc == null) {
-            throw new IllegalStateException("can't find npc: " + npcID);
+            throw new IllegalStateException("can't find npc:  " + npcID);
         }
         NPC.unregister(npcID);
         ConfigurationConstants.NPC_LIST.remove(npc.getNpcPojo());

@@ -31,8 +31,8 @@ public final class ConfigurationConstants {
 
     static {
         NPC_LIST.stream()
-                .map(NPC::new)
-                .forEach(NPCLoadTask::new); // initialize all saved NPC...
+            .map(NPC::new)
+            .forEach(NPCLoadTask::new); // initialize all saved NPC...
     }
 
     private ConfigurationConstants() {}

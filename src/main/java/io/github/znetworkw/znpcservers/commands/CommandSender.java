@@ -79,9 +79,9 @@ public class CommandSender {
         // set hover event for help messages
         if (hover != null) {
             textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new ComponentBuilder(Utils.toColor(LINE_SEPARATOR_JOINER
-                            .join(Iterables.concat(HELP_PREFIX, hover))))
-                            .create())
+                new ComponentBuilder(Utils.toColor(LINE_SEPARATOR_JOINER
+                    .join(Iterables.concat(HELP_PREFIX, hover))))
+                    .create())
             );
         }
         getPlayer().spigot().sendMessage(textComponent);

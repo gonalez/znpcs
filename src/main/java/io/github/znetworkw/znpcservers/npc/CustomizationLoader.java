@@ -13,16 +13,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CustomizationLoader {
-    /** The bukkit entity class. */
+    /**
+     * The bukkit entity class.
+     */
     private final Class<? extends Entity> entityClass;
 
-    /** A map containing the provided entity methods. */
+    /**
+     * A map containing the provided entity methods.
+     */
     private final Map<String, Method> methods;
 
     /**
      * Creates a new {@link CustomizationLoader} for an entity type.
      *
-     * @param entityType The entity type.
+     * @param entityType  The entity type.
      * @param methodsName The entity method names to load.
      */
     public CustomizationLoader(EntityType entityType,
@@ -51,17 +55,16 @@ public class CustomizationLoader {
     protected Map<String, Method> loadMethods(Iterable<String> iterable) {
         Map<String, Method> builder = new HashMap<>();
         for (Method method : entityClass.getMethods()) {
-            if (builder.containsKey(method.getName()) ||
-                    !Iterables.contains(iterable, method.getName())) {
+            if (builder.containsKey(method.getName())
+                || !Iterables.contains(iterable, method.getName())) {
                 // only load provided methods..
                 continue;
             }
             for (Class<?> parameter : method.getParameterTypes()) {
                 TypeProperty typeProperty = TypeProperty.forType(parameter);
                 if (typeProperty == null && parameter.isEnum()) {
-                    // create a new cache for the values on the enum class for late use
-                    new TypeCache.BaseCache.EnumLoader(
-                            new TypeCache.CacheBuilder(CachePackage.DEFAULT)
+                    // create a new cache for the values on the enum class for later use
+                    new TypeCache.BaseCache.EnumLoader(new TypeCache.CacheBuilder(CachePackage.DEFAULT)
                             .withClassName(parameter.getTypeName())).load();
                 }
             }

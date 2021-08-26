@@ -103,9 +103,9 @@ public enum NPCType {
         this.entityClass = entityClass;
         this.id = id;
         this.holoHeight = holoHeight;
-        this.customizationLoader = entityClass == null ? null : new CustomizationLoader(this.bukkitEntityType =
-                EntityType.valueOf(newName.length() > 0 ? newName : name()),
-                Arrays.asList(methods));
+        this.customizationLoader = entityClass == null ?
+            null : new CustomizationLoader(this.bukkitEntityType =
+            EntityType.valueOf(newName.length() > 0 ? newName : name()), Arrays.asList(methods));
         this.constructor = load();
     }
 

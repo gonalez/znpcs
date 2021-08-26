@@ -32,15 +32,15 @@ public class RGBLine implements LineReplacer<String> {
                     }
                     char hexCode = rgbString.charAt(i2);
                     hexCodeStringBuilder.append(ConfigurationConstants.RGB_ANIMATION
-                            && hexCode != '#' ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
+                        && hexCode != '#' ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
                 }
                 // found RGB Color!
                 if (success) {
                     try {
                         // apply RGB Color to string..
                         rgbString = rgbString.substring(0, i) +
-                                ChatColor.of(hexCodeStringBuilder.toString()) +
-                                rgbString.substring(endIndex);
+                            ChatColor.of(hexCodeStringBuilder.toString()) +
+                            rgbString.substring(endIndex);
                     } catch (Exception e) {
                         // invalid hex string
                     }

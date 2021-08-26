@@ -130,8 +130,8 @@ public class ConversationModel {
             public boolean canStart(NPC npc,
                                     Conversation conversation,
                                     Player player) {
-                return player.getWorld() == npc.getLocation().getWorld() &&
-                        player.getLocation().distance(npc.getLocation()) <= conversation.getRadius();
+                return player.getWorld() == npc.getLocation().getWorld()
+                    && player.getLocation().distance(npc.getLocation()) <= conversation.getRadius();
             }
         },
         /**

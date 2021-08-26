@@ -101,10 +101,10 @@ public class EventService<T extends Event> {
     @SuppressWarnings("unchecked")
     public static <T extends Event> EventService<T> findService(ZUser user, Class<T> eventClass) {
         return user.getEventServices().stream()
-                .filter(eventService -> eventService.getEventClass().isAssignableFrom(eventClass))
-                .map(EventService.class::cast)
-                .findFirst()
-                .orElse(null);
+            .filter(eventService -> eventService.getEventClass().isAssignableFrom(eventClass))
+            .map(EventService.class::cast)
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -115,6 +115,8 @@ public class EventService<T extends Event> {
      * @return {@code true} the user has a event service for the given {@code eventClass}.
      */
     public static boolean hasService(ZUser user, Class<? extends Event> eventClass) {
-        return user.getEventServices().stream().anyMatch(eventService -> eventService.getEventClass() == eventClass);
+        return user.getEventServices()
+            .stream()
+            .anyMatch(eventService -> eventService.getEventClass() == eventClass);
     }
 }
