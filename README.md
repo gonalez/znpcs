@@ -16,7 +16,7 @@ ZNPCs is a plugin for minecraft written with the Spigot/Bukkit API made by ZNetw
 <dependency>
    <groupId>io.github.znetworkw.znpcservers</groupId>
    <artifactId>znpcservers</artifactId>
-   <version>3.5</version>
+   <version>3.6</version>
 </dependency>
 ```
 
