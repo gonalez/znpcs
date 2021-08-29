@@ -54,6 +54,7 @@ public enum ConfigurationValue {
     CONVERSATION_FOUND("messages", "&cThere is already a conversation with this name.", String.class),
     INVALID_SIZE("messages", "&cThe position cannot exceed the limit.", String.class),
     CANT_GET_SKIN("messages", "&ccan't fetch skin with name: %s.", String.class),
+    GET_SKIN("messages", "&aSkin fetched.", String.class),
     /** conversation */
     CONVERSATION_LIST("conversations", new ArrayList<>(), Conversation.class);
 

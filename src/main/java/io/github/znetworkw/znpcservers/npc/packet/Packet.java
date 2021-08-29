@@ -28,7 +28,7 @@ public interface Packet {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    @PacketValue(keyName = "playerPacket", valueType = ValueType.NPC)
+    @PacketValue(keyName = "playerPacket")
     Object getPlayerPacket(Object nmsWorld, GameProfile gameProfile) throws ReflectiveOperationException;
 
     /**
@@ -36,7 +36,7 @@ public interface Packet {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    @PacketValue(keyName = "spawnPacket", valueType = ValueType.NPC)
+    @PacketValue(keyName = "spawnPacket")
     Object getSpawnPacket(Object entityNms, boolean isPlayer) throws ReflectiveOperationException;
 
     /**
@@ -78,7 +78,7 @@ public interface Packet {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    @PacketValue(keyName = "removeTab", valueType = ValueType.NPC)
+    @PacketValue(keyName = "removeTab")
     default Object getTabRemovePacket(Object nmsEntity) throws ReflectiveOperationException {
         return CacheRegistry.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(
             CacheRegistry.REMOVE_PLAYER_FIELD.get(null),
@@ -90,7 +90,7 @@ public interface Packet {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    @PacketValue(keyName = "equipPackets", valueType = ValueType.NPC)
+    @PacketValue(keyName = "equipPackets")
     ImmutableList<Object> getEquipPackets(NPC npc) throws ReflectiveOperationException;
 
     /**
@@ -98,7 +98,7 @@ public interface Packet {
      *
      * @throws ReflectiveOperationException When failed to call the method.
      */
-    @PacketValue(keyName = "scoreboardPackets", valueType = ValueType.NPC)
+    @PacketValue(keyName = "scoreboardPackets")
     default ImmutableList<Object> updateScoreboard(NPC npc) throws ReflectiveOperationException {
         ImmutableList.Builder<Object> builder = ImmutableList.builder();
         final boolean isVersion17 = Utils.BUKKIT_VERSION > 16;

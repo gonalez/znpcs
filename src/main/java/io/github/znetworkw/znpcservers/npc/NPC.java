@@ -111,7 +111,7 @@ public class NPC {
         npcViewers = new HashSet<>();
         npcName = NamingType.DEFAULT.resolve(this);
         npcSkin = NPCSkin.forValues(npcModel.getSkin(), npcModel.getSignature());
-        packets = new PacketCache(this); // setup packets for this npc
+        packets = new PacketCache(); // setup packets for this npc
         if (load) {
             onLoad();
         }
@@ -143,7 +143,7 @@ public class NPC {
         changeType(npcPojo.getNpcType());
         updateProfile(gameProfile.getProperties());
 
-        setLocation(getNpcPojo().getLocation().bukkitLocation());
+        setLocation(getNpcPojo().getLocation().bukkitLocation(), false);
 
         hologram.createHologram();
 
@@ -251,13 +251,15 @@ public class NPC {
      *
      * @param location The new location.
      */
-    public void setLocation(Location location) {
+    public void setLocation(Location location, boolean updateTime) {
         try {
             // if the npc has a path it will not look at the players
             // or location so we check that
             if (npcPath == null) {
-                lastMove = System.nanoTime();
                 lookAt(null, location, true);
+                if (updateTime) {
+                    lastMove = System.nanoTime();
+                }
                 npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
             }
             CacheRegistry.SET_LOCATION_METHOD.invoke(nmsEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
@@ -320,7 +322,7 @@ public class NPC {
             }
             npcPojo.setNpcType(npcType);
             // teleport new npc type to the last or saved npc location
-            setLocation(getLocation());
+            setLocation(getLocation(), false);
             packets.flushCache("spawnPacket", "removeTab"); // flush caches
             // update new npc type for viewers
             deleteViewers();
@@ -413,7 +415,8 @@ public class NPC {
                        boolean rotation) {
         // check for last npc move
         long lastMoveNanos = System.nanoTime() - lastMove;
-        if (lastMoveNanos < Utils.SECOND_INTERVAL_NANOS * 3) {
+        if (lastMove > 1 &&
+            lastMoveNanos < Utils.SECOND_INTERVAL_NANOS) {
             return;
         }
         // set the location direction

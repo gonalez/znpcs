@@ -35,24 +35,21 @@ public class PacketCache {
 
     /** Cache for method results. */
     private final Map<String, Object> packetResultCache = new ConcurrentHashMap<>();
-    /** The proxy instance. */
+    /** The packet proxy instance. */
     private final Packet proxyInstance;
-    /** The npc for which the methods will be invoked & cached. */
-    private final NPC npc;
 
     /**
-     * Creates a new packet cache for the given npc.
-     *
-     * @param npc The npc.
-     * @throws AssertionError If cannot instantiate the proxy instance for the packets.
+     * Creates a new packet cache.
      */
-    public PacketCache(NPC npc) {
-        this.npc = npc;
-        try {
-            this.proxyInstance = newProxyInstance(PacketFactory.PACKET_FOR_CURRENT_VERSION.getClass().newInstance());
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new AssertionError("Unable to create proxy instance for npc: " + npc.getNpcPojo().getId(), e);
-        }
+    public PacketCache(Packet packet) {
+        this.proxyInstance = newProxyInstance(packet);
+    }
+
+    /**
+     * Creates a new packet cache.
+     */
+    public PacketCache() {
+        this(PacketFactory.PACKET_FOR_CURRENT_VERSION);
     }
 
     /**
@@ -83,9 +80,6 @@ public class PacketCache {
      * Creates a cache for the given method result or returns the cached result.
      *
      * @param instance The non proxied packet instance.
-     * @param npc
-     *    The npc to process the name that
-     *    will be used in the cache key.
      * @param method The method.
      * @param args The method arguments.
      * @return The cached method result.
@@ -93,14 +87,13 @@ public class PacketCache {
      * @throws AssertionError If cannot invoke the given method.
      */
     private Object getOrCache(Packet instance,
-                              NPC npc,
                               Method method,
                               Object[] args) {
         if (!VALUE_LOOKUP_BY_NAME.containsKey(method)) {
             throw new IllegalStateException("value not found for method: " + method.getName());
         }
         final PacketValue packetValue = VALUE_LOOKUP_BY_NAME.get(method);
-        final String keyString = packetValue.valueType().resolve(packetValue.keyName(), npc, args);
+        final String keyString = packetValue.valueType().resolve(packetValue.keyName(), args);
         return packetResultCache.computeIfAbsent(
             keyString,
             o -> {
@@ -160,7 +153,7 @@ public class PacketCache {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if (VALUE_LOOKUP_BY_NAME.containsKey(method)) {
                 // get the cached packet or create it
-                return packetCache.getOrCache(packets, packetCache.npc, method, args);
+                return packetCache.getOrCache(packets, method, args);
             }
             return method.invoke(packets, args);
         }

@@ -1,20 +1,12 @@
 package io.github.znetworkw.znpcservers.npc.packet;
 
-import io.github.znetworkw.znpcservers.npc.NPC;
-
 import java.util.Arrays;
 
 /** Enumerates all possible key names for a {@link PacketValue}. */
 public enum ValueType {
-    NPC {
-        @Override
-        public String resolve(String keyName, NPC npc, Object[] args) {
-            return keyName + SEPARATOR + npc.getNpcPojo().getId();
-        }
-    },
     ARGUMENTS {
         @Override
-        public String resolve(String keyName, NPC npc, Object[] args) {
+        public String resolve(String keyName, Object[] args) {
             if (args.length == 0) {
                 throw new IllegalArgumentException("invalid size, must be > 0");
             }
@@ -23,7 +15,7 @@ public enum ValueType {
     },
     DEFAULT {
         @Override
-        public String resolve(String keyName, NPC npc, Object[] args) {
+        public String resolve(String keyName, Object[] args) {
             return keyName;
         }
     };
@@ -34,5 +26,5 @@ public enum ValueType {
     /**
      * Resolves the key name.
      */
-    public abstract String resolve(String keyName, NPC npc, Object[] args);
+    public abstract String resolve(String keyName, Object[] args);
 }

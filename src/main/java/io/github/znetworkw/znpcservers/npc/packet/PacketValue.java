@@ -24,5 +24,5 @@ public @interface PacketValue {
      *
      * @return The key value type.
      */
-    ValueType valueType();
+    ValueType valueType() default ValueType.DEFAULT;
 }

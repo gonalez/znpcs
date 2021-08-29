@@ -51,7 +51,7 @@ public class DefaultCommand extends Command {
                 return;
             }
             npc.changeSkin(NPCSkin.forValues(skinValues));
-            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.GET_SKIN);
         });
 
     /**
@@ -291,7 +291,7 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        foundNPC.setLocation(sender.getPlayer().getLocation());
+        foundNPC.setLocation(sender.getPlayer().getLocation(), true);
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 

@@ -506,7 +506,7 @@ public interface NPCPath {
                     Vector vector = next.toVector().add(new Vector(0, location.getY() - next.getY(), 0));
                     Location direction = next.bukkitLocation().clone().setDirection(location.toVector().subtract(vector).
                             multiply(new Vector(-1, 0, -1))); // Reverse
-                    getNpc().setLocation(direction);
+                    getNpc().setLocation(direction, false);
                     // look at next location
                     getNpc().lookAt(null, direction, true);
                 }
