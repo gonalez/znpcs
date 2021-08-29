@@ -65,6 +65,9 @@ public class NPC {
      */
     private final NPCSkin npcSkin;
 
+    /**
+     * The npc packets.
+     */
     private final PacketCache packets;
 
     /**
