@@ -26,36 +26,25 @@ import java.util.*;
 public class ZUser {
     /** The name of the NPC interact channel. */
     private static final String CHANNEL_NAME = "npc_interact";
-
     /** The default wait time between each npc interact. */
     private static final int DEFAULT_DELAY = 1;
-
     /** A map containing the saved users. */
     private static final Map<UUID, ZUser> USER_MAP = new HashMap<>();
-
     /** A map for checking the last interact time for an NPC. */
     private final Map<Integer, Long> lastClicked;
-
     /**
      * A map of event services to run when the user trigger the specified service event.
      * @since 3.4
      */
     private final List<EventService<?>> eventServices;
-
     /** The user uuid. */
     private final UUID uuid;
-
     /** The user game profile. */
     private final GameProfile gameProfile;
-
     /** The user connection field. */
     private final Object playerConnection;
-
-    /**
-     * {@code true} if the user is creating a npc path.
-     */
+    /** {@code true} if the user is creating a npc path. */
     private boolean hasPath = false;
-
     /** Used to compare the last interaction with an npc. */
     private long lastInteract = 0;
 
@@ -198,7 +187,7 @@ public class ZUser {
                 if (npc == null) {
                     return;
                 }
-                ClickType clickName = ClickType.forName(npc.getPackets().getClickType(packet).toString()); // determine click type /right/left
+                ClickType clickName = ClickType.forName(npc.getPackets().getProxyInstance().getClickType(packet).toString()); // determine click type /right/left
                 lastInteract = System.nanoTime();
                 ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
                     Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(toPlayer(), clickName, npc));

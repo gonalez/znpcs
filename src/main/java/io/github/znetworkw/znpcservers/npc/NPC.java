@@ -1,11 +1,12 @@
 package io.github.znetworkw.znpcservers.npc;
 
+import com.google.common.collect.ImmutableList;
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.UnexpectedCallException;
 import io.github.znetworkw.znpcservers.npc.hologram.Hologram;
 import io.github.znetworkw.znpcservers.npc.conversation.ConversationModel;
-import io.github.znetworkw.znpcservers.npc.packet.AbstractPacket;
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
+import io.github.znetworkw.znpcservers.npc.packet.PacketCache;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.Utils;
 import io.github.znetworkw.znpcservers.utility.location.ZLocation;
@@ -15,7 +16,6 @@ import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,15 +65,12 @@ public class NPC {
      */
     private final NPCSkin npcSkin;
 
+    private final PacketCache packets;
+
     /**
      * Last npc move.
      */
     private long lastMove = -1;
-
-    /**
-     * Packets by version.
-     */
-    private AbstractPacket packets;
 
     /**
      * The bukkit entity id.
@@ -111,6 +108,7 @@ public class NPC {
         npcViewers = new HashSet<>();
         npcName = NamingType.DEFAULT.resolve(this);
         npcSkin = NPCSkin.forValues(npcModel.getSkin(), npcModel.getSignature());
+        packets = new PacketCache(this); // setup packets for this npc
         if (load) {
             onLoad();
         }
@@ -135,7 +133,6 @@ public class NPC {
         if (NPC_MAP.containsKey(getNpcPojo().getId())) {
             throw new IllegalStateException("npc with id " + getNpcPojo().getId() + " already exists.");
         }
-        packets = AbstractPacket.getByVersion(this, Utils.BUKKIT_VERSION);
 
         gameProfile = new GameProfile(UUID.randomUUID(), START_PREFIX + npcName);
         gameProfile.getProperties().put(PROFILE_TEXTURES, new Property(PROFILE_TEXTURES, npcPojo.getSkin(), npcPojo.getSignature()));
@@ -146,10 +143,11 @@ public class NPC {
         setLocation(getNpcPojo().getLocation().bukkitLocation());
 
         hologram.createHologram();
+
         if (npcPojo.getPathName() != null) {
             setPath(NPCPath.AbstractTypeWriter.find(npcPojo.getPathName()));
         }
-        npcPojo.getNpcEquip().forEach(this::updateEquipment);
+
         npcPojo.getCustomizationMap().forEach((key, value) -> npcPojo.getNpcType().updateCustomization(this, key, value));
         // register NPC in the map
         NPC_MAP.put(getNpcPojo().getId(), this);
@@ -181,6 +179,13 @@ public class NPC {
      */
     public Object getBukkitEntity() {
         return bukkitEntity;
+    }
+
+    /**
+     * Returns the npc nms entity.
+     */
+    public Object getNmsEntity() {
+        return nmsEntity;
     }
 
     /**
@@ -219,47 +224,23 @@ public class NPC {
     }
 
     /**
-     * @see #packets
+     * Returns the npc packets instance.
      */
-    public AbstractPacket getPackets() {
+    public PacketCache getPackets() {
         return packets;
     }
 
-    /**
-     * Updates the npc glow for the given glow {@code colorName}.
-     *
-     * @param colorName The glow color name.
-     * @throws UnsupportedOperationException If the version does not support glow.
-     */
-    public void doToggleGlow(String colorName) {
-        if (!packets.allowGlowColor()) { // only +v1.9 versions support glow
-            throw new UnsupportedOperationException("version not supported.");
-        }
-
-        try {
-            // find the glow color enum
-            glowColor = CacheRegistry.ENUM_CHAT_FORMAT_FIND.invoke(null, colorName == null ? "WHITE" : colorName);
-            CacheRegistry.SET_DATA_WATCHER_METHOD.invoke(CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(nmsEntity),
-                    CacheRegistry.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(0, dataWatcherRegistryEnum), (ToggleType.isTrue(this, ToggleType.GLOW) ? (byte) 0x40 : (byte) 0x0));
-            npcPojo.setGlowName(colorName);
-            // update glow scoreboard packets
-            packets.update();
-            updateMetaData();
-        } catch (ReflectiveOperationException operationException) {
-            throw new UnexpectedCallException(operationException);
-        }
+    public Object getDataWatcherRegistryEnum() {
+        return dataWatcherRegistryEnum;
     }
 
     /**
-     * Updates the npc location for current npc viewers.
+     * Sets the {@link #getGlowColor()} of this npc.
+     *
+     * @param glowColor The npc glow color.
      */
-    public void updateLocation() {
-        try {
-            Object npcTeleportPacket = CacheRegistry.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(nmsEntity);
-            npcViewers.forEach(player -> Utils.sendPackets(player, npcTeleportPacket));
-        } catch (ReflectiveOperationException operationException) {
-            throw new UnexpectedCallException(operationException);
-        }
+    public void setGlowColor(Object glowColor) {
+        this.glowColor = glowColor;
     }
 
     /**
@@ -269,13 +250,17 @@ public class NPC {
      */
     public void setLocation(Location location) {
         try {
-            // if the npc has a path it will not look at the players or location so we check that
+            // if the npc has a path it will not look at the players
+            // or location so we check that
             if (npcPath == null) {
+                lastMove = System.nanoTime();
                 lookAt(null, location, true);
                 npcPojo.setLocation(new ZLocation(location = new Location(location.getWorld(), location.getBlockX() + 0.5, location.getY(), location.getBlockZ() + 0.5, location.getYaw(), location.getPitch())));
             }
             CacheRegistry.SET_LOCATION_METHOD.invoke(nmsEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
-            updateLocation();
+            final Object npcTeleportPacket = CacheRegistry.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(nmsEntity);
+            // update new location
+            npcViewers.forEach(player -> Utils.sendPackets(player, npcTeleportPacket));
             // update the hologram location
             hologram.setLocation(location, npcPojo.getNpcType().getHoloHeight());
         } catch (ReflectiveOperationException operationException) {
@@ -321,13 +306,9 @@ public class NPC {
      */
     public void changeType(NPCType npcType) {
         try {
-            Object nmsWorld = CacheRegistry.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
-            boolean isPlayer = npcType == NPCType.PLAYER;
-            // create the npc-player spawn packet
-            if (isPlayer && packets.playerSpawnPacket == null) {
-                packets.updateSpawnPacket(nmsWorld);
-            }
-            nmsEntity = (isPlayer ? packets.playerSpawnPacket : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
+            final Object nmsWorld = CacheRegistry.GET_HANDLE_WORLD_METHOD.invoke(getLocation().getWorld());
+            final boolean isPlayer = npcType == NPCType.PLAYER;
+            nmsEntity = (isPlayer ? packets.getProxyInstance().getPlayerPacket(nmsWorld, gameProfile) : (Utils.versionNewer(14) ? npcType.getConstructor().newInstance(npcType.getNmsEntityType(), nmsWorld) : npcType.getConstructor().newInstance(nmsWorld)));
             bukkitEntity = (CacheRegistry.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
             uuid = (UUID) CacheRegistry.GET_UNIQUE_ID_METHOD.invoke(nmsEntity);
             if (isPlayer) {
@@ -337,16 +318,14 @@ public class NPC {
             npcPojo.setNpcType(npcType);
             // teleport new npc type to the last or saved npc location
             setLocation(getLocation());
+            packets.flushCache("spawnPacket", "removeTab"); // flush caches
             // update new npc type for viewers
             deleteViewers();
             entityID = ((Integer) CacheRegistry.GET_ENTITY_ID.invoke(nmsEntity));
-            // update npc glow color
-            if (ToggleType.isTrue(this, ToggleType.GLOW) && packets.allowGlowColor()) {
-                doToggleGlow(npcPojo.getGlowName());
-            } else {
-                packets.update();
-            }
-            packets.playerDestroyPacket = packets.getDestroyPacket(entityID);
+            // run active functions
+            NPCFunctionFactory.findFunctionsForNpc(this)
+                .forEach(function -> function.doRunFunction(this, npcPojo.getGlowName()));
+            getPackets().getProxyInstance().update(packets);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
@@ -356,23 +335,22 @@ public class NPC {
      * Spawns the npc for the given player.
      *
      * @param user The player to spawn the npc for.
+     * @throws IllegalStateException If the given user is already a viewer.
      */
     public void spawn(ZUser user) {
         if (npcViewers.contains(user)) {
             throw new IllegalStateException(user.getUUID().toString() + " is already a viewer.");
         }
-
         try {
             final boolean npcIsPlayer = npcPojo.getNpcType() == NPCType.PLAYER;
             // check for scoreboard packets
-            if (ToggleType.isTrue(this, ToggleType.GLOW)
+            if (NPCFunctionFactory.isTrue(this, "glow")
                 || npcIsPlayer) {
-                // update scoreboard packets
-                Utils.sendPackets(user, packets.scoreboardDeletePacket);
-                Utils.sendPackets(user, packets.scoreboardSpawnPacket);
+                final ImmutableList<Object> scoreboardPackets = packets.getProxyInstance().updateScoreboard(this);
+                scoreboardPackets.forEach(p -> Utils.sendPackets(user, p));
             }
             if (npcIsPlayer) {
-                if (ToggleType.isTrue(this, ToggleType.MIRROR)) {
+                if (NPCFunctionFactory.isTrue(this, "mirror")) {
                     // set npc skin to the player skin
                     updateProfile(user.getGameProfile().getProperties());
                 }
@@ -380,8 +358,8 @@ public class NPC {
                 Utils.sendPackets(user, tabConstructor);
             }
             // send npc spawn packets
-            Utils.sendPackets(user, npcIsPlayer ? CacheRegistry.PACKET_PLAY_OUT_NAMED_ENTITY_CONSTRUCTOR.newInstance(nmsEntity) : CacheRegistry.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(nmsEntity));
-            if (ToggleType.isTrue(this, ToggleType.HOLO)) {
+            Utils.sendPackets(user, packets.getProxyInstance().getSpawnPacket(nmsEntity, npcIsPlayer));
+            if (NPCFunctionFactory.isTrue(this, "holo")) {
                 hologram.spawn(user);
             }
             npcViewers.add(user);
@@ -390,28 +368,9 @@ public class NPC {
             // fix npc rotation
             lookAt(user, getLocation(), true);
             if (npcIsPlayer) {
-                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> hideFromTab(user), 60);
+                Object removeTabPacket = packets.getProxyInstance().getTabRemovePacket(nmsEntity);
+                ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> Utils.sendPackets(user, removeTabPacket), 60);
             }
-        } catch (ReflectiveOperationException operationException) {
-            throw new UnexpectedCallException(operationException);
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public void sendEquipPackets(ZUser user) {
-        packets.equipPackets.values().forEach(packet -> Utils.sendPackets(user, packet));
-    }
-
-    /**
-     * Hides the npc from tab list for the given player.
-     *
-     * @param user The player to hide the npc from tab list for.
-     */
-    public void hideFromTab(ZUser user) {
-        try {
-            Utils.sendPackets(user, CacheRegistry.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(CacheRegistry.REMOVE_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
@@ -421,18 +380,23 @@ public class NPC {
      * Deletes the npc for the given player.
      *
      * @param user The player to delete the npc for.
+     * @throws IllegalStateException If the given user is not a viewer.
      */
     public void delete(ZUser user, boolean removeViewer) {
         if (!npcViewers.contains(user)) {
             throw new IllegalStateException(user.getUUID().toString() + " is not a viewer.");
         }
-        if (npcPojo.getNpcType() == NPCType.PLAYER) {
-            hideFromTab(user);
-        }
-        Utils.sendPackets(user, packets.playerDestroyPacket);
-        hologram.delete(user);
-        if (removeViewer) {
-            npcViewers.remove(user);
+        try {
+            if (npcPojo.getNpcType() == NPCType.PLAYER) {
+                packets.getProxyInstance().getTabRemovePacket(nmsEntity);
+            }
+            hologram.delete(user);
+            Utils.sendPackets(user, packets.getProxyInstance().getDestroyPacket(entityID));
+            if (removeViewer) {
+                npcViewers.remove(user);
+            }
+        } catch (ReflectiveOperationException operationException) {
+            throw new UnexpectedCallException(operationException);
         }
     }
 
@@ -465,23 +429,6 @@ public class NPC {
     }
 
     /**
-     * Updates the npc equipment for current viewers.
-     */
-    public void updateEquipment(ItemSlot slot, ItemStack stack) {
-        try {
-            npcPojo.getNpcEquip().put(slot, stack);
-            if (Utils.BUKKIT_VERSION >= 16) {
-                packets.updateEquipPacket();
-            } else {
-                packets.updateEquipPacket(slot, stack);
-            }
-            npcViewers.forEach(this::sendEquipPackets);
-        } catch (ReflectiveOperationException operationException) {
-            throw new UnexpectedCallException(operationException);
-        }
-    }
-
-    /**
      * Deletes the NPC for current viewers.
      */
     public void deleteViewers() {
@@ -500,11 +447,9 @@ public class NPC {
      * Updates the npc {@link GameProfile}.
      */
     public void updateProfile(PropertyMap propertyMap) {
-        // only players npc can have a profile
-        if (npcPojo.getNpcType() != NPCType.PLAYER) {
+        if (npcPojo.getNpcType() != NPCType.PLAYER) { // non-players npc cannot have a profile
             return;
         }
-
         try {
             Object gameProfileObj = CacheRegistry.GET_PROFILE_METHOD.invoke(nmsEntity);
             Utils.setValue(gameProfileObj, "name", gameProfile.getName());
@@ -524,6 +469,21 @@ public class NPC {
             npcViewers.forEach(player -> Utils.sendPackets(player, customizationPacket));
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public void sendEquipPackets(ZUser zUser) {
+        if (npcPojo.getNpcEquip().isEmpty()) {
+            return;
+        }
+        try {
+            final ImmutableList<Object> equipPackets = packets.getProxyInstance().getEquipPackets(this);
+            equipPackets.forEach(o -> Utils.sendPackets(zUser, o));
+        } catch (ReflectiveOperationException operationException) {
+            throw new UnexpectedCallException(operationException.getCause());
         }
     }
 
@@ -563,13 +523,6 @@ public class NPC {
         return npcPath != null ?
             npcPath.getLocation().bukkitLocation() :
             npcPojo.getLocation().bukkitLocation();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public void setLastMove(long lastMove) {
-        this.lastMove = lastMove;
     }
 
     /**

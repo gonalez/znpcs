@@ -3,10 +3,10 @@ package io.github.znetworkw.znpcservers.npc.hologram;
 import io.github.znetworkw.znpcservers.UnexpectedCallException;
 import io.github.znetworkw.znpcservers.configuration.Configuration;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationValue;
-import io.github.znetworkw.znpcservers.npc.hologram.replacer.LineReplacer;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
+import io.github.znetworkw.znpcservers.npc.hologram.replacer.LineReplacer;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.Utils;
 import org.bukkit.Location;
@@ -108,7 +108,7 @@ public class Hologram {
     public void delete(ZUser user) {
         hologramLines.forEach(hologramLine -> {
             try {
-                Utils.sendPackets(user, npc.getPackets().getDestroyPacket(hologramLine.id));
+                Utils.sendPackets(user, npc.getPackets().getProxyInstance().getDestroyPacket(hologramLine.id));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }

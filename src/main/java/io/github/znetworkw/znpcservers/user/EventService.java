@@ -67,8 +67,7 @@ public class EventService<T extends Event> {
      * @param event The event type {@link T}.
      */
     public void runAll(T event) {
-        ServersNPC.SCHEDULER.runTask(() ->
-                eventConsumers.forEach(consumer -> consumer.accept(event)));
+        ServersNPC.SCHEDULER.runTask(() -> eventConsumers.forEach(consumer -> consumer.accept(event)));
     }
 
     /**

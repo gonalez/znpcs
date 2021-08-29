@@ -38,7 +38,7 @@ public class NPCModel {
     /** The npc equipment. */
     private Map<ItemSlot, ItemStack> npcEquip;
     /** The npc toggle values. */
-    private Map<ToggleType, Boolean> npcToggleValues;
+    private Map<String, Boolean> npcFunctions;
     /** The npc customization. */
     private Map<String, String[]> customizationMap;
 
@@ -59,8 +59,8 @@ public class NPCModel {
         clickActions = new ArrayList<>();
         npcEquip = new HashMap<>();
         customizationMap = new HashMap<>();
-        npcToggleValues = new HashMap<>();
-        npcToggleValues.put(ToggleType.HOLO, true);
+        npcFunctions = new HashMap<>();
+        npcFunctions.put("holo", true);
     }
 
     /**
@@ -403,28 +403,28 @@ public class NPCModel {
     }
 
     /**
-     * Returns the npc toggle values.
+     * Returns the npc function values.
      *
-     * @return The npc toggle values.
+     * @return The npc function values.
      */
-    public Map<ToggleType, Boolean> getToggleValues() {
-        return npcToggleValues;
+    public Map<String, Boolean> getFunctions() {
+        return npcFunctions;
     }
 
     /**
-     * Sets the {@link #getToggleValues()} of this object.
+     * Sets the {@link #getFunctions()} of this object.
      *
-     * @param npcToggleValues The npc toggle values.
+     * @param npcFunctions The npc function values.
      */
-    public void setToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
-        this.npcToggleValues = npcToggleValues;
+    public void setFunctions(Map<String, Boolean> npcFunctions) {
+        this.npcFunctions = npcFunctions;
     }
 
     /**
-     * Returns the current object with the new {@code npcToggleValues}.
+     * Returns the current object with the new {@code npcFunctions}.
      */
-    public NPCModel withToggleValues(Map<ToggleType, Boolean> npcToggleValues) {
-        setToggleValues(npcToggleValues);
+    public NPCModel withFunctionValues(Map<String, Boolean> npcFunctions) {
+        setFunctions(npcFunctions);
         return this;
     }
 }

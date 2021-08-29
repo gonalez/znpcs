@@ -222,7 +222,11 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        foundNPC.updateEquipment(ItemSlot.valueOf(args.get("slot").toUpperCase()), sender.getPlayer().getInventory().getItemInHand());
+        foundNPC.getNpcPojo().getNpcEquip().put(
+            ItemSlot.valueOf(args.get("slot").toUpperCase()),
+            sender.getPlayer().getInventory().getItemInHand());
+        foundNPC.getPackets().flushCache("equipPackets");
+        foundNPC.getNpcViewers().forEach(foundNPC::sendEquipPackets);
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
@@ -288,7 +292,6 @@ public class DefaultCommand extends Command {
         }
 
         foundNPC.setLocation(sender.getPlayer().getLocation());
-        foundNPC.setLastMove(System.nanoTime());
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
@@ -488,7 +491,11 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        ToggleType.valueOf(args.get("type").toUpperCase()).doToggle(foundNPC, args.get("value"));
+        String type = args.get("type").toLowerCase();
+        NPCFunction npcFunction = NPCFunctionFactory.findFunctionForName(type);
+
+        foundNPC.getNpcPojo().getFunctions().put(npcFunction.name(), !npcFunction.isTrue(foundNPC));
+        NPCFunctionFactory.findFunctionForName(type).doRunFunction(foundNPC, args.get("value"));
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 

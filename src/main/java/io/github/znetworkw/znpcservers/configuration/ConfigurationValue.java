@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static io.github.znetworkw.znpcservers.utility.GuavaCollectors.toImmutableSet;
 import static java.util.stream.Collectors.groupingBy;
 
 /**

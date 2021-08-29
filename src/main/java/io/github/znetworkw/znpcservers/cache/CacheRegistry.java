@@ -732,6 +732,5 @@ public final class CacheRegistry {
             .withClassName(ENUM_TAG_VISIBILITY)
             .withFieldName("b")).load();
 
-    private CacheRegistry() {
-    }
+    private CacheRegistry() {}
 }

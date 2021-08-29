@@ -3,8 +3,8 @@ package io.github.znetworkw.znpcservers.tasks;
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.npc.NPC;
+import io.github.znetworkw.znpcservers.npc.NPCFunctionFactory;
 import io.github.znetworkw.znpcservers.npc.conversation.ConversationModel;
-import io.github.znetworkw.znpcservers.npc.ToggleType;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -39,8 +39,7 @@ public class NPCManagerTask extends BukkitRunnable {
                     if (!npc.getNpcViewers().contains(zUser)) {
                         npc.spawn(zUser);
                     }
-                    if (ToggleType.isTrue(npc,
-                            ToggleType.LOOK) && !hasPath) { // look npc at player
+                    if (NPCFunctionFactory.isTrue(npc, "look") && !hasPath) { // look npc at player
                         npc.lookAt(zUser, player.getLocation(), false);
                     }
                     npc.getHologram().updateNames(zUser);
