@@ -55,6 +55,23 @@ public interface Packet {
     Object getClickType(Object interactPacket) throws ReflectiveOperationException;
 
     /**
+     * Returns the meta data packet for the given nms entity.
+     *
+     * @param nmsEntity The nms entity.
+     * @throws ReflectiveOperationException When failed to call the method.
+     */
+    Object getMetadataPacket(int entityId, Object nmsEntity) throws ReflectiveOperationException;
+
+    /**
+     * Returns the spawn packet for the given hologram entity.
+     *
+     * @param armorStand The hologram entity.
+     * @throws ReflectiveOperationException When failed to call the method.
+     */
+    @PacketValue(keyName = "hologramSpawnPacket", valueType = ValueType.ARGUMENTS)
+    Object getHologramSpawnPacket(Object armorStand) throws ReflectiveOperationException;
+
+    /**
      * Returns the destroy packet for the given entity id.
      *
      * @param entityId The entity id.
@@ -81,7 +98,7 @@ public interface Packet {
     @PacketValue(keyName = "removeTab")
     default Object getTabRemovePacket(Object nmsEntity) throws ReflectiveOperationException {
         return CacheRegistry.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(
-            CacheRegistry.REMOVE_PLAYER_FIELD.get(null),
+            CacheRegistry.REMOVE_PLAYER_FIELD,
             Collections.singletonList(nmsEntity));
     }
 
@@ -116,7 +133,7 @@ public interface Packet {
             // new class for scoreboard add packet
             scoreboardTeamPacket = CacheRegistry.SCOREBOARD_TEAM_CONSTRUCTOR.newInstance(null, npc.getGameProfile().getName());
             Utils.setValue(scoreboardTeamPacket, "e", npc.getGameProfile().getName());
-            Utils.setValue(scoreboardTeamPacket, "l", CacheRegistry.ENUM_TAG_VISIBILITY_NEVER.get(null));
+            Utils.setValue(scoreboardTeamPacket, "l", CacheRegistry.ENUM_TAG_VISIBILITY_NEVER_FIELD);
         } else {
             // new class for scoreboard add packet
             scoreboardTeamPacket = CacheRegistry.PACKET_PLAY_OUT_SCOREBOARD_TEAM_CONSTRUCTOR_OLD.newInstance();

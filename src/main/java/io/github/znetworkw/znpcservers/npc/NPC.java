@@ -29,75 +29,35 @@ public class NPC {
      * A map containing the stored npcs.
      */
     private static final ConcurrentMap<Integer, NPC> NPC_MAP = new ConcurrentHashMap<>();
-
-    /**
-     * The profile textures for the npc {@link GameProfile}.
-     */
+    /** The {@link GameProfile} texture key name for the npc. */
     private static final String PROFILE_TEXTURES = "textures";
-
-    /**
-     * Tab list prefix for npc.
-     */
+    /** The tab list prefix for npc. */
     private static final String START_PREFIX = ChatColor.DARK_GRAY + "[ZNPC] ";
 
-    /**
-     * The npc model class.
-     */
+    /** A set of players who can see the npc. */
+    private final Set<ZUser> viewers = new HashSet<>();
+    /** The npc packets. */
+    private final PacketCache packets = new PacketCache();
+    /** The npc model class. */
     private final NPCModel npcPojo;
-
-    /**
-     * The npc hologram.
-     */
+    /** The npc hologram. */
     private final Hologram hologram;
-
-    /**
-     * A set of players who can see the npc.
-     */
-    private final Set<ZUser> npcViewers;
-
-    /**
-     * The npc tab name.
-     */
+    /** The npc tab name. */
     private final String npcName;
-
-    /**
-     * The npc skin.
-     */
+    /** The npc skin. */
     private final NPCSkin npcSkin;
 
-    /**
-     * The npc packets.
-     */
-    private final PacketCache packets;
-
-    /**
-     * Last npc move.
-     */
+    /** Last npc move. */
     private long lastMove = -1;
-
-    /**
-     * The bukkit entity id.
-     */
+    /** The bukkit entity id. */
     private int entityID;
-
-    /**
-     * Cache reflection variables.
-     */
-    private Object glowColor, dataWatcherRegistryEnum, tabConstructor, nmsEntity, bukkitEntity;
-
-    /**
-     * The entity uuid.
-     */
+    /** The reflection variables. */
+    private Object glowColor, tabConstructor, nmsEntity, bukkitEntity;
+    /** The npc entity uuid. */
     private UUID uuid;
-
-    /**
-     * The current profile of the npc.
-     */
+    /** The npc game profile. */
     private GameProfile gameProfile;
-
-    /**
-     * The npc path.
-     */
+    /** The npc path. */
     private NPCPath.PathInitializer npcPath;
 
     /**
@@ -108,10 +68,8 @@ public class NPC {
     public NPC(NPCModel npcModel, boolean load) {
         this.npcPojo = npcModel;
         this.hologram = new Hologram(this);
-        npcViewers = new HashSet<>();
         npcName = NamingType.DEFAULT.resolve(this);
         npcSkin = NPCSkin.forValues(npcModel.getSkin(), npcModel.getSignature());
-        packets = new PacketCache(); // setup packets for this npc
         if (load) {
             onLoad();
         }
@@ -222,8 +180,8 @@ public class NPC {
     /**
      * Returns a list of players who can see the npc.
      */
-    public Set<ZUser> getNpcViewers() {
-        return npcViewers;
+    public Set<ZUser> getViewers() {
+        return viewers;
     }
 
     /**
@@ -231,10 +189,6 @@ public class NPC {
      */
     public PacketCache getPackets() {
         return packets;
-    }
-
-    public Object getDataWatcherRegistryEnum() {
-        return dataWatcherRegistryEnum;
     }
 
     /**
@@ -265,7 +219,7 @@ public class NPC {
             CacheRegistry.SET_LOCATION_METHOD.invoke(nmsEntity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
             final Object npcTeleportPacket = CacheRegistry.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(nmsEntity);
             // update new location
-            npcViewers.forEach(player -> Utils.sendPackets(player, npcTeleportPacket));
+            viewers.forEach(player -> Utils.sendPackets(player, npcTeleportPacket));
             // update the hologram location
             hologram.setLocation(location, npcPojo.getNpcType().getHoloHeight());
         } catch (ReflectiveOperationException operationException) {
@@ -296,8 +250,7 @@ public class NPC {
         try {
             Object dataWatcherObject = CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(nmsEntity);
             if (Utils.versionNewer(9)) {
-                dataWatcherRegistryEnum = CacheRegistry.DATA_WATCHER_REGISTER_ENUM_FIELD.get(null);
-                CacheRegistry.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, CacheRegistry.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(npcSkin.getLayerIndex(), dataWatcherRegistryEnum), (byte) 127);
+                CacheRegistry.SET_DATA_WATCHER_METHOD.invoke(dataWatcherObject, CacheRegistry.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(npcSkin.getLayerIndex(), CacheRegistry.DATA_WATCHER_REGISTER_FIELD), (byte) 127);
             } else CacheRegistry.WATCH_DATA_WATCHER_METHOD.invoke(dataWatcherObject, 10, (byte) 127);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
@@ -317,7 +270,7 @@ public class NPC {
             bukkitEntity = (CacheRegistry.GET_BUKKIT_ENTITY_METHOD.invoke(nmsEntity));
             uuid = (UUID) CacheRegistry.GET_UNIQUE_ID_METHOD.invoke(nmsEntity);
             if (isPlayer) {
-                tabConstructor = (CacheRegistry.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(CacheRegistry.ADD_PLAYER_FIELD.get(null), Collections.singletonList(nmsEntity)));
+                tabConstructor = (CacheRegistry.PACKET_PLAY_OUT_PLAYER_INFO_CONSTRUCTOR.newInstance(CacheRegistry.ADD_PLAYER_FIELD, Collections.singletonList(nmsEntity)));
                 setSecondLayerSkin();
             }
             npcPojo.setNpcType(npcType);
@@ -328,8 +281,7 @@ public class NPC {
             deleteViewers();
             entityID = ((Integer) CacheRegistry.GET_ENTITY_ID.invoke(nmsEntity));
             // run active functions
-            FunctionFactory.findFunctionsForNpc(this)
-                .forEach(function -> function.doRunFunction(this, npcPojo.getGlowName()));
+            FunctionFactory.findFunctionsForNpc(this).forEach(function -> function.resolve(this));
             getPackets().getProxyInstance().update(packets);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
@@ -343,7 +295,7 @@ public class NPC {
      * @throws IllegalStateException If the given user is already a viewer.
      */
     public void spawn(ZUser user) {
-        if (npcViewers.contains(user)) {
+        if (viewers.contains(user)) {
             throw new IllegalStateException(user.getUUID().toString() + " is already a viewer.");
         }
         try {
@@ -367,8 +319,8 @@ public class NPC {
             if (FunctionFactory.isTrue(this, "holo")) {
                 hologram.spawn(user);
             }
-            npcViewers.add(user);
-            updateMetaData();
+            viewers.add(user);
+            updateMetadata(Collections.singleton(user));
             sendEquipPackets(user);
             // fix npc rotation
             lookAt(user, getLocation(), true);
@@ -387,8 +339,8 @@ public class NPC {
      * @param user The player to delete the npc for.
      * @throws IllegalStateException If the given user is not a viewer.
      */
-    public void delete(ZUser user, boolean removeViewer) {
-        if (!npcViewers.contains(user)) {
+    public void delete(ZUser user) {
+        if (!viewers.contains(user)) {
             throw new IllegalStateException(user.getUUID().toString() + " is not a viewer.");
         }
         try {
@@ -397,9 +349,7 @@ public class NPC {
             }
             hologram.delete(user);
             Utils.sendPackets(user, packets.getProxyInstance().getDestroyPacket(entityID));
-            if (removeViewer) {
-                npcViewers.remove(user);
-            }
+            viewers.remove(user);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
@@ -427,7 +377,7 @@ public class NPC {
             if (player != null) {
                 Utils.sendPackets(player, lookPacket, headRotationPacket);
             } else {
-                npcViewers.forEach(players -> Utils.sendPackets(players, headRotationPacket));
+                viewers.forEach(players -> Utils.sendPackets(players, headRotationPacket));
             }
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
@@ -438,15 +388,28 @@ public class NPC {
      * Deletes the NPC for current viewers.
      */
     public void deleteViewers() {
-        if (npcViewers.isEmpty()) {
+        if (viewers.isEmpty()) {
+            // npc have no viewers
             return;
         }
+        for (ZUser user : getViewers()) {
+            delete(user);
+        }
+        viewers.clear();
+    }
 
-        Iterator<ZUser> iterator = npcViewers.iterator();
-        do {
-            delete(iterator.next(), false);
-            iterator.remove();
-        } while (iterator.hasNext());
+    /**
+     * Updates the npc meta data.
+     */
+    protected void updateMetadata(Iterable<ZUser> users) {
+        try {
+            Object metaData = packets.getProxyInstance().getMetadataPacket(entityID, nmsEntity);
+            for (ZUser user : users) {
+                Utils.sendPackets(user, metaData);
+            }
+        } catch (ReflectiveOperationException operationException) {
+            throw new UnexpectedCallException(operationException);
+        }
     }
 
     /**
@@ -469,24 +432,12 @@ public class NPC {
     /**
      * @inheritDoc
      */
-    public void updateMetaData() {
-        try {
-            Object customizationPacket = CacheRegistry.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityID, CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(nmsEntity), true);
-            npcViewers.forEach(player -> Utils.sendPackets(player, customizationPacket));
-        } catch (ReflectiveOperationException operationException) {
-            throw new UnexpectedCallException(operationException);
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
     public void sendEquipPackets(ZUser zUser) {
         if (npcPojo.getNpcEquip().isEmpty()) {
             return;
         }
         try {
-            final ImmutableList<Object> equipPackets = packets.getProxyInstance().getEquipPackets(this);
+            ImmutableList<Object> equipPackets = packets.getProxyInstance().getEquipPackets(this);
             equipPackets.forEach(o -> Utils.sendPackets(zUser, o));
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException.getCause());

@@ -1,23 +1,34 @@
 package io.github.znetworkw.znpcservers.npc.hologram.replacer;
 
+import com.google.common.collect.ImmutableList;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.Utils;
-import org.bukkit.ChatColor;
 
 /**
  * Interface used for replacing a {@link java.lang.String}.
  */
-public interface LineReplacer<T> {
+public interface LineReplacer {
+    /** List of allowed custom line replacers. */
+    ImmutableList<LineReplacer> LINE_REPLACERS =
+        ImmutableList.of(new RGBLine());
+
     /**
      * Replaces the given string.
      *
      * @param string The string to replace.
-     * @return The converted {@link java.lang.String}.
+     * @return The converted string.
      */
-    T make(String string);
+    String make(String string);
 
     /**
-     * Replaces the {@link java.lang.String} with custom replaces.
+     * Returns {@code true} if should replace the line.
+     *
+     * @return {@code true} If should replace the line.
+     */
+    boolean isSupported();
+
+    /**
+     * Replaces the given {@link java.lang.String} with custom replaces.
      *
      * @param user The player to get placeholders for.
      * @param string The string to convert.
@@ -25,12 +36,14 @@ public interface LineReplacer<T> {
      */
     static String makeAll(ZUser user,
                           String string) {
-        if (Utils.BUKKIT_VERSION > 15) { // v1.16+
-            string = new RGBLine().make(string);
+        for (LineReplacer lineReplacer : LINE_REPLACERS) {
+            if (!lineReplacer.isSupported()) {
+                continue;
+            }
+            string = lineReplacer.make(string);
         }
-        return ChatColor.translateAlternateColorCodes('&', Utils.PLACEHOLDER_SUPPORT && user != null ?
+        return Utils.toColor(Utils.PLACEHOLDER_SUPPORT && user != null ?
                 Utils.getWithPlaceholders(string, user.toPlayer()) :
-                string
-        );
+                string);
     }
 }

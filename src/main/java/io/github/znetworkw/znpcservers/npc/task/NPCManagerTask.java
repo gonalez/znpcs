@@ -1,4 +1,4 @@
-package io.github.znetworkw.znpcservers.tasks;
+package io.github.znetworkw.znpcservers.npc.task;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
@@ -34,10 +34,10 @@ public class NPCManagerTask extends BukkitRunnable {
                 final ZUser zUser = ZUser.find(player);
                 final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld()
                     && player.getLocation().distance(npc.getLocation()) <= ConfigurationConstants.VIEW_DISTANCE;
-                if (npc.getNpcViewers().contains(zUser) && !canSeeNPC) // delete the npc for the player if player is not in range
-                    npc.delete(zUser, true);
+                if (npc.getViewers().contains(zUser) && !canSeeNPC) // delete the npc for the player if player is not in range
+                    npc.delete(zUser);
                 else if (canSeeNPC) {
-                    if (!npc.getNpcViewers().contains(zUser)) {
+                    if (!npc.getViewers().contains(zUser)) {
                         npc.spawn(zUser);
                     }
                     if (FunctionFactory.isTrue(npc, "look") && !hasPath) { // look npc at player

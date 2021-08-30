@@ -8,15 +8,13 @@ import static io.github.znetworkw.znpcservers.utility.GuavaCollectors.*;
 
 /** NPC Function definitions. */
 public final class FunctionFactory {
-    /** List of functions that does not implement
-     *  {@link NPCFunction#function(NPC, String)} directly. */
+    /** List of instances that does not implement a function */
     public static ImmutableList<NPCFunction> WITHOUT_FUNCTION =
         ImmutableList.of(
             new NPCFunction.WithoutFunction("look"),
             new NPCFunction.WithoutFunctionSelfUpdate("holo"),
             new NPCFunction.WithoutFunctionSelfUpdate("mirror"));
-    /** List of custom functions that implement
-     * {@link NPCFunction#function(NPC, String)}. */
+    /** List of instances that implement a function */
     public static ImmutableList<NPCFunction> WITH_FUNCTION =
         ImmutableList.of(new GlowFunction());
     /** List of all available npc functions. */
@@ -25,10 +23,10 @@ public final class FunctionFactory {
             .addAll(WITHOUT_FUNCTION)
             .addAll(WITH_FUNCTION)
             .build();
-    /** Mapping for available npc functions by its {@link NPCFunction#name()}. */
+    /** Mapping for available npc functions by its {@link NPCFunction#getName()}. */
     public static ImmutableMap<String, NPCFunction> BY_NAME =
         ALL.stream().collect(toImmutableMap(
-            NPCFunction::name,
+            NPCFunction::getName,
             function -> function));
 
     /**
@@ -45,6 +43,7 @@ public final class FunctionFactory {
      * Locates active functions for the given npc.
      *
      * @param npc The npc.
+     * @return A list of active functions for the given npc.
      */
     public static ImmutableList<NPCFunction> findFunctionsForNpc(NPC npc) {
         return ALL.stream()
@@ -61,7 +60,7 @@ public final class FunctionFactory {
      * @return The function value for the given npc if it exists, false otherwise.
      */
     public static boolean isTrue(NPC npc, NPCFunction function) {
-        return npc.getNpcPojo().getFunctions().getOrDefault(function.name(), false);
+        return npc.getNpcPojo().getFunctions().getOrDefault(function.getName(), false);
     }
 
     /**

@@ -6,25 +6,22 @@ import java.util.Arrays;
 public enum ValueType {
     ARGUMENTS {
         @Override
-        public String resolve(String keyName, Object[] args) {
+        String resolve(String keyName, Object[] args) {
             if (args.length == 0) {
                 throw new IllegalArgumentException("invalid size, must be > 0");
             }
-            return keyName + SEPARATOR + Arrays.toString(args);
+            return keyName + Arrays.hashCode(args);
         }
     },
     DEFAULT {
         @Override
-        public String resolve(String keyName, Object[] args) {
+        String resolve(String keyName, Object[] args) {
             return keyName;
         }
     };
 
-    /** default key name separator char. */
-    private static final char SEPARATOR = '%';
-
     /**
      * Resolves the key name.
      */
-    public abstract String resolve(String keyName, Object[] args);
+    abstract String resolve(String keyName, Object[] args);
 }

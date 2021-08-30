@@ -183,14 +183,15 @@ public enum NPCType {
     public void updateCustomization(NPC npc,
                                     String name,
                                     String[] values) {
-        if (!customizationLoader.contains(name)) { // method not found for npc type
+        if (!customizationLoader.contains(name)) {
+            // method not found for npc type
             return;
         }
         try {
             Method method = customizationLoader.getMethods().get(name);
             method.invoke(npc.getBukkitEntity(), arrayToPrimitive(values, method));
             // update new customization for the npc
-            npc.updateMetaData();
+            npc.updateMetadata(npc.getViewers());
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("can't invoke method: " + name, e);
         }

@@ -1,6 +1,7 @@
 package io.github.znetworkw.znpcservers.npc.hologram.replacer;
 
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
+import io.github.znetworkw.znpcservers.utility.Utils;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -8,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Enables RGB for the string.
  */
-public class RGBLine implements LineReplacer<String> {
+public class RGBLine implements LineReplacer {
     /** Default hex-color-code char. */
     private static final char HEX_COLOR_CHAR = '#';
     /** Default hex-color-code length. */
@@ -48,5 +49,10 @@ public class RGBLine implements LineReplacer<String> {
             }
         }
         return rgbString;
+    }
+
+    @Override
+    public boolean isSupported() {
+        return Utils.BUKKIT_VERSION > 15;
     }
 }

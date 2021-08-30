@@ -4,96 +4,106 @@ package io.github.znetworkw.znpcservers.npc;
  * Represents a npc function.
  */
 public abstract class NPCFunction {
+    public enum ResultType {
+        SUCCESS,
+        FAIL
+    }
+
+    /** The function name. */
+    private final String name;
+
     /**
-     * Calls {@link NPCFunction#function(NPC, String)} for the given npc.
+     * Creates a new npc function with the given name.
      *
-     * @param npc The npc to run the function for.
-     * @param data The optional data i.e for getting glow color, etc...
+     * @param name The name
      */
-    protected abstract void function(NPC npc, String data);
-
-    /**
-     * Returns the function name prefix.
-     *
-     * @return The function name prefix.
-     */
-    public abstract String name();
-
-    /**
-     * Returns {@code true} if can run {@link #function(NPC, String)}
-     */
-    public abstract boolean allow(NPC npc);
-
-    /**
-     * Runs {@link #function(NPC, String)}
-     * if {@link #allow(NPC)}.
-     */
-    public void doRunFunction(NPC npc,
-                              String data) {
-        if (!allow(npc)) {
-            return;
-        }
-        function(npc, data);
+    public NPCFunction(String name) {
+        this.name = name;
     }
 
     /**
+     * Returns the function name.
+     *
+     * @return The function name.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns {@code true} if can run the function.
+     */
+    protected abstract boolean allow(NPC npc);
+
+    /**
+     * Runs the function for the given npc.
+     *
+     * @param npc The npc to run the function for.
+     */
+    protected abstract ResultType runFunction(NPC npc, FunctionContext functionContext);
+
+    /**
+     * Runs {@link NPCFunction#runFunction(NPC, FunctionContext)}
+     * if {@link #allow(NPC)} for the given npc.
+     *w
+     * @param npc The npc to run the function for.
+     */
+    public void doRunFunction(NPC npc, FunctionContext functionContext) {
+        if (!allow(npc)) {
+            return;
+        }
+        ResultType resultType = runFunction(npc, functionContext);
+        if (resultType == ResultType.SUCCESS) {
+            npc.getNpcPojo().getFunctions().put(getName(), !isTrue(npc));
+        }
+    }
+
+    /** Auto resolves the function with a context for the npc. */
+    protected ResultType resolve(NPC npc) {
+        throw new IllegalStateException("resolve is not implemented.");
+    }
+    
+    /**
      * Locates the npc value for this function.
+     *
      * @see FunctionFactory#isTrue(NPC, String)
      */
     public boolean isTrue(NPC npc) {
         return FunctionFactory.isTrue(npc, this);
     }
 
-    /**
-     * A {@link NPCFunction} with a empty implementation
-     * for {@link NPCFunction#function(NPC, String)}.
-     */
+    /**  Class that has a empty implementation for the function. */
     public static class WithoutFunction extends NPCFunction {
-        /** The function name. */
-        private final String name;
-
-        /**
-         * Creates a new npc function with the given name.
-         *
-         * @param name The name
-         */
         public WithoutFunction(String name) {
-            this.name = name;
+            super(name);
         }
 
         @Override
-        protected void function(NPC npc, String data) {
-            // no implementation
+        protected ResultType runFunction(NPC npc, FunctionContext functionContext) {
+            return ResultType.SUCCESS; /*empty*/
         }
 
         @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
-        public boolean allow(NPC npc) {
+        protected boolean allow(NPC npc) {
             return true;
+        }
+
+        @Override
+        protected ResultType resolve(NPC npc) {
+            return ResultType.SUCCESS;
         }
     }
 
-    /**
-     * A {@link NPCFunction} with a default implementation
-     * for {@link NPCFunction#function(NPC, String)} that updates the npc for viewers.
-     */
+    /** Class that updates the npc when calling the function. */
     public static class WithoutFunctionSelfUpdate extends WithoutFunction {
-        /**
-         * Creates a new npc function with the given name.
-         *
-         * @param name The name
-         */
         public WithoutFunctionSelfUpdate(String name) {
             super(name);
         }
 
         @Override
-        protected void function(NPC npc, String data) {
+        protected ResultType runFunction(NPC npc, FunctionContext functionContext) {
             npc.deleteViewers();
+            return ResultType.SUCCESS;
         }
     }
 }

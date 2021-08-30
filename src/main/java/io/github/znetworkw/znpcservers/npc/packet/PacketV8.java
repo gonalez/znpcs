@@ -50,6 +50,17 @@ public class PacketV8 implements Packet {
     }
 
     @Override
+    public Object getMetadataPacket(int entityId, Object nmsEntity) throws ReflectiveOperationException {
+        return CacheRegistry.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(entityId,
+            CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(nmsEntity), true);
+    }
+
+    @Override
+    public Object getHologramSpawnPacket(Object armorStand) throws ReflectiveOperationException {
+        return CacheRegistry.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(armorStand);
+    }
+
+    @Override
     public ImmutableList<Object> getEquipPackets(NPC npc) throws ReflectiveOperationException {
         ImmutableList.Builder<Object> builder = ImmutableList.builder();
         for (Map.Entry<ItemSlot, ItemStack> stackEntry : npc.getNpcPojo().getNpcEquip().entrySet()) {

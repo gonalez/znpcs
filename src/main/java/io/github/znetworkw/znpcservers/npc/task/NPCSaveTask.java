@@ -1,4 +1,4 @@
-package io.github.znetworkw.znpcservers.tasks;
+package io.github.znetworkw.znpcservers.npc.task;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.configuration.Configuration;

@@ -1,4 +1,4 @@
-package io.github.znetworkw.znpcservers.tasks;
+package io.github.znetworkw.znpcservers.npc.task;
 
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.npc.NPC;
@@ -12,13 +12,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class NPCLoadTask extends BukkitRunnable {
     /** How often to check if the world is ready to load the npc. */
     private static final int DELAY = 40; // 40 ticks = 2 seconds
-
     /** How many times to check if the npc can be load. */
     private static final int MAX_TRIES = 10;
 
     /** The npc to load. */
     private final NPC npc;
-
     /** Current try to load npc. */
     private int tries = 0;
 

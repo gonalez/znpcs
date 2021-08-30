@@ -110,9 +110,8 @@ public class ConversationKey {
         if (lines.isEmpty()) {
             return "";
         }
-
-        String text =
-                lines.iterator().next();
-        return text.substring(0, Math.min(text.length(), 24));
+        String text = lines.iterator().next();
+        int fixedLength = Math.min(text.length(), 28);
+        return text.substring(0, fixedLength);
     }
 }

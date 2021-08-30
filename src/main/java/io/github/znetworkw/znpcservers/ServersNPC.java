@@ -9,10 +9,10 @@ import io.github.znetworkw.znpcservers.npc.NPCModel;
 import io.github.znetworkw.znpcservers.utility.BungeeUtils;
 import io.github.znetworkw.znpcservers.utility.itemstack.ItemStackSerializer;
 import io.github.znetworkw.znpcservers.utility.location.ZLocation;
-import io.github.znetworkw.znpcservers.tasks.NPCManagerTask;
+import io.github.znetworkw.znpcservers.npc.task.NPCManagerTask;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.npc.NPCType;
-import io.github.znetworkw.znpcservers.tasks.NPCSaveTask;
+import io.github.znetworkw.znpcservers.npc.task.NPCSaveTask;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import io.github.znetworkw.znpcservers.utility.MetricsLite;
@@ -64,11 +64,11 @@ public class ServersNPC extends JavaPlugin {
      * Creates a new Gson instance with custom type adapters.
      */
     public final static Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
-            .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
-            .setPrettyPrinting()
-            .disableHtmlEscaping()
-            .create();
+        .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
+        .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        .create();
 
     /**
      * The scheduler instance.
@@ -124,8 +124,7 @@ public class ServersNPC extends JavaPlugin {
             return;
         }
         for (File file : listFiles) {
-            // check if file is a path
-            if (file.getName().endsWith(".path")) {
+            if (file.getName().endsWith(".path")) { // check if file is a path
                 AbstractTypeWriter abstractTypeWriter = AbstractTypeWriter.forFile(file, TypeWriter.MOVEMENT);
                 // load path..
                 abstractTypeWriter.load();

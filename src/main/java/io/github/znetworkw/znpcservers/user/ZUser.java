@@ -159,8 +159,8 @@ public class ZUser {
         USER_MAP.remove(player.getUniqueId());
         // delete all npc for the player
         NPC.all().stream()
-            .filter(npc -> npc.getNpcViewers().contains(zUser))
-            .forEach(npc -> npc.delete(zUser, true));
+            .filter(npc -> npc.getViewers().contains(zUser))
+            .forEach(npc -> npc.delete(zUser));
     }
 
     /**

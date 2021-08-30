@@ -320,20 +320,25 @@ public interface TypeCache {
         private static final Logger LOGGER = Logger.getLogger(BaseCache.class.getName());
 
         /**
-         * The builder class.
-         */
-        protected Class<?> BUILDER_CLASS;
-
-        /**
          * The builder.
          */
         protected final CacheBuilder cacheBuilder;
+
+        /**
+         * The builder class.
+         */
+        protected Class<?> BUILDER_CLASS ;
 
         /**
          * Creates a new cache loader for the given builder.
          */
         protected BaseCache(CacheBuilder cacheBuilder) {
             this.cacheBuilder = cacheBuilder;
+            try {
+                BUILDER_CLASS = Class.forName(cacheBuilder.className);
+            } catch (ClassNotFoundException e) {
+                // ignored
+            }
         }
 
         /**
@@ -343,12 +348,14 @@ public interface TypeCache {
          */
         public T load() {
             try {
-                BUILDER_CLASS = Class.forName(cacheBuilder.className);
+                if (BUILDER_CLASS == null) {
+                    throw new IllegalStateException("can't find class for: " + cacheBuilder.className);
+                }
                 return onLoad();
             } catch (Throwable throwable) {
                 // Skip class...
                 log(
-                        "Skipping cache for " + cacheBuilder.className
+                    "Skipping cache for " + cacheBuilder.className
                 );
                 return null;
             }
@@ -422,6 +429,33 @@ public interface TypeCache {
                 Field field = BUILDER_CLASS.getDeclaredField(cacheBuilder.fieldName);
                 field.setAccessible(true);
                 return field;
+            }
+
+            /** Loads the field value. */
+            public Object loadValue() {
+                return new AsValueField(this).load();
+            }
+
+            /**
+             * Loads the given field value.
+             */
+            private static class AsValueField extends BaseCache<Object> {
+                /** The field loader. */
+                private final FieldLoader fieldLoader;
+
+                /**
+                 * Creates a new field value loader for the field loader.
+                 */
+                public AsValueField(FieldLoader fieldLoader) {
+                    super(fieldLoader.cacheBuilder);
+                    this.fieldLoader = fieldLoader;
+                }
+
+                @Override
+                protected Object onLoad() throws IllegalAccessException, NoSuchFieldException {
+                    Field field = fieldLoader.onLoad();
+                    return field.get(null);
+                }
             }
         }
 

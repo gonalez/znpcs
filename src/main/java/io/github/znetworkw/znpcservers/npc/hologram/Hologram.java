@@ -20,29 +20,16 @@ import java.util.List;
  * Represents a hologram.
  */
 public class Hologram {
-    /**
-     * A string whitespace.
-     */
+    /** A string whitespace. */
     private static final String WHITESPACE = " ";
-
-    /**
-     * Determines if new line method should be used.
-     */
+    /** Determines if new line method should be used. */
     private static final boolean NEW_METHOD = Utils.BUKKIT_VERSION > 12;
+    /** The height between lines. */
+    private static final double LINE_SPACING = Configuration.CONFIGURATION.getValue(ConfigurationValue.LINE_SPACING);
 
-    /**
-     * The height between lines.
-     */
-    static final double LINE_SPACING = Configuration.CONFIGURATION.getValue(ConfigurationValue.LINE_SPACING);
-
-    /**
-     * A list of hologram lines.
-     */
-    private final List<HologramLine> hologramLines;
-
-    /**
-     * The npc.
-     */
+    /** A list of hologram lines. */
+    private final List<HologramLine> hologramLines = new ArrayList<>();
+    /** The npc. */
     private final NPC npc;
 
     /**
@@ -52,14 +39,13 @@ public class Hologram {
      */
     public Hologram(NPC npc) {
         this.npc = npc;
-        hologramLines = new ArrayList<>();
     }
 
     /**
      * Called when creating a {@link Hologram}.
      */
     public void createHologram() {
-        npc.getNpcViewers().forEach(this::delete);
+        npc.getViewers().forEach(this::delete);
         try {
             hologramLines.clear();
             double y = 0;
@@ -78,7 +64,8 @@ public class Hologram {
                 y+=LINE_SPACING;
             }
             setLocation(location, 0);
-            npc.getNpcViewers().forEach(this::spawn);
+            npc.getPackets().flushCache("getHologramSpawnPacket");
+            npc.getViewers().forEach(this::spawn);
         } catch (ReflectiveOperationException operationException) {
             throw new UnexpectedCallException(operationException);
         }
@@ -92,7 +79,8 @@ public class Hologram {
     public void spawn(ZUser user) {
         hologramLines.forEach(hologramLine -> {
             try {
-                Object entityPlayerPacketSpawn = CacheRegistry.PACKET_PLAY_OUT_SPAWN_ENTITY_CONSTRUCTOR.newInstance(hologramLine.armorStand);
+                Object entityPlayerPacketSpawn = npc.getPackets().getProxyInstance()
+                    .getHologramSpawnPacket(hologramLine.armorStand);
                 Utils.sendPackets(user, entityPlayerPacketSpawn);
             } catch (ReflectiveOperationException operationException) {
                 delete(user);
@@ -125,8 +113,8 @@ public class Hologram {
             try {
                 updateLine(hologramLine.line, hologramLine.armorStand, user);
                 // update the line
-                Utils.sendPackets(user, CacheRegistry.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(hologramLine.id,
-                                CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(hologramLine.armorStand), true));
+                Utils.sendPackets(user, CacheRegistry.PACKET_PLAY_OUT_ENTITY_META_DATA_CONSTRUCTOR.newInstance(
+                    hologramLine.id, CacheRegistry.GET_DATA_WATCHER_METHOD.invoke(hologramLine.armorStand), true));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }
@@ -140,7 +128,7 @@ public class Hologram {
         hologramLines.forEach(hologramLine -> {
             try {
                 Object packet = CacheRegistry.PACKET_PLAY_OUT_ENTITY_TELEPORT_CONSTRUCTOR.newInstance(hologramLine.armorStand);
-                npc.getNpcViewers().forEach(player -> Utils.sendPackets(player, packet));
+                npc.getViewers().forEach(player -> Utils.sendPackets(player, packet));
             } catch (ReflectiveOperationException operationException) {
                 throw new UnexpectedCallException(operationException);
             }
@@ -190,20 +178,12 @@ public class Hologram {
     /**
      * Used to create new lines for a {@link Hologram}.
      */
-    static class HologramLine {
-        /**
-         * The hologram line string.
-         */
+    private static class HologramLine {
+        /** The hologram line string. */
         private final String line;
-
-        /**
-         * The hologram line entity.
-         */
+        /** The hologram line entity. */
         private final Object armorStand;
-
-        /**
-         * The hologram line entity id.
-         */
+        /** The hologram line entity id. */
         private final int id;
 
         /**

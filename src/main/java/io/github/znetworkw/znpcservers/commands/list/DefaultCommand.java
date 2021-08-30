@@ -226,7 +226,7 @@ public class DefaultCommand extends Command {
             ItemSlot.valueOf(args.get("slot").toUpperCase()),
             sender.getPlayer().getInventory().getItemInHand());
         foundNPC.getPackets().flushCache("equipPackets");
-        foundNPC.getNpcViewers().forEach(foundNPC::sendEquipPackets);
+        foundNPC.getViewers().forEach(foundNPC::sendEquipPackets);
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
@@ -491,11 +491,12 @@ public class DefaultCommand extends Command {
             return;
         }
 
-        String type = args.get("type").toLowerCase();
-        NPCFunction npcFunction = FunctionFactory.findFunctionForName(type);
-
-        foundNPC.getNpcPojo().getFunctions().put(npcFunction.name(), !npcFunction.isTrue(foundNPC));
-        FunctionFactory.findFunctionForName(type).doRunFunction(foundNPC, args.get("value"));
+        NPCFunction npcFunction = FunctionFactory.findFunctionForName(args.get("type"));
+        if (npcFunction.getName().equalsIgnoreCase("glow")) {
+            npcFunction.doRunFunction(foundNPC, new FunctionContext.ContextWithValue(foundNPC, args.get("value")));
+        } else {
+            npcFunction.doRunFunction(foundNPC, new FunctionContext.DefaultContext(foundNPC));
+        }
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
