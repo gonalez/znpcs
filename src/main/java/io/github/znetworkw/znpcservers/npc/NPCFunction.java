@@ -38,10 +38,10 @@ public abstract class NPCFunction {
 
     /**
      * Locates the npc value for this function.
-     * @see NPCFunctionFactory#isTrue(NPC, String)
+     * @see FunctionFactory#isTrue(NPC, String)
      */
     public boolean isTrue(NPC npc) {
-        return NPCFunctionFactory.isTrue(npc, this);
+        return FunctionFactory.isTrue(npc, this);
     }
 
     /**

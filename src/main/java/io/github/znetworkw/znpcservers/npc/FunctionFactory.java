@@ -7,7 +7,7 @@ import io.github.znetworkw.znpcservers.npc.function.GlowFunction;
 import static io.github.znetworkw.znpcservers.utility.GuavaCollectors.*;
 
 /** NPC Function definitions. */
-public final class NPCFunctionFactory {
+public final class FunctionFactory {
     /** List of functions that does not implement
      *  {@link NPCFunction#function(NPC, String)} directly. */
     public static ImmutableList<NPCFunction> WITHOUT_FUNCTION =
@@ -71,5 +71,5 @@ public final class NPCFunctionFactory {
         return isTrue(npc, findFunctionForName(function));
     }
 
-    private NPCFunctionFactory() {}
+    private FunctionFactory() {}
 }

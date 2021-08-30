@@ -4,9 +4,10 @@ import io.github.znetworkw.znpcservers.UnexpectedCallException;
 import io.github.znetworkw.znpcservers.cache.CacheRegistry;
 import io.github.znetworkw.znpcservers.npc.NPC;
 import io.github.znetworkw.znpcservers.npc.NPCFunction;
-import io.github.znetworkw.znpcservers.npc.NPCFunctionFactory;
+import io.github.znetworkw.znpcservers.npc.FunctionFactory;
 
 public class GlowFunction extends NPCFunction {
+
     @Override
     protected void function(NPC npc, String data) {
         try {
@@ -17,7 +18,7 @@ public class GlowFunction extends NPCFunction {
                 CacheRegistry.DATA_WATCHER_OBJECT_CONSTRUCTOR.newInstance(
                     0,
                     npc.getDataWatcherRegistryEnum()),
-                NPCFunctionFactory.isTrue(npc, this) ? (byte) 0x40 : (byte) 0x0);
+                FunctionFactory.isTrue(npc, this) ? (byte) 0x40 : (byte) 0x0);
             npc.getNpcPojo().setGlowName(data);
             // update glow scoreboard packets
             npc.getPackets().getProxyInstance().update(npc.getPackets());

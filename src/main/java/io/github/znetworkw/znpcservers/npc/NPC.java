@@ -328,7 +328,7 @@ public class NPC {
             deleteViewers();
             entityID = ((Integer) CacheRegistry.GET_ENTITY_ID.invoke(nmsEntity));
             // run active functions
-            NPCFunctionFactory.findFunctionsForNpc(this)
+            FunctionFactory.findFunctionsForNpc(this)
                 .forEach(function -> function.doRunFunction(this, npcPojo.getGlowName()));
             getPackets().getProxyInstance().update(packets);
         } catch (ReflectiveOperationException operationException) {
@@ -349,13 +349,13 @@ public class NPC {
         try {
             final boolean npcIsPlayer = npcPojo.getNpcType() == NPCType.PLAYER;
             // check for scoreboard packets
-            if (NPCFunctionFactory.isTrue(this, "glow")
+            if (FunctionFactory.isTrue(this, "glow")
                 || npcIsPlayer) {
                 final ImmutableList<Object> scoreboardPackets = packets.getProxyInstance().updateScoreboard(this);
                 scoreboardPackets.forEach(p -> Utils.sendPackets(user, p));
             }
             if (npcIsPlayer) {
-                if (NPCFunctionFactory.isTrue(this, "mirror")) {
+                if (FunctionFactory.isTrue(this, "mirror")) {
                     // set npc skin to the player skin
                     updateProfile(user.getGameProfile().getProperties());
                 }
@@ -364,7 +364,7 @@ public class NPC {
             }
             // send npc spawn packets
             Utils.sendPackets(user, packets.getProxyInstance().getSpawnPacket(nmsEntity, npcIsPlayer));
-            if (NPCFunctionFactory.isTrue(this, "holo")) {
+            if (FunctionFactory.isTrue(this, "holo")) {
                 hologram.spawn(user);
             }
             npcViewers.add(user);

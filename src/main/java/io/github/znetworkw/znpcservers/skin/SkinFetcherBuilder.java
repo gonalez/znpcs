@@ -6,7 +6,6 @@ package io.github.znetworkw.znpcservers.skin;
 public class SkinFetcherBuilder {
     /** The rest API server to use. */
     private final SkinServer apiServer;
-
     /** The skin name. */
     private final String name;
 
@@ -59,7 +58,7 @@ public class SkinFetcherBuilder {
     /**
      * Returns a new {@link SkinFetcherBuilder} with the given skin {@code name}.
      * <p>
-     * This method will solve which api server to use when calling {@link SkinFetcher#fetchProfile}.
+     * This method will solve which api server to use when calling {@link SkinFetcher#doReadSkin(SkinFetcherResult)}.
      * If the given {@code name#startsWith("http")} the builder will use {@link SkinServer#GENERATE_API}
      * to generate the skin from the given url image otherwise the method will use
      * {@link SkinServer#PROFILE_API} to fetch the skin from a player name.
@@ -102,7 +101,7 @@ public class SkinFetcherBuilder {
             "textures"
         );
 
-        /** The HTTP request method. */
+        /** The http request method. */
         private final String method;
 
         /** The rest api server url. */

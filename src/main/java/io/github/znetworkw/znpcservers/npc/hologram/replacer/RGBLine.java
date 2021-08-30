@@ -9,9 +9,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * Enables RGB for the string.
  */
 public class RGBLine implements LineReplacer<String> {
-    /**
-     * Default hex-color-code length.
-     */
+    /** Default hex-color-code char. */
+    private static final char HEX_COLOR_CHAR = '#';
+    /** Default hex-color-code length. */
     private static final int HEX_COLOR_LENGTH = 6;
 
     @Override
@@ -20,7 +20,7 @@ public class RGBLine implements LineReplacer<String> {
         for (int i = 0; i < rgbString.length(); i++) {
             char charAt = rgbString.charAt(i);
             // check if the char is supposed to be a hex color code
-            if (charAt == '#') {
+            if (charAt == HEX_COLOR_CHAR) {
                 int endIndex = i+HEX_COLOR_LENGTH+1;
                 boolean success = true;
                 StringBuilder hexCodeStringBuilder = new StringBuilder();
@@ -32,7 +32,7 @@ public class RGBLine implements LineReplacer<String> {
                     }
                     char hexCode = rgbString.charAt(i2);
                     hexCodeStringBuilder.append(ConfigurationConstants.RGB_ANIMATION
-                        && hexCode != '#' ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
+                        && hexCode != HEX_COLOR_CHAR ? Integer.toHexString(ThreadLocalRandom.current().nextInt(0xf+1)) : hexCode);
                 }
                 // found RGB Color!
                 if (success) {

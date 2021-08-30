@@ -3,7 +3,7 @@ package io.github.znetworkw.znpcservers.tasks;
 import io.github.znetworkw.znpcservers.ServersNPC;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
 import io.github.znetworkw.znpcservers.npc.NPC;
-import io.github.znetworkw.znpcservers.npc.NPCFunctionFactory;
+import io.github.znetworkw.znpcservers.npc.FunctionFactory;
 import io.github.znetworkw.znpcservers.npc.conversation.ConversationModel;
 import io.github.znetworkw.znpcservers.user.ZUser;
 import org.bukkit.Bukkit;
@@ -26,20 +26,21 @@ public class NPCManagerTask extends BukkitRunnable {
     @Override
     public void run() {
         for (NPC npc : NPC.all()) {
-            boolean hasPath = npc.getNpcPath() != null;
+            final boolean hasPath = npc.getNpcPath() != null;
             if (hasPath) {
                 npc.getNpcPath().handle();
             }
             for (Player player : Bukkit.getOnlinePlayers()) {
-                ZUser zUser = ZUser.find(player);
-                final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld() && player.getLocation().distance(npc.getLocation()) <= ConfigurationConstants.VIEW_DISTANCE;
+                final ZUser zUser = ZUser.find(player);
+                final boolean canSeeNPC = player.getWorld() == npc.getLocation().getWorld()
+                    && player.getLocation().distance(npc.getLocation()) <= ConfigurationConstants.VIEW_DISTANCE;
                 if (npc.getNpcViewers().contains(zUser) && !canSeeNPC) // delete the npc for the player if player is not in range
                     npc.delete(zUser, true);
                 else if (canSeeNPC) {
                     if (!npc.getNpcViewers().contains(zUser)) {
                         npc.spawn(zUser);
                     }
-                    if (NPCFunctionFactory.isTrue(npc, "look") && !hasPath) { // look npc at player
+                    if (FunctionFactory.isTrue(npc, "look") && !hasPath) { // look npc at player
                         npc.lookAt(zUser, player.getLocation(), false);
                     }
                     npc.getHologram().updateNames(zUser);

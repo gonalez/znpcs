@@ -135,7 +135,7 @@ public interface Packet {
         }
         // check if packet version support glow color and the npc has glow activated
         if (allowGlowColor() &&
-        NPCFunctionFactory.isTrue(npc, "glow")) {
+        FunctionFactory.isTrue(npc, "glow")) {
             // update scoreboard with glow
             updateGlowPacket(npc, scoreboardTeamPacket);
         }

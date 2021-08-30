@@ -492,10 +492,10 @@ public class DefaultCommand extends Command {
         }
 
         String type = args.get("type").toLowerCase();
-        NPCFunction npcFunction = NPCFunctionFactory.findFunctionForName(type);
+        NPCFunction npcFunction = FunctionFactory.findFunctionForName(type);
 
         foundNPC.getNpcPojo().getFunctions().put(npcFunction.name(), !npcFunction.isTrue(foundNPC));
-        NPCFunctionFactory.findFunctionForName(type).doRunFunction(foundNPC, args.get("value"));
+        FunctionFactory.findFunctionForName(type).doRunFunction(foundNPC, args.get("value"));
         Configuration.MESSAGES.sendMessage(sender.getCommandSender(), ConfigurationValue.SUCCESS);
     }
 
