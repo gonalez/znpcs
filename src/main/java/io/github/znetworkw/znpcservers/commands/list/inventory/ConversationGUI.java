@@ -55,18 +55,50 @@ public class ConversationGUI extends ZInventory {
      * Default/main page for gui.
      */
     static class MainPage extends ZInventoryPage {
+
+        /**
+         * Current Page ID.
+         */
+        int pageID = 1;
+
         /**
          * Creates a new page for the inventory.
          *
          * @param inventory The inventory to create the page for.
          */
         public MainPage(ZInventory inventory) {
-            super(inventory, "Conversations", 5);
+            super(inventory, "Conversations", 6);
         }
 
         @Override
         public void update() {
-            for (int i = 0; i < ConfigurationConstants.NPC_CONVERSATIONS.size(); i++) {
+
+            List<Conversation> npc_convs = ConfigurationConstants.NPC_CONVERSATIONS;
+
+            if (pageID > 1) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Previous page")
+                                .build(),
+                        getRows() - 6,
+                        clickEvent -> {
+                            pageID -= 1;
+                            openInventory();
+                        });
+            }
+            if (npc_convs.size() > 45 * pageID) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Next page")
+                                .build(),
+                        getRows() - 4,
+                        clickEvent -> {
+                            pageID += 1;
+                            openInventory();
+                        });
+            }
+            int slots = (getRows() - 9) * pageID;
+            int min = Math.min(slots, npc_convs.size());
+
+            for (int i = slots - (getRows() - 9); i < min; i++) {
                 Conversation conversation = ConfigurationConstants.NPC_CONVERSATIONS.get(i);
                 addItem(ItemStackBuilder.forMaterial(Material.PAPER)
                         .setName(ChatColor.GREEN + conversation.getName())
@@ -78,7 +110,7 @@ public class ConversationGUI extends ZInventory {
                             , " &bLeft-click &7to manage texts.", " &bRight-click &7to add a new text."
                             , " &bQ &7to change the radius.", " &bMiddle-click &7to change the cooldown.")
                         .build(),
-                    i, clickEvent -> {
+                    i - ((getRows() - 9) * (pageID - 1)), clickEvent -> {
                         if (clickEvent.getClick() == ClickType.DROP) {
                             Utils.sendTitle(getPlayer(), "&b&lCHANGE RADIUS", "&7Type the new radius...");
                             EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
@@ -147,6 +179,12 @@ public class ConversationGUI extends ZInventory {
      * Manages the conversations.
      */
     static class EditConversationPage extends ZInventoryPage {
+
+        /**
+         * Current Page ID.
+         */
+        int pageID = 1;
+
         /**
          * The conversation key to edit.
          */
@@ -160,13 +198,37 @@ public class ConversationGUI extends ZInventory {
          */
         public EditConversationPage(ZInventory inventory,
                                     Conversation conversation) {
-            super(inventory, "Editing conversation " + conversation.getName(), 5);
+            super(inventory, "Editing conversation " + conversation.getName(), 6);
             this.conversation = conversation;
         }
 
         @Override
         public void update() {
-            for (int i = 0; i < conversation.getTexts().size(); i++) {
+
+            if (pageID > 1) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Previous page")
+                                .build(),
+                        getRows() - 6,
+                        clickEvent -> {
+                            pageID -= 1;
+                            openInventory();
+                        });
+            }
+            if (conversation.getTexts().size() > 45 * pageID) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Next page")
+                                .build(),
+                        getRows() - 4,
+                        clickEvent -> {
+                            pageID += 1;
+                            openInventory();
+                        });
+            }
+            int slots = (getRows() - 9) * pageID;
+            int min = Math.min(slots, conversation.getTexts().size());
+
+            for (int i = slots - (getRows() - 9); i < min; i++) {
                 ConversationKey conversationKey = conversation.getTexts().get(i);
                 addItem(ItemStackBuilder.forMaterial(Material.NAME_TAG)
                         .setName(ChatColor.AQUA + conversationKey.getTextFormatted() + "....")
@@ -181,7 +243,7 @@ public class ConversationGUI extends ZInventory {
                             , " &bRight-Shift-click &7to edit the text.",
                             " &bQ &7to manage actions.")
                         .build(),
-                    i, clickEvent -> {
+                    i - ((getRows() - 9) * (pageID - 1)), clickEvent -> {
                         if (clickEvent.getClick() == ClickType.SHIFT_LEFT) {
                             Utils.sendTitle(getPlayer(), "&c&lCHANGE SOUND", "&7Type the new sound...");
                             EventService.addService(ZUser.find(getPlayer()), AsyncPlayerChatEvent.class)
@@ -285,6 +347,11 @@ public class ConversationGUI extends ZInventory {
         private final ConversationKey conversationKey;
 
         /**
+         * Current Page ID.
+         */
+        int pageID = 1;
+
+        /**
          * Creates a new page for the inventory.
          *
          * @param inventory       The inventory to create the page for.
@@ -294,14 +361,38 @@ public class ConversationGUI extends ZInventory {
         public ActionManagementPage(ZInventory inventory,
                                     Conversation conversation,
                                     ConversationKey conversationKey) {
-            super(inventory, "Editing " + conversationKey.getTextFormatted(), 5);
+            super(inventory, "Editing " + conversationKey.getTextFormatted(), 6);
             this.conversation = conversation;
             this.conversationKey = conversationKey;
         }
 
         @Override
         public void update() {
-            for (int i = 0; i < conversationKey.getActions().size(); i++) {
+
+            if (pageID > 1) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Previous page")
+                                .build(),
+                        getRows() - 6,
+                        clickEvent -> {
+                            pageID -= 1;
+                            openInventory();
+                        });
+            }
+            if (conversationKey.getActions().size() > 45 *pageID) {
+                addItem(ItemStackBuilder.forMaterial(Material.ARROW)
+                                .setName(ChatColor.GRAY + "Next page")
+                                .build(),
+                        getRows() - 4,
+                        clickEvent -> {
+                            pageID += 1;
+                            openInventory();
+                        });
+            }
+            int slots = (getRows() - 9) * pageID;
+            int min = Math.min(slots, conversationKey.getActions().size());
+
+            for (int i = slots - (getRows() - 9); i < min; i++) {
                 NPCAction znpcAction = conversationKey.getActions().get(i);
                 addItem(ItemStackBuilder.forMaterial(Material.ANVIL)
                         .setName(ChatColor.AQUA + znpcAction.getAction().substring(0, Math.min(znpcAction.getAction().length(), 24)) + "....")
@@ -309,7 +400,7 @@ public class ConversationGUI extends ZInventory {
                             , "&f&lUSES"
                             , " &bRight-click &7to remove text.")
                         .build(),
-                    i, clickEvent -> {
+                    i - ((getRows() - 9) * (pageID - 1)), clickEvent -> {
                         if (clickEvent.isRightClick()) {
                             conversationKey.getActions().remove(znpcAction);
                             Configuration.MESSAGES.sendMessage(getPlayer(), ConfigurationValue.SUCCESS);
