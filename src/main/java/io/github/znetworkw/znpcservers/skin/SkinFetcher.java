@@ -1,99 +1,56 @@
 package io.github.znetworkw.znpcservers.skin;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import static io.github.znetworkw.znpcservers.ZNPCs.SETTINGS;
 
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import io.github.znetworkw.znpcservers.http.AsyncHttpClient;
+import io.github.znetworkw.znpcservers.http.HttpMethod;
+import io.github.znetworkw.znpcservers.skin.internal.DefaultSkinFetcherBuilder;
+
+import java.util.function.Consumer;
 
 /**
- * Retrieves the skin textures for a {@link SkinFetcherBuilder}.
- *
- * @see SkinFetcherBuilder
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
-public class SkinFetcher {
-    /**
-     * A empty string.
-     */
-    private static final String EMPTY_STRING = "";
-    /**
-     * The charset that will be used when making the skin request.
-     */
-    private static final String DEFAULT_CHARSET = "UTF-8";
-    /**
-     * A executor service to delegate the work.
-     */
-    private static final ExecutorService SKIN_EXECUTOR_SERVICE = Executors.newCachedThreadPool();
-    /**
-     * Creates a new parser.
-     */
-    private static final JsonParser JSON_PARSER = new JsonParser();
-    /**
-     * The skin builder.
-     */
-    private final SkinFetcherBuilder builder;
+public interface SkinFetcher {
+    String DEFAULT_SKIN_NAME = "Notch";
 
     /**
-     * Creates a new {@link SkinFetcher} for the given builder.
+     * Creates a new builder for creating an skin fetcher.
      *
-     * @param builder The builder.
+     * @return a new skin fetcher builder.
      */
-    public SkinFetcher(SkinFetcherBuilder builder) {
-        this.builder = builder;
+    static SkinFetcherBuilder builder() {
+        return new DefaultSkinFetcherBuilder();
     }
 
-    /**
-     * Fetches the the skin from the specified
-     * builder {@link SkinFetcherBuilder#getAPIServer()}.
-     * @return
-     */
-    public CompletableFuture<JsonObject> doReadSkin(SkinFetcherResult skinFetcherResult) {
-        CompletableFuture<JsonObject> completableFuture = new CompletableFuture<>();
-        SKIN_EXECUTOR_SERVICE.submit(() -> {
-            try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(builder.getAPIServer().getURL() + getData()).openConnection();
-                connection.setRequestMethod(builder.getAPIServer().getMethod());
-                connection.setDoInput(true);
-                if (builder.isUrlType()) {
-                    connection.setDoOutput(true);
-                    // send skin data
-                    try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
-                        outputStream.writeBytes("url=" + URLEncoder.encode(builder.getData(), DEFAULT_CHARSET));
-                    }
-                }
-                try (Reader reader = new InputStreamReader(connection.getInputStream(), Charset.forName(DEFAULT_CHARSET))) {
-                    completableFuture.complete(JSON_PARSER.parse(reader).getAsJsonObject());
-                } finally {
-                    connection.disconnect();
-                }
-            } catch (Throwable throwable) {
-                completableFuture.completeExceptionally(throwable);
-            }
-        });
-        completableFuture.whenComplete((response, throwable) -> {
-            if (completableFuture.isCompletedExceptionally()) {
-                skinFetcherResult.onDone(null, throwable);
-            } else {
-                JsonObject jsonObject = response.getAsJsonObject(builder.getAPIServer().getValueKey());
-                JsonObject properties = jsonObject.getAsJsonObject(builder.getAPIServer().getSignatureKey());
-                skinFetcherResult.onDone(new String[]{properties.get("value").getAsString(), properties.get("signature").getAsString()}, null);
-            }
-        });
-        return completableFuture;
+    static SkinFetcher of(String skin, Consumer<SkinFetcherResult> onSuccess, Consumer<Throwable> onError) {
+        return builder()
+            .withSkin(skin)
+            .withClient(SETTINGS.getAsyncHttpClient())
+            .withServer(SkinFetcherService.of(skin.startsWith("http") ?
+                HttpMethod.POST : HttpMethod.GET))
+            .onSuccess(onSuccess)
+            .onError(onError)
+            .build();
     }
 
-    /**
-     * Returns the url data for the builder api server.
-     */
-    private String getData() {
-        return builder.isProfileType() ? "/" + builder.getData() : EMPTY_STRING;
+    void request() throws Exception;
+
+    SkinFetcherService getServer();
+
+    interface SkinFetcherBuilder {
+        SkinFetcherBuilder withClient(AsyncHttpClient httpClient);
+
+        SkinFetcherBuilder withSkin(String skinName);
+
+        SkinFetcherBuilder withServer(SkinFetcherService fetcherServer);
+
+        SkinFetcherBuilder withTimeout(int timeout);
+
+        SkinFetcherBuilder onSuccess(Consumer<SkinFetcherResult> onSuccess);
+
+        SkinFetcherBuilder onError(Consumer<Throwable> onError);
+
+        SkinFetcher build();
     }
 }

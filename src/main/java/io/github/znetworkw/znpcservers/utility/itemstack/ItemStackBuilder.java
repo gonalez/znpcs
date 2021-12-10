@@ -10,7 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Builder for a {@link ItemStack}.
+ * Builder for an {@link ItemStack}.
+ *
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class ItemStackBuilder {
     /**
@@ -26,7 +28,7 @@ public class ItemStackBuilder {
     /**
      * Creates a {@link ItemStackBuilder} for the given {@link ItemStack}.
      *
-     * @param stack The item stack.
+     * @param stack the bukkit item stack.
      */
     protected ItemStackBuilder(ItemStack stack) {
         this.itemStack = stack;
@@ -36,8 +38,8 @@ public class ItemStackBuilder {
     /**
      * Creates a new {@link ItemStackBuilder} for the given material.
      *
-     * @param material The material.
-     * @return A {@link ItemStackBuilder} instance with the given material as a {@link ItemStack}.
+     * @param material the material.
+     * @return A new {@link ItemStackBuilder}.
      */
     public static ItemStackBuilder forMaterial(Material material) {
         if (material == null || material == Material.AIR) {
@@ -49,8 +51,8 @@ public class ItemStackBuilder {
     /**
      * Sets the {@link ItemMeta#getDisplayName()} of this item stack.
      *
-     * @param name The new item stack name.
-     * @return The current instance.
+     * @param name the new item stack name.
+     * @return this.
      */
     public ItemStackBuilder setName(String name) {
         itemMeta.setDisplayName(Utils.toColor(name));
@@ -60,12 +62,13 @@ public class ItemStackBuilder {
     /**
      * Sets the {@link ItemMeta#getLore()} of this item stack.
      *
-     * @param lore The new item stack lore.
-     * @return The current instance.
+     * @param lore the new item stack lore.
+     * @return this.
      */
     public ItemStackBuilder setLore(Iterable<String> lore) {
         itemMeta.setLore(StreamSupport.stream(lore.spliterator(), false)
-                .map(Utils::toColor).collect(Collectors.toList()));
+            .map(Utils::toColor)
+            .collect(Collectors.toList()));
         itemStack.setItemMeta(itemMeta);
         return this;
     }
@@ -73,8 +76,8 @@ public class ItemStackBuilder {
     /**
      * Sets the {@link ItemMeta#getLore()} of this item stack.
      *
-     * @param lore The new item stack lore.
-     * @return The current instance.
+     * @param lore the new item stack lore.
+     * @return this.
      */
     public ItemStackBuilder setLore(String... lore) {
         return setLore(Arrays.asList(lore));
@@ -83,8 +86,8 @@ public class ItemStackBuilder {
     /**
      * Sets the {@link ItemStack#getAmount()} of this item stack.
      *
-     * @param amount The new item stack amount.
-     * @return The current instance.
+     * @param amount the new item stack amount.
+     * @return this.
      */
     public ItemStackBuilder setAmount(int amount) {
         itemStack.setAmount(amount);
@@ -92,7 +95,7 @@ public class ItemStackBuilder {
     }
 
     /**
-     * Builds the new {@link ItemStack}.
+     * Builds the new {@link ItemStack bukkit itemstack}.
      *
      * @return A {@link ItemStack} with the current instance data.
      */

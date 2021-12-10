@@ -2,10 +2,7 @@ package io.github.znetworkw.znpcservers.utility.inventory;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-/**
- * Interface used when a player interacts with an item
- * as described in {@link ZInventoryItem}.
- */
+/** Interface used when a player interacts with an item as described in {@link ZInventoryItem}. */
 public interface ZInventoryCallback {
     /**
      * Called when a {@link ZInventoryItem} is clicked.

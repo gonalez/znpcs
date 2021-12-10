@@ -1,7 +1,7 @@
 package io.github.znetworkw.znpcservers.cache;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import io.github.znetworkw.znpcservers.utility.Utils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -12,20 +12,21 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public interface TypeCache {
-    /**
-     * A cache for storing loaded classes.
-     */
+/**
+ * @param <T>
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
+ */
+public interface TypeCache<T> {
+
+    /** A cache for storing loaded classes. */
     class ClassCache {
-        /**
-         * A map containing the cached objects & classes.
-         */
+        /** A map containing the cached objects & classes. */
         protected static final ConcurrentMap<CacheKey, Object> CACHE = new ConcurrentHashMap<>();
 
         /**
          * Locates a cached type by its name.
          *
-         * @param name        The type class name.
+         * @param name The type class name.
          * @param objectClass The type class.
          * @return The cached object or {@code null} if no type was found.
          */
@@ -36,36 +37,29 @@ public interface TypeCache {
         /**
          * Registers a new type key into the cache.
          *
-         * @param name        The type class name.
-         * @param object      The type value.
+         * @param name The type class name.
+         * @param object The type value.
          * @param objectClass The type class.
          */
         public static void register(String name, Object object, Class<?> objectClass) {
             CACHE.putIfAbsent(new CacheKey(name, objectClass), object);
         }
 
-        /**
-         * A cache key for storing a class type.
-         */
+        /** A cache key for storing a class type. */
         private static class CacheKey {
-            /**
-             * The key class type.
-             */
+            /** The key class type. */
             private final Class<?> type;
 
-            /**
-             * The key name.
-             */
+            /** The key name. */
             private final String value;
 
             /**
              * Creates a new cache key.
              *
              * @param value The key type name.
-             * @param type  The key class type.
+             * @param type The key class type.
              */
-            public CacheKey(String value,
-                            Class<?> type) {
+            public CacheKey(String value, Class<?> type) {
                 this.type = type;
                 this.value = value;
             }
@@ -85,44 +79,22 @@ public interface TypeCache {
         }
     }
 
-    /**
-     * A builder for the {@code AbstractCache} class.
-     */
-    class CacheBuilder {
-        /**
-         * A empty string.
-         */
+    /** A builder for the {@code AbstractCache} class. */
+    final class CacheBuilder {
+        /** A empty string. */
         private static final String EMPTY_STRING = "";
-
-        /**
-         * The class package.
-         */
+        /** The class package. */
         private final CachePackage cachePackage;
-
-        /**
-         * The class package category.
-         */
+        /** The class package category. */
         private final CacheCategory cacheCategory;
-
-        /**
-         * The class name.
-         */
+        /** The class name. */
         private final String className, methodName, fieldName;
-
-        /**
-         * Additional data for package.
-         */
+        /** Additional data for package. */
         private final String additionalData;
-
-        /**
-         * The class.
-         */
+        /** The class. */
         private final Class<?> clazz;
-
-        /**
-         * The class parameters.
-         */
-        private final Iterable<Class<?>[]> parameterTypes;
+        /** The class parameters. */
+        private final ImmutableList<Class<?>[]> parameterTypes;
 
         /**
          * Creates a new {@link CacheBuilder} with the provided package.
@@ -130,33 +102,35 @@ public interface TypeCache {
          * @param cachePackage The cache package.
          */
         public CacheBuilder(CachePackage cachePackage) {
-            this(cachePackage,
-                    CacheCategory.DEFAULT,
-                    EMPTY_STRING,
-                    EMPTY_STRING,
-                    EMPTY_STRING,
-                    EMPTY_STRING,
-                    ImmutableList.of());
+            this(
+                cachePackage,
+                null,
+                EMPTY_STRING,
+                EMPTY_STRING,
+                EMPTY_STRING,
+                EMPTY_STRING,
+                ImmutableList.of());
         }
 
         /**
          * Creates a new {@link CacheBuilder} with the provided values.
          *
-         * @param cachePackage   The class package.
-         * @param cacheCategory  The class category.
-         * @param className      The class name.
-         * @param methodName     The class method name.
-         * @param fieldName      The class field name.
+         * @param cachePackage The class package.
+         * @param cacheCategory The class category.
+         * @param className The class name.
+         * @param methodName The class method name.
+         * @param fieldName The class field name.
          * @param additionalData The package additional data.
          * @param parameterTypes The class parameters.
          */
-        protected CacheBuilder(CachePackage cachePackage,
-                               CacheCategory cacheCategory,
-                               String className,
-                               String methodName,
-                               String fieldName,
-                               String additionalData,
-                               Iterable<Class<?>[]> parameterTypes) {
+        protected CacheBuilder(
+                CachePackage cachePackage,
+                CacheCategory cacheCategory,
+                String className,
+                String methodName,
+                String fieldName,
+                String additionalData,
+                ImmutableList<Class<?>[]> parameterTypes) {
             this.cachePackage = cachePackage;
             this.cacheCategory = cacheCategory;
             this.className = className;
@@ -181,8 +155,7 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
         }
 
         /**
@@ -199,8 +172,7 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
         }
 
         /**
@@ -217,8 +189,7 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
         }
 
         /**
@@ -235,8 +206,7 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
         }
 
         /**
@@ -253,8 +223,7 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
         }
 
         /**
@@ -271,8 +240,27 @@ public interface TypeCache {
                 methodName,
                 fieldName,
                 additionalData,
-                parameterTypes
-            );
+                parameterTypes);
+        }
+
+        /**
+         * Defines the parameter types for the cache class.
+         *
+         * @param types The parameter types.
+         * @return The builder with the new cache class parameter types.
+         */
+        public CacheBuilder withParameterTypes(Iterable<Class<?>[]> types) {
+            return new CacheBuilder(
+                cachePackage,
+                cacheCategory,
+                className,
+                methodName,
+                fieldName,
+                additionalData,
+                ImmutableList.<Class<?>[]>builder()
+                    .addAll(parameterTypes)
+                    .addAll(types)
+                    .build());
         }
 
         /**
@@ -282,56 +270,58 @@ public interface TypeCache {
          * @return The builder with the new cache class parameter types.
          */
         public CacheBuilder withParameterTypes(Class<?>... types) {
-            return new CacheBuilder(
-                cachePackage,
-                cacheCategory,
-                className,
-                methodName,
-                fieldName,
-                additionalData,
-                Iterables.concat(parameterTypes, ImmutableList.of(types))
-            );
+            return withParameterTypes(ImmutableList.of(types));
+        }
+
+        private String getForCategory(
+                CacheCategory cacheCategory,
+                String string) {
+            if (!Utils.versionNewer(17)) {
+                return CachePackage.MINECRAFT_SERVER_V2.getFixedPackageName();
+            }
+            StringBuilder stringBuilder = new StringBuilder(cacheCategory.getPackageName());
+            if (string.length() > 0) {
+                stringBuilder.append(".");
+                stringBuilder.append(string);
+            }
+            return stringBuilder.toString();
         }
 
         protected String formatClass(String className) {
+            StringBuilder stringBuilder = new StringBuilder();
             switch (cachePackage) {
                 case MINECRAFT_SERVER:
+                    stringBuilder.append(getForCategory(cacheCategory, additionalData));
+                    break;
                 case CRAFT_BUKKIT:
-                    return String.format((cachePackage == CachePackage.CRAFT_BUKKIT ?
-                            cachePackage.getFixedPackageName() : cachePackage.getForCategory(cacheCategory, additionalData)) + ".%s",
-                            className);
-                case DEFAULT:
-                    return className;
+                    stringBuilder.append(cachePackage.getFixedPackageName());
+                    break;
                 default:
-                    throw new IllegalArgumentException("Unexpected package " + cachePackage.name());
+                    break;
             }
+            if (cachePackage != CachePackage.DEFAULT) {
+                stringBuilder.append(".");
+            }
+            return stringBuilder.append(className).toString();
         }
     }
 
     /**
-     * An abstract implementation.
+     * Used for loading a class type cache for a {@link CacheBuilder}.
      *
      * @param <T> The class type.
      */
     abstract class BaseCache<T> {
-        /**
-         * The logger.
-         */
+        /** The logger. */
         private static final Logger LOGGER = Logger.getLogger(BaseCache.class.getName());
 
-        /**
-         * The builder.
-         */
+        /** The builder. */
         protected final CacheBuilder cacheBuilder;
 
-        /**
-         * The builder class.
-         */
-        protected Class<?> BUILDER_CLASS ;
+        /** The builder class. */
+        protected Class<?> BUILDER_CLASS;
 
-        /**
-         * Creates a new cache loader for the given builder.
-         */
+        /** Creates a new cache loader for the given builder. */
         protected BaseCache(CacheBuilder cacheBuilder) {
             this.cacheBuilder = cacheBuilder;
             try {
@@ -349,14 +339,13 @@ public interface TypeCache {
         public T load() {
             try {
                 if (BUILDER_CLASS == null) {
-                    throw new IllegalStateException("can't find class for: " + cacheBuilder.className);
+                    throw new IllegalStateException(
+                        "can't find class for: " + cacheBuilder.className);
                 }
                 return onLoad();
             } catch (Throwable throwable) {
-                // Skip class...
-                log(
-                    "Skipping cache for " + cacheBuilder.className
-                );
+                // skip class...
+                log("Skipping cache for " + cacheBuilder.className);
                 return null;
             }
         }
@@ -377,13 +366,9 @@ public interface TypeCache {
          */
         protected abstract T onLoad() throws Exception;
 
-        /**
-         * Initializes and loads the given class.
-         */
+        /** Initializes and loads the given class. */
         public static class ClazzLoader extends BaseCache<Class<?>> {
-            /**
-             * Creates a new class loader for the given builder.
-             */
+            /** Creates a new class loader for the given builder. */
             public ClazzLoader(CacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }
@@ -394,32 +379,24 @@ public interface TypeCache {
             }
         }
 
-        /**
-         * Initializes and loads the given method.
-         */
+        /** Initializes and loads the given method. */
         public static class MethodLoader extends BaseCache<Method> {
-            /**
-             * Creates a new method loader for the given builder.
-             */
+            /** Creates a new method loader for the given builder. */
             public MethodLoader(CacheBuilder builder) {
                 super(builder);
             }
 
             @Override
             protected Method onLoad() throws NoSuchMethodException {
-                return Iterables.size(cacheBuilder.parameterTypes) > 0 ?
-                    BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName, Iterables.get(cacheBuilder.parameterTypes, 0)) :
-                    BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName);
+                return cacheBuilder.parameterTypes.size() > 0
+                    ? BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName, cacheBuilder.parameterTypes.get(0))
+                    : BUILDER_CLASS.getDeclaredMethod(cacheBuilder.methodName);
             }
         }
 
-        /**
-         * Initializes and loads the given field.
-         */
+        /** Initializes and loads the given field. */
         public static class FieldLoader extends BaseCache<Field> {
-            /**
-             * Creates a new field loader for the given builder.
-             */
+            /** Creates a new field loader for the given builder. */
             public FieldLoader(CacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }
@@ -436,16 +413,12 @@ public interface TypeCache {
                 return new AsValueField(this).load();
             }
 
-            /**
-             * Loads the given field value.
-             */
+            /** Loads the given field value. */
             private static class AsValueField extends BaseCache<Object> {
                 /** The field loader. */
                 private final FieldLoader fieldLoader;
 
-                /**
-                 * Creates a new field value loader for the field loader.
-                 */
+                /** Creates a new field value loader for the field loader. */
                 public AsValueField(FieldLoader fieldLoader) {
                     super(fieldLoader.cacheBuilder);
                     this.fieldLoader = fieldLoader;
@@ -459,13 +432,9 @@ public interface TypeCache {
             }
         }
 
-        /**
-         * Initializes and loads the given constructor.
-         */
+        /** Initializes and loads the given constructor. */
         public static class ConstructorLoader extends BaseCache<Constructor<?>> {
-            /**
-             * Creates a new constructor loader for the given builder.
-             */
+            /** Creates a new constructor loader for the given builder. */
             public ConstructorLoader(CacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }
@@ -473,7 +442,7 @@ public interface TypeCache {
             @Override
             protected Constructor<?> onLoad() throws NoSuchMethodException {
                 Constructor<?> constructor = null;
-                if (Iterables.size(cacheBuilder.parameterTypes) > 1) { // 1.17
+                if (cacheBuilder.parameterTypes.size() > 1) { // 1.17
                     for (Class<?>[] keyParameters : cacheBuilder.parameterTypes) {
                         try {
                             constructor = BUILDER_CLASS.getDeclaredConstructor(keyParameters);
@@ -482,8 +451,9 @@ public interface TypeCache {
                         }
                     }
                 } else {
-                    constructor = Iterables.size(cacheBuilder.parameterTypes) > 0 ?
-                        BUILDER_CLASS.getDeclaredConstructor(Iterables.get(cacheBuilder.parameterTypes, 0)) : BUILDER_CLASS.getDeclaredConstructor();
+                    constructor = cacheBuilder.parameterTypes.size() > 0
+                        ? BUILDER_CLASS.getDeclaredConstructor(cacheBuilder.parameterTypes.get(0))
+                        : BUILDER_CLASS.getDeclaredConstructor();
                 }
 
                 // Set accessible
@@ -494,13 +464,9 @@ public interface TypeCache {
             }
         }
 
-        /**
-         * Initializes and loads the enum constants for the given class.
-         */
+        /** Initializes and loads the enum constants for the given class. */
         public static class EnumLoader extends BaseCache<Enum<?>[]> {
-            /**
-             * Creates a new multiple field loader for the given builder.
-             */
+            /** Creates a new multiple field loader for the given builder. */
             public EnumLoader(CacheBuilder cacheBuilder) {
                 super(cacheBuilder);
             }

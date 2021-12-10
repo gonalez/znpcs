@@ -4,34 +4,20 @@ import io.github.znetworkw.znpcservers.utility.Utils;
 
 /**
  * The possible packages when building a {@link TypeCache.CacheBuilder}.
+ *
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public enum CachePackage {
-    /**
-     * Default package.
-     */
-    DEFAULT(),
-    /**
-     * Craft bukkit package.
-     */
+    /** Default package. */
+    DEFAULT(""),
+    /** Craft bukkit package. */
     CRAFT_BUKKIT("org.bukkit.craftbukkit." + Utils.getBukkitPackage()),
-    /**
-     * Minecraft server package.
-     */
-    MINECRAFT_SERVER("net.minecraft");
+    /** Minecraft server package for v1.17+ versions. */
+    MINECRAFT_SERVER("net.minecraft"),
+    /** Minecraft server package for 1.8-1.16 versions. */
+    MINECRAFT_SERVER_V2("net.minecraft.server." + Utils.getBukkitPackage());
 
-    /**
-     * A empty string.
-     */
-    private static final String EMPTY_STRING = "";
-
-    /**
-     * A dot string.
-     */
-    private static final String DOT = ".";
-
-    /**
-     * The fixed package name.
-     */
+    /** The fixed package name. */
     private final String fixedPackageName;
 
     /**
@@ -40,29 +26,7 @@ public enum CachePackage {
      * @param packageName The package name.
      */
     CachePackage(String packageName) {
-        this.fixedPackageName = Utils.versionNewer(17) ?
-            packageName :
-            packageName + (packageName.contains("minecraft") ? ".server." + Utils.getBukkitPackage() : EMPTY_STRING);
-    }
-
-    /**
-     * Defines a new empty package.
-     */
-    CachePackage() {
-        this.fixedPackageName = EMPTY_STRING;
-    }
-
-    /**
-     * Locates a package by its category.
-     *
-     * @param packetCategory The packet category.
-     * @return The package name for category.
-     */
-    public String getForCategory(CacheCategory packetCategory,
-                                 String extra) {
-        return Utils.versionNewer(17) ?
-            packetCategory.getPackageName() + (extra.length() > 0 ? DOT + extra : EMPTY_STRING) :
-            fixedPackageName;
+        this.fixedPackageName = packageName;
     }
 
     /**

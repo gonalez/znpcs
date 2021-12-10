@@ -14,11 +14,11 @@ import java.lang.reflect.Type;
 import java.util.Base64;
 
 /**
- * @inheritDoc
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class ItemStackSerializer implements JsonSerializer<ItemStack>, JsonDeserializer<ItemStack> {
     /**
-     * Default itemstack, used when an itemstack cannot be deserialized.
+     * Used when an itemstack cannot be deserialized.
      */
     private static final ItemStack DEFAULT = new ItemStack(Material.AIR);
 
@@ -39,7 +39,7 @@ public class ItemStackSerializer implements JsonSerializer<ItemStack>, JsonDeser
             bukkitObjectOutputStream.writeObject(src);
             return new JsonPrimitive(Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray()));
         } catch (IOException e) {
-            throw new JsonParseException("Cannot serialize itemstack", e);
+            throw new JsonParseException("can't serialize itemstack", e);
         }
     }
 }

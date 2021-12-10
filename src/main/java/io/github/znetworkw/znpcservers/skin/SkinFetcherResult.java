@@ -1,15 +1,31 @@
 package io.github.znetworkw.znpcservers.skin;
 
+import io.github.znetworkw.znpcservers.skin.internal.DefaultSkinFetcherResultBuilder;
+
 /**
- * Interface used for the {@link SkinFetcher#doReadSkin} method.
- * use this interface for getting the texture values after a skin fetching is finish.
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public interface SkinFetcherResult {
     /**
-     * Called when a skin is fetched.
+     * Creates a new builder for creating a skin result.
      *
-     * @param values The skin values.
-     * @param throwable The throwable cause.
+     * @return a new skin fetcher result builder.
      */
-    void onDone(String[] values, Throwable throwable);
+    static SkinFetcherResultBuilder builder() {
+        return new DefaultSkinFetcherResultBuilder();
+    }
+
+    static SkinFetcherResult of(String texture, String signature) {
+        return builder().withTexture(texture).withSignature(signature).build();
+    }
+
+    String getTexture();
+    String getSignature();
+
+    interface SkinFetcherResultBuilder {
+        SkinFetcherResultBuilder withTexture(String texture);
+        SkinFetcherResultBuilder withSignature(String signature);
+
+        SkinFetcherResult build();
+    }
 }

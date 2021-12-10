@@ -1,39 +1,29 @@
 package io.github.znetworkw.znpcservers.utility;
 
-import io.github.znetworkw.znpcservers.cache.CacheRegistry;
-import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
-import io.github.znetworkw.znpcservers.user.ZUser;
-import me.clip.placeholderapi.PlaceholderAPI;
+import io.github.znetworkw.znpcservers.user.User;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Helper functions for the plugin.
+ *  Helper functions for the plugin.
+ *
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public final class Utils {
-    /** The server bukkit version. */
-    public static final int BUKKIT_VERSION;
-
-    /** Represents one second in nanos */
+    public static final int BUKKIT_VERSION = NumberUtils.toInt(getFormattedBukkitPackage());
     public static final long SECOND_INTERVAL_NANOS = 1000 * 1000 * 1000L;
 
-    /** Returns {@code true} if the plugin should use external placeholders. */
     public static boolean PLACEHOLDER_SUPPORT = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
-
-    static {
-        BUKKIT_VERSION = NumberUtils.toInt(getFormattedBukkitPackage());
-    }
 
     /**
      * Returns {@code true} if the given version is newer than the current bukkit version.
      *
-     * @param version The version to compare.
+     * @param version the version to compare.
      * @return {@code true} if the given version is newer than the current bukkit version.
      */
     public static boolean versionNewer(int version) {
@@ -48,7 +38,7 @@ public final class Utils {
     }
 
     /**
-     * Returns the formatted bukkit name version.
+     * Returns the formatted bukkit server name version.
      */
     public static String getFormattedBukkitPackage() {
         final String version = getBukkitPackage().replace("v", "").replace("R", "");
@@ -58,28 +48,17 @@ public final class Utils {
     /**
      * Automatically converts the given string to a bukkit colored string.
      *
-     * @param string The string to convert.
-     * @return The converted string.
+     * @param string the string to convert.
+     * @return converted string.
      */
     public static String toColor(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
     /**
-     * Parses the given string for the player.
+     * Creates a random {@link String} with the specified character {@code length}.
      *
-     * @param string The string to parse.
-     * @param player The player to parse the string for.
-     * @return The parsed string.
-     */
-    public static String getWithPlaceholders(String string, Player player) {
-        return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigurationConstants.SPACE_SYMBOL, " ");
-    }
-
-    /**
-     * Creates a random {@link java.lang.String} with the specified character {@code length}.
-     *
-     * @return A random {@link java.lang.String} with the specified {@code length}.
+     * @return a random string with the specified {@code length}.
      */
     public static String randomString(int length) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -92,29 +71,25 @@ public final class Utils {
     /**
      * Sends a title to the given player.
      *
-     * @param player The player to send the title for.
-     * @param title The title string.
-     * @param subTitle The subtitle string.
+     * @param player the player to send the title for.
+     * @param title the title string.
+     * @param subTitle the subtitle string.
      */
-    public static void sendTitle(Player player,
-                                 String title,
-                                 String subTitle) {
+    public static void sendTitle(Player player, String title, String subTitle) {
         player.sendTitle(toColor(title), toColor(subTitle));
     }
 
     /**
      * Sets the new value for the field.
      *
-     * @param fieldInstance The field instance.
-     * @param fieldName The field name.
-     * @param value The new field value.
-     * @throws NoSuchFieldException If the field could not be found.
-     * @throws IllegalAccessException If the field cannot be accessed.
+     * @param fieldInstance the field instance.
+     * @param fieldName the field name.
+     * @param value the new field value.
+     * @throws NoSuchFieldException if the field could not be found.
+     * @throws IllegalAccessException if the field cannot be accessed.
      */
-    public static void setValue(
-            Object fieldInstance,
-            String fieldName,
-            Object value) throws NoSuchFieldException, IllegalAccessException {
+    public static void setValue(Object fieldInstance, String fieldName, Object value)
+            throws NoSuchFieldException, IllegalAccessException {
         Field f = fieldInstance.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(fieldInstance, value);
@@ -123,35 +98,17 @@ public final class Utils {
     /**
      * Locates the specified field value on the given instance.
      *
-     * @param instance The field instance.
-     * @param fieldName The field name.
-     * @return The field value.
-     * @throws NoSuchFieldException If the field could not be found.
-     * @throws IllegalAccessException If the field cannot be accessed.
+     * @param instance the field instance.
+     * @param fieldName the field name.
+     * @return the field value.
+     * @throws NoSuchFieldException if the field could not be found.
+     * @throws IllegalAccessException if the field cannot be accessed.
      */
-    public static Object getValue(
-            Object instance,
-            String fieldName)
+    public static Object getValue(Object instance, String fieldName)
             throws NoSuchFieldException, IllegalAccessException {
         Field f = instance.getClass().getDeclaredField(fieldName);
         f.setAccessible(true);
         return f.get(instance);
-    }
-
-    /**
-     * Sends the given packets to the given player.
-     *
-     * @param user The player to send the packets for.
-     * @param packets The packets to send.
-     */
-    public static void sendPackets(ZUser user, Object... packets) {
-        try {
-            for (Object packet : packets) {
-                CacheRegistry.SEND_PACKET_METHOD.invoke(user.getPlayerConnection(), packet);
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
     }
 
     private Utils() {}

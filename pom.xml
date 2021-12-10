@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <name>ServersNPC</name>
+    <name>ZNPCs</name>
     <description>NPC plugin for minecraft written with the Spigot/Bukkit API.</description>
     <url>https://github.com/ZNetworkW/znpc-servers</url>
 

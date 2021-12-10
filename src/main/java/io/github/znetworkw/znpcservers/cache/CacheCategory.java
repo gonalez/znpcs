@@ -2,9 +2,10 @@ package io.github.znetworkw.znpcservers.cache;
 
 /**
  * The possible packages categories when building a {@link TypeCache.CacheBuilder}.
+ *
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public enum CacheCategory {
-    DEFAULT(),
     NETWORK("network"),
     PROTOCOL("network.protocol"),
     CHAT("network.chat"),
@@ -18,19 +19,9 @@ public enum CacheCategory {
     SERVER_NETWORK("server.network"),
     SERVER("server");
 
-    /**
-     * A empty string.
-     */
-    private static final String EMPTY_STRING = "";
-
-    /**
-     * The sub-package name.
-     */
+    /** The sub-package name. */
     private final String subPackageName;
-
-    /**
-     * The package name.
-     */
+    /** The package name. */
     private final String packageName;
 
     /**
@@ -40,19 +31,7 @@ public enum CacheCategory {
      */
     CacheCategory(String subPackageName) {
         this.subPackageName = subPackageName;
-        StringBuilder stringBuilder = new StringBuilder(CachePackage.MINECRAFT_SERVER.getFixedPackageName());
-        if (subPackageName.length() > 0) {
-            stringBuilder.append(".");
-            stringBuilder.append(subPackageName);
-        }
-        this.packageName = stringBuilder.toString();
-    }
-
-    /**
-     * Creates a new empty sub-package identification.
-     */
-    CacheCategory() {
-        this(EMPTY_STRING);
+        this.packageName = CachePackage.MINECRAFT_SERVER.getFixedPackageName() + "." + subPackageName;
     }
 
     /**

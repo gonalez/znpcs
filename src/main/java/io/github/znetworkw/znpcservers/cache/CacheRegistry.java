@@ -1,9 +1,7 @@
 package io.github.znetworkw.znpcservers.cache;
 
-import static io.github.znetworkw.znpcservers.cache.TypeCache.BaseCache.*;
-
-import io.github.znetworkw.znpcservers.utility.Utils;
 import com.mojang.authlib.GameProfile;
+import io.github.znetworkw.znpcservers.utility.Utils;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Constructor;
@@ -12,8 +10,12 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
+import static io.github.znetworkw.znpcservers.cache.TypeCache.BaseCache.*;
+
 /**
  * A registry of custom {@link TypeCache.BaseCache}s.
+ *
+ * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public final class CacheRegistry {
     public static final Class<?> PACKET_PLAY_IN_USE_ENTITY_CLASS = new ClazzLoader(
@@ -512,7 +514,7 @@ public final class CacheRegistry {
             .withClassName("ChatComponentText")
             .withParameterTypes(String.class)).load();
 
-    public static final Constructor<?> ENTITY_CONSTRUCTOR = new ConstructorLoader(
+    public static final Constructor<?> ARMOR_STAND_CONSTRUCTOR = new ConstructorLoader(
         new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER)
             .withCategory(CacheCategory.PACKET)
             .withClassName(ENTITY_ARMOR_STAND_CLASS)
@@ -550,6 +552,11 @@ public final class CacheRegistry {
     public static final Method GET_HANDLE_WORLD_METHOD = new MethodLoader(
         new TypeCache.CacheBuilder(CachePackage.CRAFT_BUKKIT)
             .withClassName("CraftWorld")
+            .withMethodName("getHandle")).load();
+
+    public static final Method GET_HANDLE_BUKKIT_METHOD = new MethodLoader(
+        new TypeCache.CacheBuilder(CachePackage.CRAFT_BUKKIT)
+            .withClassName("CraftEntity")
             .withMethodName("getHandle")).load();
 
     public static final Method GET_SERVER_METHOD = new MethodLoader(
