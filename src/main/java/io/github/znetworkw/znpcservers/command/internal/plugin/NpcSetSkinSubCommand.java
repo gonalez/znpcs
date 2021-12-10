@@ -25,6 +25,7 @@ import java.util.UUID;
     args = {"id", "skin"}
 )
 public class NpcSetSkinSubCommand extends AnnotatedPluginSubCommand {
+
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {
         final Integer id = Ints.tryParse(args.get("id"));

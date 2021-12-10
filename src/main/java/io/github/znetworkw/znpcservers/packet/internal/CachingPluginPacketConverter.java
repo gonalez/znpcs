@@ -26,8 +26,7 @@ public class CachingPluginPacketConverter<T> implements PluginPacketConverter<T>
     @Override
     public T get(Class<T> clazz) {
         if (!clazz.isInterface()) {
-            throw new IllegalStateException(
-                String.format("%s must be an interface", instance.getClass().getName()));
+            throw new IllegalStateException(String.format("%s must be an interface", instance.getClass().getName()));
         }
         final ImmutableMap.Builder<Method, PluginPacketInfo> builder = ImmutableMap.builder();
         for (final Method method : clazz.getDeclaredMethods()) {

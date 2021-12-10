@@ -47,9 +47,8 @@ public class ZNPCs extends JavaPlugin {
     /**
      * The plugin settings.
      */
-    public static final PluginSettings SETTINGS = PluginSettings
-        .builder()
-        .withGson(new GsonBuilder() // custom gson
+    public static final PluginSettings SETTINGS = PluginSettings.builder()
+        .withGson(new GsonBuilder()
             .registerTypeAdapter(PluginLocation.class, PluginLocation.SERIALIZER)
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
             .setPrettyPrinting()

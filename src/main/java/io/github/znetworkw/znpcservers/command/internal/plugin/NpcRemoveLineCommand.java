@@ -19,6 +19,7 @@ import java.util.Map;
     name = "removeLine",
     args = {"id", "line"}
 )
+
 public class NpcRemoveLineCommand extends AnnotatedPluginSubCommand {
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {

@@ -22,6 +22,7 @@ import java.util.Map;
     args = {"id", "name", "data"}
 )
 public class NpcToggleSubCommand extends AnnotatedPluginSubCommand {
+
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {
         final Integer id = Ints.tryParse(args.get("id"));

@@ -47,8 +47,7 @@ public interface UserStore {
     void removeUser(UUID uuid);
 
     /**
-     * Retrieves all users in this storage,
-     * the order of iteration is undefined.
+     * Retrieves all users in this storage, the order of iteration is undefined.
      *
      * @return all users in this storage.
      */

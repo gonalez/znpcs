@@ -22,6 +22,7 @@ import java.util.Map;
     name = "list"
 )
 public class NpcListSubCommand extends AnnotatedPluginSubCommand {
+
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {
         final Iterable<Npc> npcs = ZNPCs.SETTINGS.getNpcStore().getNpcs();

@@ -17,39 +17,48 @@ public class NpcModel implements Cloneable, Serializable {
      * The npc unique id.
      */
     private int id;
+
     /**
      * The npc hologram height.
      */
     private double hologramHeight;
+
     /**
      * The texture and signature
      * of the npc skin.
      */
     private String skin, signature = "";
+
     /**
      * The npc path name.
      */
     private String pathName;
+
     /**
      * The npc glow color name.
      */
     private String glowName;
+
     /**
      * The npc location.
      */
     private PluginLocation location;
+
     /**
      * The npc type name.
      */
     private String npcType;
+
     /**
      * The npc hologram lines.
      */
     private List<String> hologramLines;
+
     /**
      * The npc functions.
      */
     private Map<String, NpcFunctionModel> npcFunctions;
+
     /**
      * The npc customization.
      */

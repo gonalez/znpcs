@@ -21,6 +21,7 @@ import java.util.Map;
     args = {"id", "slot"}
 )
 public class NpcEquipSubCommand extends AnnotatedPluginSubCommand {
+
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {
         final Integer id = Ints.tryParse(args.get("id"));

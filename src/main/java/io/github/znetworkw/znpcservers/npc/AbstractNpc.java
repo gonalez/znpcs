@@ -4,6 +4,8 @@ import io.github.znetworkw.znpcservers.ZNPCs;
 import io.github.znetworkw.znpcservers.entity.*;
 import io.github.znetworkw.znpcservers.npc.function.NpcFunctions;
 import io.github.znetworkw.znpcservers.npc.internal.PluginNpcHologram;
+import io.github.znetworkw.znpcservers.task.Task;
+import io.github.znetworkw.znpcservers.task.TaskManager;
 import io.github.znetworkw.znpcservers.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -42,8 +44,9 @@ public abstract class AbstractNpc implements Npc {
 
     protected PluginEntity pluginEntity;
 
-    public AbstractNpc(PluginEntityFactory<?> pluginEntityFactory, NpcModel model,
-        NpcName npcName, NpcClickHandler clickHandler) {
+    public AbstractNpc(
+        PluginEntityFactory<?> pluginEntityFactory, NpcModel model,
+        NpcName npcName, NpcClickHandler clickHandler, TaskManager taskManager) {
         this.pluginEntityFactory = pluginEntityFactory;
         this.npcModel = model;
         this.name = npcName.generateNpcName(this);
@@ -72,7 +75,7 @@ public abstract class AbstractNpc implements Npc {
                 }
             }
         };
-        ZNPCs.SCHEDULER.runTaskTimer(loadRunnable, 20, 40);
+        taskManager.submitTask(Task.of(loadRunnable));
     }
 
     /**

@@ -22,6 +22,7 @@ import java.util.Map;
     args = {"id"}
 )
 public class NpcMoveSubCommand extends AnnotatedPluginSubCommand {
+
     @Override
     public void execute(CommandSender commandSender, Map<String, String> args) {
         final Integer id = Ints.tryParse(args.get("id"));
