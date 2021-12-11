@@ -30,6 +30,11 @@ public interface User {
      */
     UUID getUUID();
 
+    /**
+     * The user location.
+     *
+     * @return user location.
+     */
     Location getLocation();
 
     void sendPackets(Object... packets) throws Exception;

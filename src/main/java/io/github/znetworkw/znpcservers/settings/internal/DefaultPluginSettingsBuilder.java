@@ -6,22 +6,20 @@ import io.github.znetworkw.znpcservers.npc.NpcStore;
 import io.github.znetworkw.znpcservers.npc.function.NpcFunctionRegistry;
 import io.github.znetworkw.znpcservers.settings.PluginSettings;
 import io.github.znetworkw.znpcservers.task.TaskManager;
-import io.github.znetworkw.znpcservers.task.internal.AsyncBukkitTaskManager;
+import io.github.znetworkw.znpcservers.settings.PluginSettings.PluginSettingsBuilder;
 import io.github.znetworkw.znpcservers.user.UserStore;
-import org.bukkit.plugin.Plugin;
 
 /**
+ * A basic, default implementation of the {@link PluginSettingsBuilder}.
+ *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class DefaultPluginSettingsBuilder implements PluginSettings.PluginSettingsBuilder {
     private final AsyncHttpClient asyncHttpClient;
     private final NpcStore npcStore;
     private final UserStore userStore;
-
     private final NpcFunctionRegistry npcFunctionRegistry;
-
     private final Gson gson;
-
     private final TaskManager taskManager;
 
     private DefaultPluginSettingsBuilder(
@@ -84,6 +82,12 @@ public class DefaultPluginSettingsBuilder implements PluginSettings.PluginSettin
     @Override
     public PluginSettings build() {
         return new PluginSettings() {
+            @Override
+            public void init() throws Exception {
+                getTaskManager().start();
+                getNpcStore().init();
+            }
+
             @Override
             public AsyncHttpClient getAsyncHttpClient() {
                 return asyncHttpClient;

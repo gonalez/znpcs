@@ -26,9 +26,6 @@ public class DefaultAsyncSkinFetcher implements SkinFetcher {
 
     private final HttpMethod httpMethod;
 
-    private final Consumer<SkinFetcherResult> onSuccess;
-    private final Consumer<Throwable> onError;
-
     private final String skinName;
     private final int timeout;
 
@@ -36,13 +33,10 @@ public class DefaultAsyncSkinFetcher implements SkinFetcher {
 
     public DefaultAsyncSkinFetcher(
         AsyncHttpClient httpClient, SkinFetcherService fetcherServer,
-        Consumer<SkinFetcherResult> onSuccess, Consumer<Throwable> onError,
         int timeout, String skinName) {
         this.httpClient = httpClient;
         this.fetcherServer = fetcherServer;
         this.httpMethod = fetcherServer.getMethod();
-        this.onSuccess = onSuccess;
-        this.onError = onError;
         this.timeout = timeout;
         this.skinName = skinName;
         this.uri = URI.create(fetcherServer.getMethod() == HttpMethod.GET ?
@@ -51,7 +45,7 @@ public class DefaultAsyncSkinFetcher implements SkinFetcher {
     }
 
     @Override
-    public void request() throws Exception {
+    public void fetch(Consumer<SkinFetcherResult> onSuccess, Consumer<Throwable> onError) throws Exception {
         final HttpRequest httpRequest;
         if (httpMethod == HttpMethod.POST) {
             String write = "url=" + URLEncoder.encode(skinName, "UTF-8");
@@ -74,10 +68,5 @@ public class DefaultAsyncSkinFetcher implements SkinFetcher {
                 onError.accept(throwable);
             }
         });
-    }
-
-    @Override
-    public SkinFetcherService getServer() {
-        return fetcherServer;
     }
 }

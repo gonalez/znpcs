@@ -30,8 +30,8 @@ public class PluginNpcStore implements NpcStore {
     }
 
     @Override
-    public void addNpc(int id, Npc npc) {
-        npcMap.put(id, npc);
+    public Npc addNpc(int id, Npc npc) {
+        return npcMap.put(id, npc);
     }
 
     @Override

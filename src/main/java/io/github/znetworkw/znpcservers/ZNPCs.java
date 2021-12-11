@@ -68,12 +68,9 @@ public class ZNPCs extends JavaPlugin {
     public void onEnable() {
         SCHEDULER = new SchedulerUtils(this);
         try {
-            SETTINGS.getNpcStore().init();
-
+            SETTINGS.init();
+            // register custom functions
             SETTINGS.getNpcFunctionRegistry().register(new GlowNpcFunction());
-
-            // task
-            SETTINGS.getTaskManager().start();
         } catch (Exception exception) {
             exception.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);

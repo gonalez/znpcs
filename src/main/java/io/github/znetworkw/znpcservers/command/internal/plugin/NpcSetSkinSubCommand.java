@@ -44,18 +44,14 @@ public class NpcSetSkinSubCommand extends AnnotatedPluginSubCommand {
         }
         final String name = args.get("skin");
         try {
-            SkinFetcher.of(
-                name,
-                onSuccess -> {
-                    npc.getPluginEntity().getAttributes().set(
-                        PluginEntity.GAME_PROFILE_ATTRIBUTE,
-                        getWithProperties(name, onSuccess.getTexture(), onSuccess.getSignature()));
-                    commandSender.sendMessage("all success");
-                }, onError -> {
-                    commandSender.sendMessage(ChatColor.RED + "Error");
-            }).request();
-        } catch (Exception exception) {
-            exception.printStackTrace();
+            SkinFetcher.of(name).fetch(result -> {
+                npc.getPluginEntity().getAttributes().set(
+                    PluginEntity.GAME_PROFILE_ATTRIBUTE,
+                    getWithProperties(name, result.getTexture(), result.getSignature()));
+                commandSender.sendMessage("All success...");
+            }, throwable -> commandSender.sendMessage(ChatColor.RED + "Error"));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

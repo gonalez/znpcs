@@ -12,10 +12,13 @@ import java.util.function.Consumer;
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public interface SkinFetcher {
+    /**
+     * Skin name used for default skins.
+     */
     String DEFAULT_SKIN_NAME = "Notch";
 
     /**
-     * Creates a new builder for creating an skin fetcher.
+     * Creates a new builder skin fetcher builder.
      *
      * @return a new skin fetcher builder.
      */
@@ -23,34 +26,71 @@ public interface SkinFetcher {
         return new DefaultSkinFetcherBuilder();
     }
 
-    static SkinFetcher of(String skin, Consumer<SkinFetcherResult> onSuccess, Consumer<Throwable> onError) {
+    /**
+     * Creates a new, default skin fetcher for the specified skin name.
+     *
+     * @param skin skin name.
+     * @return a new skin fetcher for the specified skin name.
+     */
+    static SkinFetcher of(String skin) {
         return builder()
             .withSkin(skin)
             .withClient(SETTINGS.getAsyncHttpClient())
-            .withServer(SkinFetcherService.of(skin.startsWith("http") ?
-                HttpMethod.POST : HttpMethod.GET))
-            .onSuccess(onSuccess)
-            .onError(onError)
+            .withServer(SkinFetcherService.of(skin.startsWith("http") ? HttpMethod.POST : HttpMethod.GET))
             .build();
     }
 
-    void request() throws Exception;
+    /**
+     * Fetches skin result, if the fetch is success the method will invoke {@code onSuccess}
+     * consumer otherwise the method will invoke {@code onError} consumer.
+     *
+     * @param onSuccess called when the fetch success.
+     * @param onError called when the fetch failed.
+     * @throws Exception if failed to get skin result.
+     */
+    void fetch(Consumer<SkinFetcherResult> onSuccess, Consumer<Throwable> onError) throws Exception;
 
-    SkinFetcherService getServer();
-
+    /**
+     * Builder interface to create {@link SkinFetcher}s.
+     */
     interface SkinFetcherBuilder {
+        /**
+         * Sets the fetcher skin name.
+         *
+         * @param name skin name.
+         * @return this.
+         */
+        SkinFetcherBuilder withSkin(String name);
+
+        /**
+         * Sets the fetcher http client.
+         *
+         * @param httpClient fetcher http client.
+         * @return this.
+         */
         SkinFetcherBuilder withClient(AsyncHttpClient httpClient);
 
-        SkinFetcherBuilder withSkin(String skinName);
+        /**
+         * Sets the fetcher server.
+         *
+         * @param server fetcher server.
+         * @return this.
+         */
+        SkinFetcherBuilder withServer(SkinFetcherService server);
 
-        SkinFetcherBuilder withServer(SkinFetcherService fetcherServer);
-
+        /**
+         * Sets the fetcher timeout.
+         *
+         * @param timeout fetch timeout.
+         * @return this.
+         */
         SkinFetcherBuilder withTimeout(int timeout);
 
-        SkinFetcherBuilder onSuccess(Consumer<SkinFetcherResult> onSuccess);
-
-        SkinFetcherBuilder onError(Consumer<Throwable> onError);
-
+        /**
+         * Creates a new skin fetcher based from this builder.
+         *
+         * @return a new skin fetcher based from this builder.
+         */
         SkinFetcher build();
     }
 }
