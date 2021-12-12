@@ -1,8 +1,11 @@
 package io.github.znetworkw.znpcservers.skin.internal;
 
 import io.github.znetworkw.znpcservers.skin.SkinFetcherResult;
+import io.github.znetworkw.znpcservers.skin.SkinFetcherResult.SkinFetcherResultBuilder;
 
 /**
+ * A default implementation of the {@link SkinFetcherResultBuilder}.
+ *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class DefaultSkinFetcherResultBuilder implements SkinFetcherResult.SkinFetcherResultBuilder {

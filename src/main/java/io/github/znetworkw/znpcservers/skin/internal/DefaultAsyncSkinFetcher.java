@@ -18,6 +18,8 @@ import java.net.URLEncoder;
 import java.util.function.Consumer;
 
 /**
+ * A default implementation of the {@link SkinFetcher}.
+ *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class DefaultAsyncSkinFetcher implements SkinFetcher {
@@ -57,7 +59,7 @@ public class DefaultAsyncSkinFetcher implements SkinFetcher {
             @Override
             public void onSuccess(HttpResponse response) {
                 try (InputStreamReader reader = new InputStreamReader(response.inputStream(), UTF_8)) {
-                    onSuccess.accept(fetcherServer.read(reader));
+                    onSuccess.accept(fetcherServer.parse(reader));
                 } catch (IOException e) {
                     onFailure(e);
                 }

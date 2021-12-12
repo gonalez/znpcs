@@ -1,17 +1,14 @@
 package io.github.znetworkw.znpcservers.skin.internal;
 
 import io.github.znetworkw.znpcservers.skin.SkinFetcher;
-import io.github.znetworkw.znpcservers.skin.SkinFetcherResult;
 import io.github.znetworkw.znpcservers.skin.SkinFetcherService;
 import io.github.znetworkw.znpcservers.ZNPCs;
 import io.github.znetworkw.znpcservers.http.AsyncHttpClient;
 import io.github.znetworkw.znpcservers.http.HttpMethod;
 import io.github.znetworkw.znpcservers.skin.SkinFetcher.SkinFetcherBuilder;
 
-import java.util.function.Consumer;
-
 /**
- * A basic, default implementation of the {@link SkinFetcherBuilder}
+ * A basic, default implementation of the {@link SkinFetcherBuilder}.
  *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */

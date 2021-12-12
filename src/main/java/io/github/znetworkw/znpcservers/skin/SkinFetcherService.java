@@ -8,8 +8,7 @@ import io.github.znetworkw.znpcservers.skin.internal.DefaultPostSkinServer;
 import java.io.Reader;
 
 /**
- * Service that contains the necessary information to get
- * and read skin results for an {@link SkinFetcher}.
+ * Service that provides parsing of skin results for the {@link SkinFetcher}.
  *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
@@ -21,7 +20,7 @@ public interface SkinFetcherService {
      *
      * @param httpMethod the http method.
      * @return a default, skin fetcher service.
-     * @throws IllegalStateException
+     * @throws IllegalStateException if no skin service is found for the specified http method.
      */
     static SkinFetcherService of(HttpMethod httpMethod) {
         if (httpMethod == HttpMethod.GET) {
@@ -42,7 +41,7 @@ public interface SkinFetcherService {
     /**
      * The service url that will be used to make the requests.
      *
-     * @return url that will be used for the skin calls.
+     * @return url that will be used for skin calls.
      */
     String getUrl();
 
@@ -54,10 +53,10 @@ public interface SkinFetcherService {
     HttpMethod getMethod();
 
     /**
-     * Reads the skin result from the specified reader.
+     * Parses the skin result from the specified reader.
      *
      * @param reader the request reader to deserialize the result from.
      * @return a new skin result with the deserialized skin textures.
      */
-    SkinFetcherResult read(Reader reader);
+    SkinFetcherResult parse(Reader reader);
 }
