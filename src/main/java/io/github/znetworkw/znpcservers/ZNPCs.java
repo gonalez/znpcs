@@ -8,10 +8,10 @@ import io.github.znetworkw.znpcservers.command.internal.DefaultPluginSubCommandF
 import io.github.znetworkw.znpcservers.command.internal.plugin.*;
 import io.github.znetworkw.znpcservers.configuration.Configuration;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationConstants;
-import io.github.znetworkw.znpcservers.listeners.PlayerListener;
+import io.github.znetworkw.znpcservers.listener.PlayerListener;
 import io.github.znetworkw.znpcservers.configuration.ConfigurationSaveTask;
 import io.github.znetworkw.znpcservers.npc.internal.plugin.GlowNpcFunction;
-import io.github.znetworkw.znpcservers.settings.PluginSettings;
+import io.github.znetworkw.znpcservers.setting.PluginSettings;
 import io.github.znetworkw.znpcservers.user.User;
 import io.github.znetworkw.znpcservers.utility.BungeeUtils;
 import io.github.znetworkw.znpcservers.utility.MetricsLite;

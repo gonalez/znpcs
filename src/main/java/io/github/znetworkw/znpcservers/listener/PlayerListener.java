@@ -1,4 +1,4 @@
-package io.github.znetworkw.znpcservers.listeners;
+package io.github.znetworkw.znpcservers.listener;
 
 import io.github.znetworkw.znpcservers.ZNPCs;
 import io.github.znetworkw.znpcservers.user.User;

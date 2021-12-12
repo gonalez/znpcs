@@ -9,6 +9,8 @@ import io.github.znetworkw.znpcservers.skin.internal.DefaultSkinFetcherBuilder;
 import java.util.function.Consumer;
 
 /**
+ * Interface for fetching skin results of a skin name.
+ *
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public interface SkinFetcher {
@@ -41,7 +43,7 @@ public interface SkinFetcher {
     }
 
     /**
-     * Fetches skin result, if the fetch is success the method will invoke {@code onSuccess}
+     * Fetches the skin result, if the fetch is success the method will invoke {@code onSuccess}
      * consumer otherwise the method will invoke {@code onError} consumer.
      *
      * @param onSuccess called when the fetch success.

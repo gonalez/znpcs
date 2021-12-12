@@ -1,10 +1,10 @@
-package io.github.znetworkw.znpcservers.settings;
+package io.github.znetworkw.znpcservers.setting;
 
 import com.google.gson.Gson;
 import io.github.znetworkw.znpcservers.http.AsyncHttpClient;
 import io.github.znetworkw.znpcservers.npc.NpcStore;
 import io.github.znetworkw.znpcservers.npc.function.NpcFunctionRegistry;
-import io.github.znetworkw.znpcservers.settings.internal.DefaultPluginSettingsBuilder;
+import io.github.znetworkw.znpcservers.setting.internal.DefaultPluginSettingsBuilder;
 import io.github.znetworkw.znpcservers.task.TaskManager;
 import io.github.znetworkw.znpcservers.user.UserStore;
 
