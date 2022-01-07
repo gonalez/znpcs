@@ -14,12 +14,12 @@ import java.io.Reader;
  */
 public interface SkinFetcherService {
     /**
-     * Returns a default, skin fetcher service for the specified http method,
-     * if no default service is found for the specified http method, an
-     * {@link IllegalStateException} will be thrown as described.
+     * Returns a default, skin fetcher service for the specified http method, if no
+     * default service is found for the specified http method an {@link IllegalStateException}
+     * will be thrown.
      *
      * @param httpMethod the http method.
-     * @return a default, skin fetcher service.
+     * @return a skin fetcher service for the given http method.
      * @throws IllegalStateException if no skin service is found for the specified http method.
      */
     static SkinFetcherService of(HttpMethod httpMethod) {
@@ -53,10 +53,10 @@ public interface SkinFetcherService {
     HttpMethod getMethod();
 
     /**
-     * Parses the skin result from the specified reader.
+     * Parses the skin result from the given reader.
      *
-     * @param reader the request reader to deserialize the result from.
-     * @return a new skin result with the deserialized skin textures.
+     * @param reader the reader to deserialize the result from.
+     * @return a skin result with the deserialized skin textures.
      */
     SkinFetcherResult parse(Reader reader);
 }

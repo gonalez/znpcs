@@ -7,12 +7,12 @@ import java.io.Reader;
 /**
  * Represents the result of an {@link SkinFetcherService}.
  *
- * @see SkinFetcherService#parse(Reader) 
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
+ * @see SkinFetcherService#parse(Reader)
  */
 public interface SkinFetcherResult {
     /**
-     * Creates a new builder for creating a skin result.
+     * Creates a new, skin fetcher result builder.
      *
      * @return a new skin fetcher result builder.
      */
@@ -21,14 +21,17 @@ public interface SkinFetcherResult {
     }
 
     /**
-     * Creates a new skin result with the specified texture and signature.
+     * Creates a new skin result with the given texture and signature.
      *
      * @param texture the result skin texture.
      * @param signature the result skin signature.
-     * @return a new skin result with the specified texture and signature.
+     * @return a new skin result with the given texture and signature.
      */
     static SkinFetcherResult of(String texture, String signature) {
-        return builder().withTexture(texture).withSignature(signature).build();
+        return builder()
+            .withTexture(texture)
+            .withSignature(signature)
+            .build();
     }
 
     /**

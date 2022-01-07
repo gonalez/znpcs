@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 public class DefaultAsyncSkinFetcher implements SkinFetcher {
     private final AsyncHttpClient httpClient;
     private final SkinFetcherService fetcherServer;
-
     private final HttpMethod httpMethod;
 
     private final String skinName;

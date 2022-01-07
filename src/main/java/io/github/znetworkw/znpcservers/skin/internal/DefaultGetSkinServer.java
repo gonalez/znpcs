@@ -13,6 +13,9 @@ import java.io.Reader;
  * @author Gaston Gonzalez {@literal <znetworkw.dev@gmail.com>}
  */
 public class DefaultGetSkinServer implements SkinFetcherService {
+    /**
+     * Creates a new instance of this class.
+     */
     public static SkinFetcherService INSTANCE = new DefaultGetSkinServer();
 
     @Override
