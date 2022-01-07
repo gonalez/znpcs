@@ -24,6 +24,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
 
 /**
  * The main class of the plugin.
@@ -36,17 +38,8 @@ public class ZNPCs extends JavaPlugin {
     public static final File PLUGIN_FOLDER = new File("plugins/" + PLUGIN_NAME);
     public static final File PATH_FOLDER = new File("plugins/" + PLUGIN_NAME + "/paths");
 
-    static {
-        ImmutableList<File> files =
-            ImmutableList.of(PLUGIN_FOLDER, PATH_FOLDER);
-        for (File file : files) {
-            file.mkdirs();
-        }
-    }
+    private static final ImmutableList<File> FILES = ImmutableList.of(PLUGIN_FOLDER, PATH_FOLDER);
 
-    /**
-     * The plugin settings.
-     */
     public static final PluginSettings SETTINGS = PluginSettings.builder()
         .withGson(new GsonBuilder()
             .registerTypeAdapter(PluginLocation.class, PluginLocation.SERIALIZER)
@@ -56,16 +49,22 @@ public class ZNPCs extends JavaPlugin {
             .create())
         .build()/*default*/;
 
-    /**
-     * The plugin metrics id.
-     */
     private static final int PLUGIN_ID = 8054;
 
     public static SchedulerUtils SCHEDULER;
     public static BungeeUtils BUNGEE_UTILS;
 
     @Override
-    public void onEnable() {
+    public void onEnable() { ;
+        for (File file : FILES) {
+            if (!file.exists()) {
+                if (!file.mkdirs()) {
+                    disablePlugin(String.format("Could not create folder %s", file.getName()));
+                    return;
+                }
+            }
+        }
+
         SCHEDULER = new SchedulerUtils(this);
         try {
             SETTINGS.init();
@@ -124,4 +123,11 @@ public class ZNPCs extends JavaPlugin {
         });
         SETTINGS.getAsyncHttpClient().shutdown();
     }
+
+    /** Disables the plugin. */
+    private void disablePlugin(String disableMessage) {
+        getServer().getPluginManager().disablePlugin(this);
+        getLogger().log(Level.INFO, disableMessage);
+    }
+
 }
