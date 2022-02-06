@@ -128,6 +128,6 @@ public class ZNPCs extends JavaPlugin {
     private void disablePlugin(String disableMessage) {
         getServer().getPluginManager().disablePlugin(this);
         getLogger().log(Level.INFO, disableMessage);
-    }
 
+    }
 }
