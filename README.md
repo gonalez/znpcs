@@ -9,7 +9,7 @@
 
 ```xml
 <dependency>
-   <groupId>io.github.znetworkw.znpcservers</groupId>
+   <groupId>io.github.gonalez.znpcservers</groupId>
    <artifactId>znpcservers</artifactId>
    <version>3.6</version>
 </dependency>
@@ -17,7 +17,7 @@
 
 ## Documentation
 
-* See [API Javadoc](https://javadoc.io/doc/io.github.znetworkw.znpcservers/znpcservers).
+* See [API Javadoc](https://javadoc.io/doc/io.github.gonalez.znpcservers/znpcservers).
 
 ## Need help?
 
