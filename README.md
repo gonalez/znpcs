@@ -17,7 +17,7 @@
 
 ## Documentation
 
-* See [API Javadoc](https://javadoc.io/doc/io.github.gonalez.znpcservers/znpcservers).
+* See [API Javadoc](https://javadoc.io/doc/io.github.znetworkw.znpcservers/znpcservers).
 
 ## Need help?
 
