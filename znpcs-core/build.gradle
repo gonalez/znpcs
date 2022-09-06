@@ -1,0 +1,22 @@
+project.group = GROUP
+version = VERSION
+
+repositories {
+    maven {
+        url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    }
+    maven {
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    }
+    maven {
+        url = uri'https://libraries.minecraft.net/'
+    }
+}
+
+dependencies {
+    compileOnly group: 'io.netty', name: 'netty-all', version: '4.1.77.Final'
+    compileOnly group: 'com.mojang', name: 'authlib', version: '1.5.21'
+
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.16.2-R0.1-SNAPSHOT'
+    compileOnly group: 'me.clip' , name:'placeholderapi' , version: '2.9.2'
+}

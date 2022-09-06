@@ -9,7 +9,7 @@
 
 ```xml
 <dependency>
-   <groupId>io.github.gonalez.znpcservers</groupId>
+   <groupId>io.github.gonalez.znpcio.github.gonalez.znpc</groupId>
    <artifactId>znpcservers</artifactId>
    <version>3.6</version>
 </dependency>

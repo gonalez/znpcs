@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        google()
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.1'
+        testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.1'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
