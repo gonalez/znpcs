@@ -1,4 +1,4 @@
-# ZNPCs [![ci](https://github.com/gonalez/znpc-servers/actions/workflows/maven.yml/badge.svg)](https://github.com/gonalez/znpc-servers/actions/workflows/maven.yml) [![license](https://img.shields.io/github/license/gonalez/znpc-servers)](https://github.com/gonalez/znpc-servers/blob/master/LICENSE) [![Java](https://img.shields.io/badge/Java-8%2B-ff696c)](https://img.shields.io/badge/Java-8%2B-ff696c)
+# ZNPCs ![build](https://github.com/gonalez/znpc-servers/workflows/build/badge.svg) [![license](https://img.shields.io/github/license/gonalez/znpc-servers)](https://github.com/gonalez/znpc-servers/blob/master/LICENSE) [![Java](https://img.shields.io/badge/Java-8%2B-ff696c)](https://img.shields.io/badge/Java-8%2B-ff696c)
 
 [ZNPCs](https://www.spigotmc.org/resources/znpcs.80940/) is a npc plugin for minecraft written with the Spigot/Bukkit API made by ZNetwork. 
 
