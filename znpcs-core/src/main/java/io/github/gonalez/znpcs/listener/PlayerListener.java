@@ -19,6 +19,15 @@ public class PlayerListener implements Listener {
             exception.printStackTrace();
         }
     }
+    
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        try {
+            ZNPCs.SETTINGS.getUserStore().addUser(User.of(event.getPlayer()));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
