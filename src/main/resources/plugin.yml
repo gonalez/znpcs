@@ -1,0 +1,5 @@
+name: ServersNPC
+main: io.github.gonalez.znpcs.ServersNPC
+version: 4.1
+api-version: 1.13
+softdepend: [ PlaceholderAPI ]
