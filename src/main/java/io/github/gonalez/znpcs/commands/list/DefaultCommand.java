@@ -28,7 +28,9 @@ import io.github.gonalez.znpcs.npc.NPCType;
 import io.github.gonalez.znpcs.skin.SkinFetcherResult;
 import io.github.gonalez.znpcs.user.ZUser;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,9 +71,11 @@ public class DefaultCommand extends Command {
     }
   };
 
-  
-  public DefaultCommand() {
+  private final Path path;
+
+  public DefaultCommand(Path path) {
     super("znpcs");
+    this.path = path;
   }
   
   @CommandInformation(arguments = {}, name = "", permission = "")
@@ -544,7 +548,9 @@ public class DefaultCommand extends Command {
           sender.sendMessage(ChatColor.RED + "You already have a path creator active, to remove it use /znpcs path exit.");
           return;
         }
-        NPCPath.AbstractTypeWriter.forCreation(pathName, znpcUser, NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT);
+
+        File file = path.resolve(pathName + ServersNPC.PATH_EXTENSION).toFile();
+        NPCPath.AbstractTypeWriter.forCreation(file, znpcUser, NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT);
         Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.PATH_START);
         break;
       case "exit":

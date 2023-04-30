@@ -95,11 +95,11 @@ public interface NPCPath {
     private static final Logger LOGGER = Logger.getLogger(AbstractTypeWriter.class.getName());
     
     private static final ConcurrentMap<String, AbstractTypeWriter> PATH_TYPES = new ConcurrentHashMap<>();
-    
+
     private static final int PATH_DELAY = 1;
-    
+
     private final TypeWriter typeWriter;
-    
+
     private final File file;
     
     private final List<ZLocation> locationList;
@@ -108,10 +108,6 @@ public interface NPCPath {
       this.typeWriter = typeWriter;
       this.file = file;
       this.locationList = new ArrayList<>();
-    }
-    
-    public AbstractTypeWriter(TypeWriter typeWriter, String pathName) {
-      this(typeWriter, new File(ServersNPC.PATH_FOLDER, pathName + ".path"));
     }
     
     public void load() {
@@ -157,9 +153,9 @@ public interface NPCPath {
       } 
     }
     
-    public static AbstractTypeWriter forCreation(String pathName, ZUser user, TypeWriter typeWriter) {
+    public static AbstractTypeWriter forCreation(File file, ZUser user, TypeWriter typeWriter) {
       if (typeWriter == TypeWriter.MOVEMENT)
-        return new TypeMovement(pathName, user); 
+        return new TypeMovement(file, user);
       throw new IllegalStateException("can't find type writer for: " + typeWriter.name());
     }
     
@@ -208,8 +204,8 @@ public interface NPCPath {
         super(NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT, file);
       }
       
-      public TypeMovement(String fileName, ZUser npcUser) {
-        super(NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT, fileName);
+      public TypeMovement(File file, ZUser npcUser) {
+        super(NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT, file);
         this.npcUser = npcUser;
         start();
       }
