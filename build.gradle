@@ -1,29 +1,22 @@
-plugins {
-    id 'java'
-    id 'maven-publish'
-}
+apply plugin: 'java'
+
+group = 'io.github.gonalez.znpcs'
+version = '4.1'
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
-    }
-    maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    }
-    maven {
-        url = uri'https://libraries.minecraft.net/'
-    }
+    maven { url = "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
+    maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url = "https://libraries.minecraft.net/" }
 }
 
 
 dependencies {
-    compileOnly group: 'io.netty', name: 'netty-all', version: '4.1.77.Final'
-    compileOnly group: 'com.mojang', name: 'authlib', version: '1.5.21'
-    compileOnly group: 'com.mojang', name: 'datafixerupper', version: '3.0.25'
-
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.16.2-R0.1-SNAPSHOT'
-    compileOnly group: 'me.clip' , name:'placeholderapi' , version: '2.9.2'
+    compileOnly("io.netty:netty-all:4.1.77.Final")
+    compileOnly("com.mojang:authlib:1.5.21")
+    compileOnly("com.mojang:datafixerupper:3.0.25")
+    compileOnly("org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.9.2")
 }
 
 tasks.withType(JavaCompile) {
