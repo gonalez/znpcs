@@ -1,1 +1,3 @@
 rootProject.name = 'znpcs'
+include 'bukkit'
+include 'api'

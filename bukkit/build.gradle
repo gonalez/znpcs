@@ -1,0 +1,13 @@
+repositories {
+    maven { url = "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
+    maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url = "https://libraries.minecraft.net/" }
+}
+
+dependencies {
+    compileOnly("io.netty:netty-all:4.1.77.Final")
+    compileOnly("com.mojang:authlib:1.5.21")
+    compileOnly("com.mojang:datafixerupper:3.0.25")
+    compileOnly("org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.9.2")
+}
