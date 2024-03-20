@@ -351,6 +351,11 @@ public final class CacheRegistry {
       
       .withCategory(CacheCategory.SYNCHER)
       .withClassName("DataWatcherSerializer"))).load();
+
+  public static final Class<?> TRACKED_DATA = (new TypeCache.BaseCache.ClazzLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
+      
+      .withCategory(CacheCategory.SYNCHER)
+      .withClassName("TRACKED_DATA"))).load();
   
   public static final Class<?> WORLD_CLASS = (new TypeCache.BaseCache.ClazzLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
       
@@ -591,6 +596,70 @@ public final class CacheRegistry {
       .withCategory(CacheCategory.ENTITY)
       .withClassName(ENTITY_HUMAN_CLASS)
       .withExpectResult(GameProfile.class));
+
+  public static final String PLAYER_MODEL_PARTS_BIN_NAME;
+  static {
+    switch (Utils.getBukkitPackage()){
+      case "v1_15R1":
+      case "v1_15R2":
+      case "v1_16R1":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bq";
+        break;
+      case "v1_16R2":
+      case "v1_16R3":
+      case "v1_16R4":
+      case "v1_16R5":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bi";
+        break;
+      case "v1_17R1":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bP";
+        break;
+      case "v1_18R1":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bQ";
+        break;
+      case "v1_18R2":
+        //noinspection DuplicateBranchesInSwitch
+        PLAYER_MODEL_PARTS_BIN_NAME = "bP";
+        break;
+      case "v1_19R1":
+      case "v1_19R2":
+      case "v1_19R3":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bO";
+        break;
+      case "v1_19R4":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bJ";
+        break;
+      case "v1_20R1":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bL";
+        break;
+      case "v1_20R2":
+      case "v1_20R3":
+        PLAYER_MODEL_PARTS_BIN_NAME = "bM";
+        break;
+      default:
+        PLAYER_MODEL_PARTS_BIN_NAME = null;
+        break;
+    }
+    if (PLAYER_MODEL_PARTS_BIN_NAME != null){
+      GET_PLAYER_MODEL_PARTS = new TypeCache.BaseCache.FieldLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
+  
+              .withCategory(CacheCategory.ENTITY)
+              .withFieldName("PLAYER_MODEL_PARTS")
+              .withFieldName(PLAYER_MODEL_PARTS_BIN_NAME)
+              .withExpectResult(TRACKED_DATA)
+              .withClassName(ENTITY_HUMAN_CLASS));
+    } else {
+      GET_PLAYER_MODEL_PARTS = null;
+    }
+  }
+  public static final TypeCache.BaseCache<Field> GET_PLAYER_MODEL_PARTS;
+  public static final TypeCache.BaseCache<Method> GET_TRACKED_DATA_ID = new TypeCache.BaseCache.MethodLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
+
+          .withCategory(CacheCategory.SYNCHER)
+          .withClassName(TRACKED_DATA)
+          .withMethodName("getId")
+          .withMethodName("a")
+          .withExpectResult(int.class));
   
   public static final TypeCache.BaseCache<Method> GET_ENTITY_ID = new TypeCache.BaseCache.MethodLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
       
@@ -753,7 +822,7 @@ public final class CacheRegistry {
   public static final TypeCache.BaseCache<Method> GET_DATAWATCHER_B_LIST =
       new TypeCache.BaseCache.MethodLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
       .withCategory(CacheCategory.PACKET)
-          .withMethodName("c")
+      .withMethodName("c")
       .withClassName(DATA_WATCHER_CLASS));
 
   public static final TypeCache.BaseCache<Field> PLAYER_CONNECTION_FIELD = new TypeCache.BaseCache.FieldLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))

@@ -1,5 +1,6 @@
 package io.github.gonalez.znpcs.npc;
 
+import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.skin.SkinFetcherBuilder;
 import io.github.gonalez.znpcs.skin.SkinFetcherResult;
 import io.github.gonalez.znpcs.utility.Utils;
@@ -58,6 +59,13 @@ public class NPCSkin {
     }
     
     static int findLayerByVersion() {
+      try{
+        if (CacheRegistry.GET_PLAYER_MODEL_PARTS != null){
+          //for static field's null is okay
+          return (int) CacheRegistry.GET_TRACKED_DATA_ID.load().invoke(CacheRegistry.GET_PLAYER_MODEL_PARTS.load().get(null));
+        }
+      }catch (Throwable ignored){} //Some error occurred. maybe the field did not exist?
+      
       int value = V8.layerValue;
       for (SkinLayerValues skinLayerValue : values()) {
         if (Utils.BUKKIT_VERSION >= skinLayerValue.minVersion)
