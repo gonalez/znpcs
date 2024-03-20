@@ -829,7 +829,7 @@ public final class CacheRegistry {
       
       .withCategory(CacheCategory.SERVER_LEVEL)
       .withClassName(ENTITY_PLAYER_CLASS)
-      .withFieldName((Utils.BUKKIT_VERSION > 16) ? "b" : "playerConnection"));
+      .withFieldName((Utils.BUKKIT_VERSION > 16) ? ((Utils.BUKKIT_VERSION >= 20) ? "c" : "b") : "playerConnection"));
   
   public static final TypeCache.BaseCache<Field> NETWORK_MANAGER_FIELD = new TypeCache.BaseCache.FieldLoader((new TypeCache.CacheBuilder(CachePackage.MINECRAFT_SERVER))
       
