@@ -63,8 +63,14 @@ public class ConversationProcessor {
             if (conversationKey.getSoundName() != null && conversationKey
               .getSoundName().length() > 0)
               try {
-                Sound sound = Sound.valueOf(conversationKey.getSoundName().toUpperCase());
-                ConversationProcessor.this.player.playSound(ConversationProcessor.this.player.getLocation(), sound, 0.2F, 1.0F);
+                if (conversationKey.getSoundName().startsWith("minecraft:")){
+                  ConversationProcessor.this.player.playSound(ConversationProcessor.this.player.getLocation(), conversationKey.getSoundName(), 1.0F, 1.0F);
+                }
+                else {
+                  Sound sound = Sound.valueOf(conversationKey.getSoundName().toUpperCase());
+                  ConversationProcessor.this.player.playSound(ConversationProcessor.this.player.getLocation(), sound, 1.0F, 1.0F);
+                }
+
               } catch (IllegalArgumentException illegalArgumentException) {} 
             ConversationProcessor.this.conversationIndexDelay = System.nanoTime();
             ConversationProcessor.this.conversationIndex++;
