@@ -9,6 +9,11 @@ subprojects {
         mavenLocal()
     }
 
+    dependencies {
+        testImplementation("junit:junit:4.13.2")
+        testImplementation("com.google.truth:truth:1.4.1")
+    }
+
     tasks.withType(JavaCompile) {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8

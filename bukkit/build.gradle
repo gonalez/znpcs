@@ -5,6 +5,7 @@ repositories {
 }
 
 dependencies {
+    implementation project(":core")
     compileOnly("io.netty:netty-all:4.1.77.Final")
     compileOnly("com.mojang:authlib:1.5.21")
     compileOnly("com.mojang:datafixerupper:3.0.25")
