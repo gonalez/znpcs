@@ -19,9 +19,9 @@ package io.github.gonalez.znpcs.configuration;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.io.Files;
 import com.google.common.io.MoreFiles;
 import com.google.gson.Gson;
-import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +32,7 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link Configuration}. */
 @RunWith(JUnit4.class)
 public class ConfigurationTest {
+  private static final String EXAMPLE_CONFIG = "{\"view_distance\":32}";
   @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
 
   public static final class ExampleConfig extends Configuration {
@@ -41,11 +42,11 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void test_createConfiguration_Gson() throws IOException {
+  public void testConfigurationManager_withGson_readExampleConfig() throws Exception {
     Path testPath = tempFolder.getRoot().toPath().resolve("testconfig.json");
     MoreFiles.asByteSink(testPath)
         .asCharSink(UTF_8)
-        .write("{\"view_distance\":32}");
+        .write(EXAMPLE_CONFIG);
 
     ConfigurationManager configurationManager =
         new GsonConfigurationManager(new Gson()) {
@@ -62,5 +63,28 @@ public class ConfigurationTest {
 
     ExampleConfig configuration = configurationManager.createConfiguration(ExampleConfig.class);
     assertThat(configuration.viewDistance).isEqualTo(32);
+  }
+
+  @Test
+  public void testConfigurationManager_withGson_writeExampleConfig() throws Exception {
+    Path testPath = tempFolder.getRoot().toPath().resolve("testconfig.json");
+    ConfigurationManager configurationManager =
+        new GsonConfigurationManager(new Gson()) {
+          @Override
+          public void setPath(Class<? extends Configuration> config, Path path) {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Path getPath(Class<? extends Configuration> config) {
+            return testPath;
+          }
+        };
+
+    ExampleConfig configuration = new ExampleConfig();
+    configuration.viewDistance = 32;
+
+    configurationManager.writeConfig(configuration);
+    assertThat(Files.toString(testPath.toFile(), UTF_8)).isEqualTo(EXAMPLE_CONFIG);
   }
 }
