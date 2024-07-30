@@ -1,8 +1,8 @@
 package io.github.gonalez.znpcs.npc;
 
 import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.configuration.Configuration;
-import io.github.gonalez.znpcs.configuration.ConfigurationValue;
+import io.github.gonalez.znpcs.ZNPConfigUtils;
+import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.location.ZLocation;
 import org.bukkit.Location;
@@ -195,8 +195,6 @@ public interface NPCPath {
     }
     
     private static class TypeMovement extends AbstractTypeWriter {
-      private static final int MAX_LOCATIONS = Configuration.CONFIGURATION.getValue(ConfigurationValue.MAX_PATH_LOCATIONS);
-      
       private ZUser npcUser;
       
       private BukkitTask bukkitTask;
@@ -242,8 +240,10 @@ public interface NPCPath {
       
       public void start() {
         this.npcUser.setHasPath(true);
+        int maxPathLocations = ZNPConfigUtils.getConfig(ConfigConfiguration.class).maxPathLocations;
         this.bukkitTask = ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
-              if (this.npcUser.toPlayer() != null && this.npcUser.isHasPath() && MAX_LOCATIONS > getLocationList().size()) {
+              if (this.npcUser.toPlayer() != null && this.npcUser.isHasPath()
+                  && maxPathLocations > getLocationList().size()) {
                 Location location = this.npcUser.toPlayer().getLocation();
                 if (isValid(location))
                   getLocationList().add(new ZLocation(location)); 

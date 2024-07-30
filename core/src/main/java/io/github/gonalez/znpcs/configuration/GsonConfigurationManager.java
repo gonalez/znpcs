@@ -23,10 +23,12 @@ import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map.Entry;
+import javax.annotation.Nullable;
 
 /**
  * A {@link PathConfigurationManager} that reads and writes configurations from their
@@ -39,6 +41,12 @@ public abstract class GsonConfigurationManager extends PathConfigurationManager 
     this.gson = Preconditions.checkNotNull(gson);
   }
 
+  @Nullable
+  @Override
+  public ConfigurationFieldResolver createDefaultConfigurationFieldResolver() {
+    return new GsonObjectConfigurationFieldResolver(gson);
+  }
+
   @Override
   public boolean supportWrite(Configuration configuration) {
     return getPath(configuration.getClass()) != null;
@@ -46,10 +54,9 @@ public abstract class GsonConfigurationManager extends PathConfigurationManager 
 
   @Override
   protected ImmutableMap<String, Object> readConfigValues(
-      Class<? extends Configuration> configurationClass) {
+      Class<? extends Configuration> configurationClass, ConfigurationFieldResolver fieldResolver) {
     Path path = getPathOrThrow(configurationClass);
-    ImmutableMap<String, Class<?>> fields =
-        getConfigFieldsToFieldType(configurationClass);
+    ImmutableMap<String, Class<?>> fields = getConfigFieldsToFieldType(configurationClass);
 
     try (Reader reader = Files.newBufferedReader(path)) {
       JsonObject object = gson.fromJson(reader, JsonObject.class);
@@ -66,19 +73,37 @@ public abstract class GsonConfigurationManager extends PathConfigurationManager 
   }
 
   @Override
-  public void writeConfig(Configuration configuration) {
-    Class<? extends Configuration> configurationClass = configuration.getClass();
-    Path path = getPathOrThrow(configurationClass);
+  public void writeConfig(Configuration configuration, ConfigurationFieldResolver fieldResolver) {
+    Path path = getPathOrThrow(configuration.getClass());
     ImmutableMap<String, Field> fields = getConfigFields(configuration.getClass());
 
     try (BufferedWriter writer = Files.newBufferedWriter(path)) {
-      JsonObject jsonObject = new JsonObject();
       for (Entry<String, Field> entry : fields.entrySet()) {
-        jsonObject.add(entry.getKey(), gson.toJsonTree(entry.getValue().get(configuration)));
+        Object value = entry.getValue().get(configuration);
+        fieldResolver.writeField(writer, new KeyAndValue(entry.getKey(), value));
       }
-      gson.toJson(jsonObject, writer);
+      fieldResolver.writeConfig(writer, configuration);
     } catch (Exception e) {
       throw new ConfigurationException("Failed to write configuration: " + configuration, e);
+    }
+  }
+
+  public static class GsonObjectConfigurationFieldResolver implements ConfigurationFieldResolver {
+    private final Gson gson;
+    private final JsonObject jsonObject = new JsonObject();
+
+    public GsonObjectConfigurationFieldResolver(Gson gson) {
+      this.gson = Preconditions.checkNotNull(gson);
+    }
+
+    @Override
+    public void writeField(Writer writer, KeyAndValue keyAndValue) {
+      jsonObject.add(keyAndValue.getKey(), gson.toJsonTree(keyAndValue.getValue()));
+    }
+
+    @Override
+    public void writeConfig(Writer writer, Configuration configuration) {
+      gson.toJson(jsonObject, writer);
     }
   }
 }

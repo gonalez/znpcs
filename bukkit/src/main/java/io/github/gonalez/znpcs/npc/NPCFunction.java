@@ -4,7 +4,7 @@ public abstract class NPCFunction {
   private final String name;
   
   public enum ResultType {
-    SUCCESS, FAIL
+   SUCCESS, FAIL
   }
   
   public NPCFunction(String name) {

@@ -1,6 +1,5 @@
 package io.github.gonalez.znpcs.npc.hologram.replacer;
 
-import io.github.gonalez.znpcs.configuration.ConfigurationConstants;
 import io.github.gonalez.znpcs.utility.Utils;
 import net.md_5.bungee.api.ChatColor;
 
@@ -21,12 +20,11 @@ public class RGBLine implements LineReplacer {
         StringBuilder hexCodeStringBuilder = new StringBuilder();
         for (int i2 = i; i2 < endIndex; i2++) {
           if (rgbString.length() - 1 < i2) {
-            success = false;
+           success = false;
             break;
           } 
           char hexCode = rgbString.charAt(i2);
-          hexCodeStringBuilder.append((
-              ConfigurationConstants.RGB_ANIMATION && hexCode != '#') ? Integer.toHexString(ThreadLocalRandom.current().nextInt(16)) : Character.valueOf(hexCode));
+          hexCodeStringBuilder.append(Character.valueOf(hexCode));
         } 
         if (success)
           try {

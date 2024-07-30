@@ -1,12 +1,14 @@
 package io.github.gonalez.znpcs.utility;
 
+import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
-import io.github.gonalez.znpcs.configuration.ConfigurationConstants;
+import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.user.ZUser;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
@@ -14,15 +16,16 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class Utils {
   public static final int BUKKIT_VERSION;
-  
-  public static final long SECOND_INTERVAL_NANOS = 1000000000L;
-  
   public static boolean PLACEHOLDER_SUPPORT = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
   
   static {
     BUKKIT_VERSION = NumberUtils.toInt(getFormattedBukkitPackage());
   }
-  
+
+  public static void sendMessage(CommandSender commandSender, String message, Object... args) {
+    commandSender.sendMessage(toColor(String.format(message, args)));
+  }
+
   public static boolean versionNewer(int version) {
     return (BUKKIT_VERSION >= version);
   }
@@ -41,7 +44,8 @@ public final class Utils {
   }
   
   public static String getWithPlaceholders(String string, Player player) {
-    return PlaceholderAPI.setPlaceholders(player, string).replace(ConfigurationConstants.SPACE_SYMBOL, " ");
+    return PlaceholderAPI.setPlaceholders(player, string).replace(
+        ZNPConfigUtils.getConfig(ConfigConfiguration.class).replaceSymbol, " ");
   }
   
   public static String randomString(int length) {

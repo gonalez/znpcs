@@ -1,5 +1,6 @@
 package io.github.gonalez.znpcs.commands.list;
 
+import static io.github.gonalez.znpcs.ZNPConfigUtils.getConfig;
 import static io.github.gonalez.znpcs.utility.Utils.toColor;
 
 import com.google.common.base.Joiner;
@@ -8,13 +9,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.commands.Command;
 import io.github.gonalez.znpcs.commands.CommandInformation;
 import io.github.gonalez.znpcs.commands.CommandSenderUtil;
 import io.github.gonalez.znpcs.commands.list.inventory.ConversationGUI;
-import io.github.gonalez.znpcs.configuration.Configuration;
-import io.github.gonalez.znpcs.configuration.ConfigurationConstants;
-import io.github.gonalez.znpcs.configuration.ConfigurationValue;
+import io.github.gonalez.znpcs.configuration.ConversationsConfiguration;
+import io.github.gonalez.znpcs.configuration.DataConfiguration;
+import io.github.gonalez.znpcs.configuration.MessagesConfiguration;
 import io.github.gonalez.znpcs.npc.FunctionContext;
 import io.github.gonalez.znpcs.npc.FunctionFactory;
 import io.github.gonalez.znpcs.npc.ItemSlot;
@@ -30,12 +32,14 @@ import io.github.gonalez.znpcs.npc.conversation.ConversationModel;
 import io.github.gonalez.znpcs.skin.SkinFetcherResult;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.PlaceholderUtils;
+import io.github.gonalez.znpcs.utility.Utils;
 import io.github.gonalez.znpcs.utility.location.ZLocation;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -55,16 +59,17 @@ public class DefaultCommand extends Command {
 
   private static final SkinFunction DO_APPLY_SKIN = new SkinFunction() {
     @Override
-    public void apply(CommandSender commandSender, NPC npc, String skinName,
-                      @Nullable SkinFetcherResult result) {
+    public void apply(CommandSender commandSender, NPC npc, String skinName, @Nullable SkinFetcherResult result) {
       NPCSkin.forName(skinName, (paramArrayOfString, throwable) -> {
         if (throwable != null) {
-          Configuration.MESSAGES.sendMessage(commandSender, ConfigurationValue.CANT_GET_SKIN, skinName);
+          Utils.sendMessage(commandSender, getConfig(MessagesConfiguration.class).cantGetSkin, skinName);
         } else {
           npc.changeSkin(NPCSkin.forValues(paramArrayOfString));
-          Configuration.MESSAGES.sendMessage(commandSender, ConfigurationValue.GET_SKIN);
+          Utils.sendMessage(commandSender, getConfig(MessagesConfiguration.class).getSkin, skinName);
         }
-        if (result != null) result.onDone(paramArrayOfString, throwable);
+        if (result != null) {
+          result.onDone(paramArrayOfString, throwable);
+        }
       });
     }
   };
@@ -90,29 +95,29 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"id", "type", "name"}, name = "create", permission = "znpcs.cmd.create", help = {" &f&l* &e/znpcs create <npc_id> PLAYER Qentin"})
   public void createNPC(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 3) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     }
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     }
-    boolean foundNPC = ConfigurationConstants.NPC_LIST.stream().anyMatch(npc -> (npc.getId() == id));
+    boolean foundNPC = getConfig(DataConfiguration.class).npcList.stream().anyMatch(npc -> (npc.getId() == id));
     if (foundNPC) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcFound);
       return;
     }
     NPCType npcType = NPCType.valueOf(args.get(1).toUpperCase());
     String name = args.get(2).trim();
     if (name.length() < 3 || name.length() > 16) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NAME_LENGTH);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNameLength);
       return;
     }
     NPC npc = ServersNPC.createNPC(id, npcType, ((Player)sender).getLocation(), name);
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
     if (npcType == NPCType.PLAYER) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.FETCHING_SKIN, name);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).fetchingSkin, name);
       DO_APPLY_SKIN.apply(sender, npc, name, null);
 
       if (args.size() >= 3) {
@@ -120,34 +125,34 @@ public class DefaultCommand extends Command {
       }
     }
   }
-  
+
   @CommandInformation(arguments = {"id"}, name = "delete", permission = "znpcs.cmd.delete", help = {" &f&l* &e/znpcs delete <npc_id>"})
   public void deleteNPC(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
-    } 
+    }
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
-    } 
+    }
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
-    } 
+    }
     ServersNPC.deleteNPC(id);
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
-  
+
   @CommandInformation(arguments = {}, name = "list", permission = "znpcs.cmd.list")
   public void list(CommandSender sender, ImmutableList<String> args) {
-    if (ConfigurationConstants.NPC_LIST.isEmpty()) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_NPC_FOUND);
+    if (getConfig(DataConfiguration.class).npcList.isEmpty()) {
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noNpcFound);
     } else {
       sender.sendMessage(ChatColor.DARK_GREEN + "NPC list:");
-      for (NPCModel npcModel : ConfigurationConstants.NPC_LIST) {
+      for (NPCModel npcModel : getConfig(DataConfiguration.class).npcList) {
         List<BaseComponent> parts = new ArrayList<>();
 
         String message = "- "
@@ -198,24 +203,24 @@ public class DefaultCommand extends Command {
       "&7placeholders are supported, example: &e%someplugin_balance_top_1%"})
   public void setSkin(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     }
 
     String skin = args.get(1).trim();
     foundNPC.getNpcPojo().setSkinName(skin);
 
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.FETCHING_SKIN, skin);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).fetchingSkin, skin);
     DO_APPLY_SKIN.apply(sender, foundNPC, PlaceholderUtils.formatPlaceholders(skin), new SkinFetcherResult() {
       @Override
       public void onDone(String[] paramArrayOfString, Throwable paramThrowable) {
@@ -236,17 +241,17 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"id", "slot"}, name = "equip", permission = "znpcs.cmd.equip", help = {" &f&l* &e/znpcs equip <npc_id> [HAND,OFFHAND,HELMET,CHESTPLATE,LEGGINGS,BOOTS]", "&8(You need to have the item in your hand.)"})
   public void equip(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     foundNPC.getNpcPojo().getNpcEquip().put(
@@ -255,7 +260,7 @@ public class DefaultCommand extends Command {
     foundNPC.getPackets().flushCache("equipPackets");
     Objects.requireNonNull(foundNPC);
     foundNPC.getViewers().forEach(foundNPC::sendEquipPackets);
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"id", "set", "add", "list", "remove"}, name = "lines",
@@ -267,19 +272,19 @@ public class DefaultCommand extends Command {
   })
   public void changeLines(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     }
 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     }
 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     }
 
@@ -305,11 +310,11 @@ public class DefaultCommand extends Command {
         case "remove":
           Integer num = Ints.tryParse(args.get(2));
           if (num == null) {
-            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+            Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
             return;
           }
           if (num >= foundNPC.getNpcPojo().getHologramLines().size()) {
-            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_LINE_FOUND);
+            Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noLineFound);
             return;
           }
           foundNPC.getNpcPojo().getHologramLines().remove(
@@ -320,55 +325,55 @@ public class DefaultCommand extends Command {
       }
     }
     foundNPC.getHologram().createHologram();
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"id"}, name = "move", permission = "znpcs.cmd.move", help = {" &f&l* &e/znpcs move <npc_id>"})
   public void move(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     }
 
     foundNPC.getNpcPojo().setLocation(new ZLocation(((Player)sender).getLocation()));
     foundNPC.changeType(foundNPC.getNpcPojo().getNpcType());
 
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"id", "type"}, name = "type", permission = "znpcs.cmd.type", help = {" &f&l* &e/znpcs type <npc_id> ZOMBIE"})
   public void changeType(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     NPCType npcType = NPCType.valueOf(args.get(1).toUpperCase());
     if (npcType != NPCType.PLAYER && npcType.getConstructor() == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.UNSUPPORTED_ENTITY);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).unsupportedEntity);
       return;
     } 
     foundNPC.changeType(npcType);
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"add", "remove", "cooldown", "list"}, name = "action", isMultiple = true, permission = "znpcs.cmd.action",
@@ -379,18 +384,18 @@ public class DefaultCommand extends Command {
           " &f&l* &e/znpcs action <npc_id> cooldown <action_id> <delay_in_seconds>", " &f&l* &e/znpcs action list <npc_id>"})
   public void action(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     }
 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     }
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     }
 
@@ -398,42 +403,42 @@ public class DefaultCommand extends Command {
     switch (args.get(1)) {
       case "add":
         if (split.isEmpty()) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.ACTION_ADD_INCORRECT_USAGE);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).actionAddIncorrectUsage);
           return;
         }
         foundNPC.getNpcPojo().getClickActions().add(new NPCAction(split.get(1).toUpperCase(), SPACE_JOINER.join(Iterables.skip(split, 2))));
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         break;
       case "remove":
         Integer actionId = Ints.tryParse(split.get(1));
         if (actionId == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
         } else {
           if (actionId >= foundNPC.getNpcPojo().getClickActions().size()) {
-            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_ACTION_FOUND);
+            Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noActionFound);
             return;
           }
           foundNPC.getNpcPojo().getClickActions().remove(actionId.intValue());
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         }
         break;
       case "cooldown":
         Integer actionDelay = Ints.tryParse(split.get(2));
         actionId = Ints.tryParse(split.get(1));
         if (actionId == null || id == null || actionDelay == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
         } else {
           if (actionId >= foundNPC.getNpcPojo().getClickActions().size()) {
-            Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_ACTION_FOUND);
+            Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noActionFound);
             return;
           }
           foundNPC.getNpcPojo().getClickActions().get(actionId).setDelay(actionDelay);
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         }
         break;
       case "list":
         if (foundNPC.getNpcPojo().getClickActions().isEmpty()) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_ACTION_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noActionFound);
         } else {
           foundNPC.getNpcPojo().getClickActions().forEach(s -> sender.sendMessage("&8(&a" + foundNPC.getNpcPojo().getClickActions().indexOf(s) + "&8) &6" + s.toString()));
         }
@@ -446,17 +451,17 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"id", "type", "valueOptional"}, name = "toggle", permission = "znpcs.cmd.toggle", help = {" &f&l* &e/znpcs toggle <npc_id> look"})
   public void toggle(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     NPCFunction npcFunction = FunctionFactory.findFunctionForName(args.get(1));
@@ -465,23 +470,23 @@ public class DefaultCommand extends Command {
     } else {
       npcFunction.doRunFunction(foundNPC, new FunctionContext.DefaultContext(foundNPC));
     } 
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"id", "customizeValues"}, name = "customize", permission = "znpcs.cmd.customize", help = {" &f&l* &e/znpcs customize <npc_id> <customization>"})
   public void customize(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     NPCType npcType = foundNPC.getNpcPojo().getNpcType();
@@ -491,15 +496,15 @@ public class DefaultCommand extends Command {
       Method method = npcType.getCustomizationLoader().getMethods().get(methodName);
       Iterable<String> split = Iterables.skip(customizeOptions, 1);
       if (Iterables.size(split) < (method.getParameterTypes()).length) {
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.TOO_FEW_ARGUMENTS);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).tooFewArguments);
         return;
       } 
       String[] values = Iterables.toArray(split, String.class);
       npcType.updateCustomization(foundNPC, methodName, values);
       foundNPC.getNpcPojo().getCustomizationMap().put(methodName, values);
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
     } else {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.METHOD_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).methodNotFound);
       for (Map.Entry<String, Method> method : npcType.getCustomizationLoader().getMethods().entrySet())
         sender.sendMessage(ChatColor.YELLOW + method.getKey() + " " + SPACE_JOINER.join(method.getValue().getParameterTypes()));
     } 
@@ -508,7 +513,7 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"set", "create", "exit", "path", "list"}, name = "path", isMultiple = true, permission = "znpcs.cmd.path", help = {" &f&l* &e/znpcs path create name", " &f&l* &e/znpcs path set <npc_id> name"})
   public void path(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     }
 
@@ -520,26 +525,26 @@ public class DefaultCommand extends Command {
       case "set":
         Integer id = Ints.tryParse(args.get(1));
         if (id == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
           return;
         }
 
         NPC foundNPC = NPC.find(id);
         if (foundNPC == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
           return;
         }
         foundNPC.setPath(NPCPath.AbstractTypeWriter.find(args.get(2)));
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         break;
       case "create":
         String pathName = args.get(1);
         if (pathName.length() < 3 || pathName.length() > 16) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NAME_LENGTH);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNameLength);
           return;
         }
         if (NPCPath.AbstractTypeWriter.find(pathName) != null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.PATH_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).pathFound);
           return;
         }
         if (znpcUser.isHasPath()) {
@@ -549,15 +554,15 @@ public class DefaultCommand extends Command {
 
         File file = path.resolve(pathName + ServersNPC.PATH_EXTENSION).toFile();
         NPCPath.AbstractTypeWriter.forCreation(file, znpcUser, NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT);
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.PATH_START);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).pathStart);
         break;
       case "exit":
         znpcUser.setHasPath(false);
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.EXIT_PATH);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).exitPath);
         break;
       case "list":
         if (NPCPath.AbstractTypeWriter.getPaths().isEmpty()) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_PATH_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noPathFound);
         } else {
           NPCPath.AbstractTypeWriter.getPaths().forEach(path -> sender.sendMessage(ChatColor.GREEN + path.getName()));
         }
@@ -570,17 +575,17 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"id"}, name = "teleport", permission = "znpcs.cmd.teleport", help = {" &f&l* &e/znpcs teleport <npc_id>"})
   public void teleport(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     ((Player)sender).teleport(foundNPC.getLocation());
@@ -589,58 +594,59 @@ public class DefaultCommand extends Command {
   @CommandInformation(arguments = {"id", "height"}, name = "height", permission = "znpcs.cmd.height", help = {" &f&l* &e/znpcs height <npc_id> 2", "&8Add more height to the hologram of the npc"})
   public void changeHologramHeight(CommandSender sender, ImmutableList<String> args) {
     if (args.size() < 2) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     } 
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     NPC foundNPC = NPC.find(id);
     if (foundNPC == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
       return;
     } 
     Double givenHeight = Doubles.tryParse(args.get(1));
     if (givenHeight == null) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
       return;
     } 
     foundNPC.getNpcPojo().setHologramHeight(givenHeight);
     foundNPC.getHologram().createHologram();
-    Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
   }
   
   @CommandInformation(arguments = {"create", "remove", "gui", "set"}, name = "conversation", isMultiple = true, permission = "znpcs.cmd.conversation", help = {" &f&l* &e/znpcs conversation create first", " &f&l* &e/znpcs conversation remove first", " &f&l* &e/znpcs conversation set <npc_id> first [CLICK:RADIUS]", " &f&l* &e/znpcs conversation gui &8(&7Open a gui to manage the conversations&8)", "&8RADIUS: &7it is activated when the player is near the npc", "&8CLICK: &7it is activated when the player interacts with the npc"})
   public void conversations(CommandSender sender, ImmutableList<String> args) {
-    if (args.size() < 1) {
-      Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INCORRECT_USAGE);
+    if (args.isEmpty()) {
+      Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).incorrectUsage);
       return;
     }
 
     switch (args.get(0)) {
-      case "create":
+      case "create": {
         String conversationName = args.get(1);
         if (Conversation.exists(conversationName)) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.CONVERSATION_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).conversationFound);
           return;
         }
         if (conversationName.length() < 3 || conversationName.length() > 16) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NAME_LENGTH);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNameLength);
           return;
         }
-        ConfigurationConstants.NPC_CONVERSATIONS.add(new Conversation(conversationName));
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        getConfig(ConversationsConfiguration.class).conversationList.add(new Conversation(conversationName));
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         break;
+      }
       case "remove":
-        conversationName = args.get(1);
+        String conversationName = args.get(1);
         if (!Conversation.exists(conversationName)) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NO_CONVERSATION_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).noConversationFound);
           return;
         }
-        ConfigurationConstants.NPC_CONVERSATIONS.remove(Conversation.forName(conversationName));
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        getConfig(ConversationsConfiguration.class).conversationList.remove(Conversation.forName(conversationName));
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         break;
       case "gui":
         ((Player)sender).openInventory((new ConversationGUI(((Player) sender))).build());
@@ -648,17 +654,17 @@ public class DefaultCommand extends Command {
       case "set":
         List<String> split = args.subList(1, args.size());
         if (split.size() < 2) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.CONVERSATION_SET_INCORRECT_USAGE);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).conversationSetIncorrectUsage);
           return;
         }
         Integer id = Ints.tryParse(split.get(0));
         if (id == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.INVALID_NUMBER);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).invalidNumber);
           return;
         }
         NPC foundNPC = NPC.find(id);
         if (foundNPC == null) {
-          Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.NPC_NOT_FOUND);
+          Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).npcNotFound);
           return;
         }
         conversationName = split.get(1);
@@ -667,7 +673,7 @@ public class DefaultCommand extends Command {
         } else {
           foundNPC.getNpcPojo().setConversation(null);
         }
-        Configuration.MESSAGES.sendMessage(sender, ConfigurationValue.SUCCESS);
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
         break;
       default:
         break;

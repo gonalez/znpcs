@@ -2,9 +2,10 @@ package io.github.gonalez.znpcs;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.github.gonalez.znpcs.ZNPConfigUtils.PluginConfigConfigurationManager;
 import io.github.gonalez.znpcs.commands.list.DefaultCommand;
-import io.github.gonalez.znpcs.configuration.Configuration;
-import io.github.gonalez.znpcs.configuration.ConfigurationConstants;
+import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
+import io.github.gonalez.znpcs.configuration.DataConfiguration;
 import io.github.gonalez.znpcs.listeners.InventoryListener;
 import io.github.gonalez.znpcs.listeners.PlayerListener;
 import io.github.gonalez.znpcs.npc.NPC;
@@ -12,7 +13,6 @@ import io.github.gonalez.znpcs.npc.NPCModel;
 import io.github.gonalez.znpcs.npc.NPCPath;
 import io.github.gonalez.znpcs.npc.NPCType;
 import io.github.gonalez.znpcs.npc.task.NPCManagerTask;
-import io.github.gonalez.znpcs.npc.task.NPCSaveTask;
 import io.github.gonalez.znpcs.npc.task.NpcRefreshSkinTask;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.BungeeUtils;
@@ -38,8 +38,6 @@ import java.util.logging.Level;
 public class ServersNPC extends JavaPlugin {
   public static final String PATH_EXTENSION = ".path";
 
-  public static final File PLUGIN_FOLDER = new File("plugins/ServersNPC");
-
   public static final Gson GSON =
       (new GsonBuilder())
           .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
@@ -52,7 +50,10 @@ public class ServersNPC extends JavaPlugin {
 
   public static BungeeUtils BUNGEE_UTILS;
 
-  @Override public void onEnable() {
+  private ZNPConfigSaveTask configSaveTask;
+
+  @Override
+  public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
     Path pathPath = pluginPath.resolve("paths");
 
@@ -64,25 +65,33 @@ public class ServersNPC extends JavaPlugin {
 
     getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     new MetricsLite(this, 8054);
+
+    ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationManager(pluginPath, GSON));
     new DefaultCommand(pathPath);
+
     SCHEDULER = new SchedulerUtils(this);
     BUNGEE_UTILS = new BungeeUtils(this);
     Bukkit.getOnlinePlayers().forEach(ZUser::find);
     new NPCManagerTask(this);
-    new NPCSaveTask(this, ConfigurationConstants.SAVE_DELAY);
+    (configSaveTask = new ZNPConfigSaveTask()).runTaskTimerAsynchronously(this, 300,
+        ZNPConfigUtils.getConfig(ConfigConfiguration.class).saveNpcsDelaySeconds);
     new NpcRefreshSkinTask().runTaskTimerAsynchronously(this, 0L, 20L);
     new PlayerListener(this);
     new InventoryListener(this);
   }
 
-  @Override public void onDisable() {
-    Configuration.SAVE_CONFIGURATIONS.forEach(Configuration::save);
+  @Override
+  public void onDisable() {
     Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
+    if (configSaveTask != null) {
+      configSaveTask.run();
+    }
   }
 
   /**
-   * Finds all files eligible to be a npc path, which are the ones whose names end with
-   * {@link #PATH_EXTENSION}, reads the file to a npc path and initializes it.
+   * Finds all files that qualify as NPC paths. A file is considered a valid NPC path file
+   * if its name ends with {@link #PATH_EXTENSION}. This method reads each qualifying file
+   * and converts it to an NPC path & initializes it.
    */
   private void loadAllPaths(Path directory) throws IOException {
     if (Files.isDirectory(directory)) {
@@ -115,7 +124,8 @@ public class ServersNPC extends JavaPlugin {
             .withHologramLines(Collections.singletonList(name))
             .withLocation(new ZLocation(location))
             .withNpcType(npcType);
-    ConfigurationConstants.NPC_LIST.add(pojo);
+    // TODO: Make a proper npc saving
+    ZNPConfigUtils.getConfig(DataConfiguration.class).npcList.add(pojo);
     return new NPC(pojo, true);
   }
 
@@ -124,6 +134,7 @@ public class ServersNPC extends JavaPlugin {
     if (npc == null)
       throw new IllegalStateException("can't find npc:  " + npcID);
     NPC.unregister(npcID);
-    ConfigurationConstants.NPC_LIST.remove(npc.getNpcPojo());
+    // TODO: Make a proper npc saving
+    ZNPConfigUtils.getConfig(DataConfiguration.class).npcList.remove(npc.getNpcPojo());
   }
 }

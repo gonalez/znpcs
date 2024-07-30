@@ -69,10 +69,11 @@ public abstract class AbstractConfigurationManager implements ConfigurationManag
    * values represent the desired values to be set for those fields.
    */
   protected abstract ImmutableMap<String, Object> readConfigValues(
-      Class<? extends Configuration> config);
+      Class<? extends Configuration> config, ConfigurationFieldResolver fieldResolver);
 
   @Override
-  public <T extends Configuration> T createConfiguration(Class<T> type) {
+  public <T extends Configuration> T createConfiguration(
+      Class<T> type, ConfigurationFieldResolver fieldResolver) {
     T configuration;
     try {
       configuration = type.newInstance();
@@ -81,7 +82,7 @@ public abstract class AbstractConfigurationManager implements ConfigurationManag
     }
     ImmutableMap<String, Field> configInfo = getConfigFields(type);
     if (!configInfo.isEmpty()) {
-      ImmutableMap<String, Object> configValues = readConfigValues(type);
+      ImmutableMap<String, Object> configValues = readConfigValues(type, fieldResolver);
       for (Entry<String, Field> entry : configInfo.entrySet()) {
         if (configValues.containsKey(entry.getKey())) {
           try {

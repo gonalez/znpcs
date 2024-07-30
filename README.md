@@ -1,11 +1,15 @@
-ZNPCs
-======
+[spigot-link]: https://www.spigotmc.org/resources/znpcs.80940
+[wiki-link]: https://github.com/gonalez/znpcs/wiki
 
-A [minecraft plugin][spigot-link] to create NPCs (non-player entities). 
-See the [wiki][wiki-link] for usage examples.
+# ZNPCs
 
-License
--------
+ZNPCs is a [minecraft plugin][spigot-link] to create NPCs (non-player entities).
+
+### Learn more
+
+See the [wiki][wiki-link] for documentation & usage examples.   
+
+## License
 
     Copyright 2024 - Gaston Gonzalez (Gonalez).
     
@@ -20,6 +24,3 @@ License
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-
-[spigot-link]: https://www.spigotmc.org/resources/znpcs.80940
-[wiki-link]: https://github.com/gonalez/znpcs/wiki
