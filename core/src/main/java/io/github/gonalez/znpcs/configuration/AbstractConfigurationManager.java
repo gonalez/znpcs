@@ -60,6 +60,8 @@ public abstract class AbstractConfigurationManager implements ConfigurationManag
     return ImmutableMap.copyOf(transformValues(getConfigFields(configurationClass), Field::getType));
   }
 
+  public AbstractConfigurationManager() {}
+
   /**
    * Returns the entries to populate the fields of a configuration instance for
    * the given configuration class.
@@ -69,11 +71,11 @@ public abstract class AbstractConfigurationManager implements ConfigurationManag
    * values represent the desired values to be set for those fields.
    */
   protected abstract ImmutableMap<String, Object> readConfigValues(
-      Class<? extends Configuration> config, ConfigurationFieldResolver fieldResolver);
+      Class<? extends Configuration> config, ConfigurationFormat fieldResolver);
 
   @Override
   public <T extends Configuration> T createConfiguration(
-      Class<T> type, ConfigurationFieldResolver fieldResolver) {
+      Class<T> type, ConfigurationFormat fieldResolver) {
     T configuration;
     try {
       configuration = type.newInstance();

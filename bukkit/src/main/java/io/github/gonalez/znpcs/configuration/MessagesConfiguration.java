@@ -103,22 +103,22 @@ public class MessagesConfiguration extends Configuration {
   public String unsupportedEntity = "&cEntity type not available for your current version.";
 
   @ConfigurationKey(
-      name = "PATH_SET.incorrectUsage",
+      name = "PATH_SET_INCORRECT_USAGE",
       description = "Message for incorrect path set usage")
   public String pathSetIncorrectUsage = "&eUsage: &aset <npc_id> <path_name>";
 
   @ConfigurationKey(
-      name = "ACTION_ADD.incorrectUsage",
+      name = "ACTION_ADD_INCORRECT_USAGE",
       description = "Message for incorrect action add usage")
   public String actionAddIncorrectUsage = "&eUsage: &a<SERVER:CMD:MESSAGE:CONSOLE> <actionValue>";
 
   @ConfigurationKey(
-      name = "ACTION_DELAY.incorrectUsage",
+      name = "ACTION_DELAY_INCORRECT_USAGE",
       description = "Message for incorrect action delay usage")
   public String actionDelayIncorrectUsage = "&eUsage: &a<action_id> <delay>";
 
   @ConfigurationKey(
-      name = "CONVERSATION_SET.incorrectUsage",
+      name = "CONVERSATION_SET_INCORRECT_USAGE",
       description = "Message for incorrect conversation set usage")
   public String conversationSetIncorrectUsage = "&cUsage: <npc_id> <conversation_name> <RADIUS:CLICK>";
 

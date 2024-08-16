@@ -16,14 +16,19 @@
 
 package io.github.gonalez.znpcs.configuration;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.io.BufferedWriter;
+import io.github.gonalez.znpcs.configuration.ConfigurationFormat.Reader;
+import io.github.gonalez.znpcs.configuration.ConfigurationFormat.Writer;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,27 +48,25 @@ public abstract class GsonConfigurationManager extends PathConfigurationManager 
 
   @Nullable
   @Override
-  public ConfigurationFieldResolver createDefaultConfigurationFieldResolver() {
-    return new GsonObjectConfigurationFieldResolver(gson);
+  public ConfigurationFormat createDefaultWriter() {
+    return new GsonObjectConfigurationWriter(gson);
   }
 
   @Override
-  public boolean supportWrite(Configuration configuration) {
+  public boolean supportsWrite(Configuration configuration) {
     return getPath(configuration.getClass()) != null;
   }
 
   @Override
   protected ImmutableMap<String, Object> readConfigValues(
-      Class<? extends Configuration> configurationClass, ConfigurationFieldResolver fieldResolver) {
+      Class<? extends Configuration> configurationClass, ConfigurationFormat configurationFormat) {
     Path path = getPathOrThrow(configurationClass);
     ImmutableMap<String, Class<?>> fields = getConfigFieldsToFieldType(configurationClass);
-
-    try (Reader reader = Files.newBufferedReader(path)) {
-      JsonObject object = gson.fromJson(reader, JsonObject.class);
+    try (InputStream inputStream = Files.newInputStream(path);
+        Reader reader = configurationFormat.open(inputStream)) {
       ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
       for (Entry<String, Class<?>> entry : fields.entrySet()) {
-        builder.put(entry.getKey(), gson.fromJson(
-            object.get(entry.getKey()), entry.getValue()));
+        builder.put(entry.getKey(), reader.readFromStream(entry.getKey(), entry.getValue()));
       }
       return builder.build();
     } catch (IOException e) {
@@ -73,37 +76,95 @@ public abstract class GsonConfigurationManager extends PathConfigurationManager 
   }
 
   @Override
-  public void writeConfig(Configuration configuration, ConfigurationFieldResolver fieldResolver) {
+  public void writeConfig(Configuration configuration, ConfigurationFormat configurationFormat) {
     Path path = getPathOrThrow(configuration.getClass());
     ImmutableMap<String, Field> fields = getConfigFields(configuration.getClass());
-
-    try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+    try (OutputStream outputStream = Files.newOutputStream(path);
+        Writer writer = configurationFormat.open(outputStream)) {
       for (Entry<String, Field> entry : fields.entrySet()) {
         Object value = entry.getValue().get(configuration);
-        fieldResolver.writeField(writer, new KeyAndValue(entry.getKey(), value));
+        writer.addForWrite(entry.getKey(), value);
       }
-      fieldResolver.writeConfig(writer, configuration);
+      writer.writeToStream(configuration);
     } catch (Exception e) {
       throw new ConfigurationException("Failed to write configuration: " + configuration, e);
     }
   }
 
-  public static class GsonObjectConfigurationFieldResolver implements ConfigurationFieldResolver {
+  public static class GsonObjectConfigurationWriter implements ConfigurationFormat {
     private final Gson gson;
-    private final JsonObject jsonObject = new JsonObject();
+    private final JsonObject jsonObject;
 
-    public GsonObjectConfigurationFieldResolver(Gson gson) {
+    public GsonObjectConfigurationWriter(Gson gson) {
+      this(gson, new JsonObject());
+    }
+
+    public GsonObjectConfigurationWriter(Gson gson, JsonObject jsonObject) {
       this.gson = Preconditions.checkNotNull(gson);
+      this.jsonObject = Preconditions.checkNotNull(jsonObject);
+    }
+
+    GsonObjectConfigurationWriter getInstance() {
+      return this;
     }
 
     @Override
-    public void writeField(Writer writer, KeyAndValue keyAndValue) {
-      jsonObject.add(keyAndValue.getKey(), gson.toJsonTree(keyAndValue.getValue()));
+    public Writer open(OutputStream outputStream) throws IOException {
+      OutputStreamWriter out = new OutputStreamWriter(outputStream, UTF_8);
+      return new Writer() {
+        @Override
+        public void addForWrite(String key, Object value) throws IOException {
+          jsonObject.add(key, gson.toJsonTree(value));
+        }
+
+        @Override
+        public void writeToStream(Configuration configuration) throws IOException {
+          gson.toJson(jsonObject, out);
+        }
+
+        @Override
+        public Writer open(OutputStream outputStream) throws IOException {
+          return getInstance().open(outputStream);
+        }
+
+        @Override
+        public Reader open(InputStream inputStream) throws IOException {
+          return getInstance().open(inputStream);
+        }
+
+        @Override
+        public void close() throws IOException {
+          out.close();
+        }
+      };
     }
 
     @Override
-    public void writeConfig(Writer writer, Configuration configuration) {
-      gson.toJson(jsonObject, writer);
+    public Reader open(InputStream inputStream) throws IOException {
+      InputStreamReader input = new InputStreamReader(inputStream, UTF_8);
+      return new Reader() {
+
+        @Override
+        public <T> T readFromStream(String key, Class<T> type) throws IOException {
+          JsonObject object = gson.fromJson(input, JsonObject.class);
+          return gson.fromJson(object.get(key), type);
+        }
+
+        @Override
+        public Writer open(OutputStream outputStream) throws IOException {
+          return getInstance().open(outputStream);
+        }
+
+        @Override
+        public Reader open(InputStream inputStream) throws IOException {
+          return getInstance().open(inputStream);
+        }
+
+        @Override
+        public void close() throws IOException {
+          input.close();
+        }
+      };
     }
   }
 }

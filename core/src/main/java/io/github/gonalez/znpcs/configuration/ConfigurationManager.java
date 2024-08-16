@@ -21,26 +21,25 @@ import javax.annotation.Nullable;
 /** Responsible for creating and managing configurations. */
 public interface ConfigurationManager {
 
-  @Nullable
-  ConfigurationFieldResolver createDefaultConfigurationFieldResolver();
+  @Nullable ConfigurationFormat createDefaultWriter();
 
   /** Creates a configuration of the given class. On error, it throws an ConfigurationException. */
   <T extends Configuration> T createConfiguration(Class<T> type,
-      ConfigurationFieldResolver fieldResolver) throws ConfigurationException;
+      ConfigurationFormat configurationWriter) throws ConfigurationException;
 
   /** Returns whether writing is supported for the given configuration. */
-  default boolean supportWrite(Configuration configuration) {
+  default boolean supportsWrite(Configuration configuration) {
     return false;
   }
 
   /**
    * Writes the configuration. On error, it throws an ConfigurationException.
    *
-   * <p>Note: when {@link #supportWrite(Configuration)} returns false,
+   * <p>Note: when {@link #supportsWrite(Configuration)} returns false,
    * this method will throw an {@link UnsupportedOperationException}.
    */
-  default void writeConfig(Configuration configuration,
-      ConfigurationFieldResolver fieldResolver) throws ConfigurationException {
+  default void writeConfig(Configuration configuration, ConfigurationFormat configurationWriter)
+      throws ConfigurationException {
     throw new UnsupportedOperationException("not supported yet");
   }
 }

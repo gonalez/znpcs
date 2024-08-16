@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs;
 
-import static com.google.common.base.Predicates.alwaysTrue;
+ import static com.google.common.base.Predicates.alwaysTrue;
 
 import org.bukkit.scheduler.BukkitRunnable;
 

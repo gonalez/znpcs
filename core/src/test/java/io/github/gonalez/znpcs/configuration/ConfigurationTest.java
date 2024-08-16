@@ -61,8 +61,8 @@ public class ConfigurationTest {
           }
         };
 
-    ExampleConfig configuration = configurationManager.createConfiguration(ExampleConfig.class,
-        configurationManager.createDefaultConfigurationFieldResolver());
+    ExampleConfig configuration = configurationManager.createConfiguration(
+        ExampleConfig.class, configurationManager.createDefaultWriter());
     assertThat(configuration.viewDistance).isEqualTo(32);
   }
 
@@ -85,8 +85,7 @@ public class ConfigurationTest {
     ExampleConfig configuration = new ExampleConfig();
     configuration.viewDistance = 32;
 
-    configurationManager.writeConfig(configuration,
-        configurationManager.createDefaultConfigurationFieldResolver());
-    assertThat(Files.toString(testPath.toFile(), UTF_8)).isEqualTo(EXAMPLE_CONFIG);
+    configurationManager.writeConfig(configuration, configurationManager.createDefaultWriter());
+    assertThat(Files.asCharSource(testPath.toFile(), UTF_8).read()).isEqualTo(EXAMPLE_CONFIG);
   }
 }

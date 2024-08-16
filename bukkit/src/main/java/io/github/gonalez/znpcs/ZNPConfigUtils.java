@@ -34,8 +34,8 @@ public final class ZNPConfigUtils {
 
   private static void setupConfigs(ConfigurationManager configurationManager) {
     for (Class<? extends Configuration> configType : PLUGIN_CONFIGURATIONS.keySet()) {
-      Configuration configuration = configurationManager.createConfiguration(configType,
-          configurationManager.createDefaultConfigurationFieldResolver());
+      Configuration configuration = configurationManager.createConfiguration(
+          configType, configurationManager.createDefaultWriter());
       knownConfigs.put(configType, configuration);
     }
   }
@@ -49,8 +49,7 @@ public final class ZNPConfigUtils {
     ConfigurationManager configurationManager = CONFIG_MANAGER_REF.get();
     for (Configuration configuration : knownConfigs.values()) {
       if (shouldSavePredicate.apply(configuration)) {
-        configurationManager.writeConfig(configuration,
-            configurationManager.createDefaultConfigurationFieldResolver());
+        configurationManager.writeConfig(configuration, configurationManager.createDefaultWriter());
       }
     }
   }
@@ -63,10 +62,10 @@ public final class ZNPConfigUtils {
     throw new NullPointerException("Not a plugin config: " + configType);
   }
 
-  static class PluginConfigConfigurationManager extends GsonConfigurationManager {
+  static class PluginConfigConfigurationFormat extends GsonConfigurationManager {
     private final Path pluginFolder;
 
-    public PluginConfigConfigurationManager(Path pluginFolder, Gson gson) {
+    public PluginConfigConfigurationFormat(Path pluginFolder, Gson gson) {
       super(gson);
       this.pluginFolder = Preconditions.checkNotNull(pluginFolder);
     }

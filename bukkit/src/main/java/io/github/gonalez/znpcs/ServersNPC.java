@@ -2,7 +2,7 @@ package io.github.gonalez.znpcs;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.github.gonalez.znpcs.ZNPConfigUtils.PluginConfigConfigurationManager;
+import io.github.gonalez.znpcs.ZNPConfigUtils.PluginConfigConfigurationFormat;
 import io.github.gonalez.znpcs.commands.list.DefaultCommand;
 import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.configuration.DataConfiguration;
@@ -66,7 +66,7 @@ public class ServersNPC extends JavaPlugin {
     getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     new MetricsLite(this, 8054);
 
-    ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationManager(pluginPath, GSON));
+    ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationFormat(pluginPath, GSON));
     new DefaultCommand(pathPath);
 
     SCHEDULER = new SchedulerUtils(this);
