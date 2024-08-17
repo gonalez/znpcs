@@ -1,13 +1,15 @@
 package io.github.gonalez.znpcs.npc;
 
+import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.skin.SkinFetcherBuilder;
 import io.github.gonalez.znpcs.skin.SkinFetcherResult;
 import io.github.gonalez.znpcs.utility.Utils;
 
+import java.util.Objects;
+import java.util.logging.Level;
+
 public class NPCSkin {
   private static final String[] EMPTY_ARRAY = new String[] { "", "" };
-  
-  private static final int LAYER_INDEX = SkinLayerValues.findLayerByVersion();
   
   private final String texture;
   
@@ -29,7 +31,7 @@ public class NPCSkin {
   }
   
   public int getLayerIndex() {
-    return LAYER_INDEX;
+    return SkinLayerValues.findLayerByVersion();
   }
   
   public static NPCSkin forValues(String... values) {
@@ -58,6 +60,19 @@ public class NPCSkin {
     }
     
     static int findLayerByVersion() {
+      try{
+        if (CacheRegistry.GET_PLAYER_MODEL_PARTS != null){
+          //for static field's null is okay
+          Object playerModelParts = CacheRegistry.GET_PLAYER_MODEL_PARTS.load().get(null);
+          return (int) CacheRegistry.GET_TRACKED_DATA_ID.load().invoke(Objects.requireNonNull(playerModelParts));
+        }else{
+          ((java.util.logging.Logger)org.bukkit.Bukkit.getServer().getLogger()).log(Level.INFO, "CacheRegistry.GET_PLAYER_MODEL_PARTS was null. " + Utils.getBukkitPackage()+ ", " +Utils.BUKKIT_VERSION);
+        }
+      }catch (Throwable throwable){
+        org.bukkit.Bukkit.getServer().getLogger().log(Level.INFO, "Could not get Dynamic Layer Id of PlayerModel entitydata", new RuntimeException(throwable));
+      } //Some error occurred. maybe the field did not exist?
+      org.bukkit.Bukkit.getServer().getLogger().log(Level.INFO, "Falling back to hardcoded values.");
+      
       int value = V8.layerValue;
       for (SkinLayerValues skinLayerValue : values()) {
         if (Utils.BUKKIT_VERSION >= skinLayerValue.minVersion)
