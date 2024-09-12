@@ -1,5 +1,6 @@
 package io.github.gonalez.znpcs.commands.list;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static io.github.gonalez.znpcs.ZNPConfigUtils.getConfig;
 import static io.github.gonalez.znpcs.utility.Utils.toColor;
 
@@ -8,8 +9,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.commands.Command;
 import io.github.gonalez.znpcs.commands.CommandInformation;
 import io.github.gonalez.znpcs.commands.CommandSenderUtil;
@@ -29,7 +31,10 @@ import io.github.gonalez.znpcs.npc.NPCSkin;
 import io.github.gonalez.znpcs.npc.NPCType;
 import io.github.gonalez.znpcs.npc.conversation.Conversation;
 import io.github.gonalez.znpcs.npc.conversation.ConversationModel;
-import io.github.gonalez.znpcs.skin.SkinFetcherResult;
+import io.github.gonalez.znpcs.skin.ApplySkinFetcherListener;
+import io.github.gonalez.znpcs.skin.GameProfiles;
+import io.github.gonalez.znpcs.skin.SkinFetcher;
+import io.github.gonalez.znpcs.skin.SkinFetcherListener;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.PlaceholderUtils;
 import io.github.gonalez.znpcs.utility.Utils;
@@ -39,12 +44,10 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -57,30 +60,31 @@ import java.util.Objects;
 public class DefaultCommand extends Command {
   private static final Joiner SPACE_JOINER = Joiner.on(" ");
 
-  private static final SkinFunction DO_APPLY_SKIN = new SkinFunction() {
-    @Override
-    public void apply(CommandSender commandSender, NPC npc, String skinName, @Nullable SkinFetcherResult result) {
-      NPCSkin.forName(skinName, (paramArrayOfString, throwable) -> {
-        if (throwable != null) {
-          Utils.sendMessage(commandSender, getConfig(MessagesConfiguration.class).cantGetSkin, skinName);
-        } else {
-          npc.changeSkin(NPCSkin.forValues(paramArrayOfString));
-          Utils.sendMessage(commandSender, getConfig(MessagesConfiguration.class).getSkin, skinName);
-        }
-        if (result != null) {
-          result.onDone(paramArrayOfString, throwable);
-        }
-      });
-    }
-  };
-
   private final Path path;
+  private final SkinFetcher skinFetcher;
 
-  public DefaultCommand(Path path) {
+  public DefaultCommand(Path path, SkinFetcher skinFetcher) {
     super("znpcs");
     this.path = path;
+    this.skinFetcher = checkNotNull(skinFetcher, "skinFetcher can't be null");
   }
-  
+
+  private void applySkin(NPC npc, String skinName, CommandSender sender) {
+    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).fetchingSkin, skinName);
+    skinFetcher.fetchGameProfile(skinName, new ApplySkinFetcherListener(npc) {
+      @Override
+      public void onComplete(GameProfile gameProfile) {
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).getSkin, skinName);
+        super.onComplete(gameProfile);
+      }
+
+      @Override
+      public void onError(Throwable error) {
+        Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).cantGetSkin, skinName);
+      }
+    });
+  }
+
   @CommandInformation(arguments = {}, name = "", permission = "")
   public void defaultCommand(CommandSender sender, ImmutableList<String> args) {
     sender.sendMessage(toColor("&6&m------------------------------------------"));
@@ -118,11 +122,7 @@ public class DefaultCommand extends Command {
     Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).success);
     if (npcType == NPCType.PLAYER) {
       Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).fetchingSkin, name);
-      DO_APPLY_SKIN.apply(sender, npc, name, null);
-
-      if (args.size() >= 3) {
-        sender.sendMessage("");
-      }
+      applySkin(npc, name, sender);
     }
   }
 
@@ -220,22 +220,7 @@ public class DefaultCommand extends Command {
     String skin = args.get(1).trim();
     foundNPC.getNpcPojo().setSkinName(skin);
 
-    Utils.sendMessage(sender, getConfig(MessagesConfiguration.class).fetchingSkin, skin);
-    DO_APPLY_SKIN.apply(sender, foundNPC, PlaceholderUtils.formatPlaceholders(skin), new SkinFetcherResult() {
-      @Override
-      public void onDone(String[] paramArrayOfString, Throwable paramThrowable) {
-        if (args.size() == 3) {
-          Integer refreshSkinDuration = Ints.tryParse(args.get(2));
-          if (refreshSkinDuration != null) {
-            foundNPC.getNpcPojo().setRefreshSkinDuration(refreshSkinDuration);
-            sender.sendMessage(ChatColor.GREEN + "The skin will refresh every: " +
-                ChatColor.YELLOW +  refreshSkinDuration + ChatColor.GREEN + " seconds.");
-          }
-        } else {
-          foundNPC.getNpcPojo().setRefreshSkinDuration(0);
-        }
-      }
-    });
+    applySkin(foundNPC, PlaceholderUtils.formatPlaceholders(skin), sender);
   }
   
   @CommandInformation(arguments = {"id", "slot"}, name = "equip", permission = "znpcs.cmd.equip", help = {" &f&l* &e/znpcs equip <npc_id> [HAND,OFFHAND,HELMET,CHESTPLATE,LEGGINGS,BOOTS]", "&8(You need to have the item in your hand.)"})
@@ -678,9 +663,5 @@ public class DefaultCommand extends Command {
       default:
         break;
     }
-  }
-  
-  interface SkinFunction {
-    void apply(CommandSender commandSender, NPC npc, String skinName, SkinFetcherResult result);
   }
 }

@@ -1,7 +1,5 @@
 package io.github.gonalez.znpcs.npc;
 
-import io.github.gonalez.znpcs.skin.SkinFetcherBuilder;
-import io.github.gonalez.znpcs.skin.SkinFetcherResult;
 import io.github.gonalez.znpcs.utility.Utils;
 
 public class NPCSkin {
@@ -35,11 +33,7 @@ public class NPCSkin {
   public static NPCSkin forValues(String... values) {
     return new NPCSkin((values.length > 0) ? values : EMPTY_ARRAY);
   }
-  
-  public static void forName(String skin, SkinFetcherResult skinFetcherResult) {
-    SkinFetcherBuilder.withName(skin).toSkinFetcher().doReadSkin(skinFetcherResult);
-  }
-  
+
   enum SkinLayerValues {
     V8(8, 12),
     V9(10, 13),

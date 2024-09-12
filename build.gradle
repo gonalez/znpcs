@@ -1,5 +1,5 @@
 subprojects {
-    apply plugin: 'java'
+    apply plugin: "java-library"
 
     group = project.property("GROUP_ID")
     version = project.property("VERSION_NAME")
@@ -11,13 +11,18 @@ subprojects {
     }
 
     dependencies {
-        testImplementation("junit:junit:4.13.2")
+        testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+        testImplementation("org.junit-pioneer:junit-pioneer:2.2.0")
         testImplementation("com.google.truth:truth:1.4.1")
     }
 
+    test {
+        useJUnitPlatform()
+    }
+
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
 
         options.encoding = "UTF-8"
     }

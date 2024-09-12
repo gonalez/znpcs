@@ -14,12 +14,17 @@ import io.github.gonalez.znpcs.npc.NPCPath;
 import io.github.gonalez.znpcs.npc.NPCType;
 import io.github.gonalez.znpcs.npc.task.NPCManagerTask;
 import io.github.gonalez.znpcs.npc.task.NpcRefreshSkinTask;
+import io.github.gonalez.znpcs.skin.AshconSkinFetcherServer;
+import io.github.gonalez.znpcs.skin.MineSkinFetcher;
+import io.github.gonalez.znpcs.skin.SkinFetcher;
+import io.github.gonalez.znpcs.skin.SkinFetcherImpl;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.BungeeUtils;
 import io.github.gonalez.znpcs.utility.MetricsLite;
 import io.github.gonalez.znpcs.utility.SchedulerUtils;
 import io.github.gonalez.znpcs.utility.itemstack.ItemStackSerializer;
 import io.github.gonalez.znpcs.utility.location.ZLocation;
+import java.util.concurrent.Executors;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
@@ -55,8 +60,8 @@ public class ServersNPC extends JavaPlugin {
   @Override
   public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
-    Path pathPath = pluginPath.resolve("paths");
 
+    Path pathPath = pluginPath.resolve("paths");
     try {
       loadAllPaths(pathPath);
     } catch (IOException e) {
@@ -67,15 +72,24 @@ public class ServersNPC extends JavaPlugin {
     new MetricsLite(this, 8054);
 
     ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationFormat(pluginPath, GSON));
-    new DefaultCommand(pathPath);
+
+    SkinFetcher skinFetcher =
+        SkinFetcherImpl.builder()
+            .setSkinExecutor(Executors.newSingleThreadExecutor())
+            .addSkinFetcherServer(new AshconSkinFetcherServer(), new MineSkinFetcher())
+            .build();
+    new DefaultCommand(pathPath, skinFetcher);
 
     SCHEDULER = new SchedulerUtils(this);
     BUNGEE_UTILS = new BungeeUtils(this);
+
     Bukkit.getOnlinePlayers().forEach(ZUser::find);
+
     new NPCManagerTask(this);
     (configSaveTask = new ZNPConfigSaveTask()).runTaskTimerAsynchronously(this, 300,
         ZNPConfigUtils.getConfig(ConfigConfiguration.class).saveNpcsDelaySeconds);
-    new NpcRefreshSkinTask().runTaskTimerAsynchronously(this, 0L, 20L);
+    new NpcRefreshSkinTask(skinFetcher).runTaskTimerAsynchronously(this, 0L, 20L);
+
     new PlayerListener(this);
     new InventoryListener(this);
   }

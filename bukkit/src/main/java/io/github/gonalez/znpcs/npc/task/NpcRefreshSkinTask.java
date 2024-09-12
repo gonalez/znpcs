@@ -1,7 +1,12 @@
 package io.github.gonalez.znpcs.npc.task;
 
+import com.google.common.base.Preconditions;
+import com.mojang.authlib.GameProfile;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.NPCSkin;
+import io.github.gonalez.znpcs.skin.ApplySkinFetcherListener;
+import io.github.gonalez.znpcs.skin.SkinFetcher;
+import io.github.gonalez.znpcs.skin.SkinFetcherListener;
 import io.github.gonalez.znpcs.utility.PlaceholderUtils;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -10,8 +15,13 @@ import java.util.Set;
 
 public class NpcRefreshSkinTask extends BukkitRunnable {
   private final Set<Integer> outgoingRefresh = new HashSet<>();
+  private final SkinFetcher skinFetcher;
 
   private int count = 0;
+
+  public NpcRefreshSkinTask(SkinFetcher skinFetcher) {
+    this.skinFetcher = Preconditions.checkNotNull(skinFetcher);
+  }
 
   @Override
   public void run() {
@@ -19,15 +29,24 @@ public class NpcRefreshSkinTask extends BukkitRunnable {
       int refreshSkinDuration = npc.getNpcPojo().getRefreshSkinDuration();
       if (refreshSkinDuration != 0 && count % refreshSkinDuration == 0) {
         int id = npc.getNpcPojo().getId();
-        if (outgoingRefresh.contains(id))
+        if (outgoingRefresh.contains(id)) {
           continue;
+        }
         outgoingRefresh.add(id);
-        NPCSkin.forName(PlaceholderUtils.formatPlaceholders(npc.getNpcPojo().getSkinName()),
-            (paramArrayOfString, paramThrowable) -> {
-              if (paramThrowable == null) {
-                npc.changeSkin(NPCSkin.forValues(paramArrayOfString));
+        skinFetcher.fetchGameProfile(
+            PlaceholderUtils.formatPlaceholders(npc.getNpcPojo().getSkinName()),
+            new ApplySkinFetcherListener(npc) {
+              @Override
+              public void onComplete(GameProfile gameProfile) {
+                outgoingRefresh.remove(id);
+                super.onComplete(gameProfile);
               }
-              outgoingRefresh.remove(id);
+
+              @Override
+              public void onError(Throwable error) {
+                outgoingRefresh.remove(id);
+                super.onError(error);
+              }
             });
       }
     }
