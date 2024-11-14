@@ -16,18 +16,9 @@
 
 package io.github.gonalez.znpcs.configuration;
 
-/** Exception class for Configuration errors. */
-public class ConfigurationException extends RuntimeException {
+import java.io.IOException;
 
-  public ConfigurationException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public ConfigurationException(Throwable cause) {
-    super(cause);
-  }
-
-  public ConfigurationException(String message) {
-    super(message);
-  }
+@FunctionalInterface
+public interface ConfigurationIndex {
+  <T extends Configuration> T createConfiguration(Class<T> type) throws IOException;
 }

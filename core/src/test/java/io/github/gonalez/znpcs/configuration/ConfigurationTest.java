@@ -19,73 +19,92 @@ package io.github.gonalez.znpcs.configuration;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.common.io.MoreFiles;
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.nio.file.Path;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.util.List;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.DumperOptions.FlowStyle;
+import org.yaml.snakeyaml.Yaml;
+import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link Configuration}. */
 @RunWith(JUnit4.class)
 public class ConfigurationTest {
-  private static final String EXAMPLE_CONFIG = "{\"view_distance\":32}";
-  @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
+  @TempDir public Path tempFolder;
 
   public static final class ExampleConfig extends Configuration {
 
     @ConfigurationKey(name = "view_distance")
     public int viewDistance;
-  }
 
-  @Test
-  public void testConfigurationManager_withGson_readExampleConfig() throws Exception {
-    Path testPath = tempFolder.getRoot().toPath().resolve("testconfig.json");
-    MoreFiles.asByteSink(testPath)
-        .asCharSink(UTF_8)
-        .write(EXAMPLE_CONFIG);
-
-    ConfigurationManager configurationManager =
-        new GsonConfigurationManager(new Gson()) {
-          @Override
-          public void setPath(Class<? extends Configuration> config, Path path) {
-            throw new UnsupportedOperationException();
-          }
-
-          @Override
-          public Path getPath(Class<? extends Configuration> config) {
-            return testPath;
-          }
-        };
-
-    ExampleConfig configuration = configurationManager.createConfiguration(
-        ExampleConfig.class, configurationManager.createDefaultWriter());
-    assertThat(configuration.viewDistance).isEqualTo(32);
+    @ConfigurationKey(name = "names")
+    public List<String> names;
   }
 
   @Test
   public void testConfigurationManager_withGson_writeExampleConfig() throws Exception {
-    Path testPath = tempFolder.getRoot().toPath().resolve("testconfig.json");
-    ConfigurationManager configurationManager =
-        new GsonConfigurationManager(new Gson()) {
-          @Override
-          public void setPath(Class<? extends Configuration> config, Path path) {
-            throw new UnsupportedOperationException();
-          }
+    Path testPath = tempFolder.resolve("config.json");
 
+    GsonConfigurationIndex configurationManager =
+        new GsonConfigurationIndex(new GsonBuilder().setPrettyPrinting().create()) {
           @Override
-          public Path getPath(Class<? extends Configuration> config) {
+          public Path getConfigFilePath(Class<? extends Configuration> configClass) {
             return testPath;
           }
         };
 
-    ExampleConfig configuration = new ExampleConfig();
-    configuration.viewDistance = 32;
+    ExampleConfig exampleConfig = new ExampleConfig();
+    exampleConfig.viewDistance = 32;
 
-    configurationManager.writeConfig(configuration, configurationManager.createDefaultWriter());
-    assertThat(Files.asCharSource(testPath.toFile(), UTF_8).read()).isEqualTo(EXAMPLE_CONFIG);
+    configurationManager.writeConfiguration(exampleConfig);
+    assertThat(Files.asCharSource(testPath.toFile(), UTF_8).read())
+        .isEqualTo(
+            "{\n"
+                + "  \"view_distance\": 32\n"
+                + "}");
+
+
+    exampleConfig = configurationManager.createConfiguration(ExampleConfig.class);
+    assertThat(exampleConfig.viewDistance).isEqualTo(32);
+    assertThat(exampleConfig.names).isNull();
+  }
+
+  @Test
+  public void testConfigurationManager_withYaml_writeExampleConfig() throws Exception {
+    Path testPath = tempFolder.resolve("config.yml");
+
+    DumperOptions options = new DumperOptions();
+    options.setDefaultFlowStyle(FlowStyle.BLOCK);
+    options.setIndent(2);
+
+    YamlConfigurationIndex configurationManager =
+        new YamlConfigurationIndex(new Yaml(options)) {
+          @Override
+          public Path getConfigFilePath(Class<? extends Configuration> configClass) {
+            return testPath;
+          };
+        };
+
+    ExampleConfig exampleConfig = new ExampleConfig();
+    exampleConfig.viewDistance = 32;
+    List<String> contents = Lists.newArrayList("hey", "world");
+    exampleConfig.names = contents;
+
+    configurationManager.writeConfiguration(exampleConfig);
+    assertThat(Files.asCharSource(testPath.toFile(), UTF_8).read())
+        .isEqualTo(
+            "view_distance: 32\n"
+            + "names:\n"
+            + "- hey\n"
+            + "- world\n");
+
+    exampleConfig = configurationManager.createConfiguration(ExampleConfig.class);
+    assertThat(exampleConfig.viewDistance).isEqualTo(32);
+    assertThat(exampleConfig.names).isEqualTo(contents);
   }
 }
