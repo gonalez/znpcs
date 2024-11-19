@@ -4,7 +4,7 @@ plugins {
 
 repositories {
     maven { url = "https://libraries.minecraft.net/" }
-    maven { url = "https://repo.extendedclip.com/content/repositories/placeholderapi/" }
+    maven { url = "https://repo.helpch.at/releases/" }
     maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
 }
 
@@ -12,7 +12,7 @@ dependencies {
     implementation project(":core")
     compileOnly("io.netty:netty-all:4.1.77.Final")
     compileOnly("org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.9.2")
+    compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
 shadowJar {

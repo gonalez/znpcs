@@ -1,7 +1,5 @@
 package io.github.gonalez.znpcs.configuration;
 
-import io.github.gonalez.znpcs.npc.NamingType;
-
 public class ConfigConfiguration extends Configuration {
 
   @ConfigurationKey(
@@ -23,11 +21,6 @@ public class ConfigConfiguration extends Configuration {
       name = "MAX_PATH_LOCATIONS",
       description = "Maximum path locations")
   public int maxPathLocations = 500;
-
-  @ConfigurationKey(
-      name = "NAMING_METHOD",
-      description = "Method for naming")
-  public NamingType namingMethod = NamingType.DEFAULT;
 
   @ConfigurationKey(
       name = "DEBUG_ENABLED",

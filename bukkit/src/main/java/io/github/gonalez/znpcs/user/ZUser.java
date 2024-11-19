@@ -51,7 +51,7 @@ public class ZUser {
           .get(this.playerConnection = CacheRegistry.PLAYER_CONNECTION_FIELD.load().get(playerHandle)));
       if (channel.pipeline().names().contains("npc_interact"))
         channel.pipeline().remove("npc_interact"); 
-      channel.pipeline().addAfter("decoder", "npc_interact", new ZNPCSocketDecoder());
+      channel.pipeline().addAfter("decoder", "npc_interact", new NpcInteractServerHandler(this));
     } catch (IllegalAccessException|java.lang.reflect.InvocationTargetException e) {
       throw new IllegalStateException("can't create player " + uuid.toString(), e.getCause());
     } 
