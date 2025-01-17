@@ -3,6 +3,7 @@ package io.github.gonalez.znpcs.skin;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import io.github.gonalez.znpcs.ServersNPC;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.NPCSkin;
 

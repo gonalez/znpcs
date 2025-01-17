@@ -1,7 +1,6 @@
 package io.github.gonalez.znpcs.npc;
 
 import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.location.ZLocation;

@@ -1,12 +1,10 @@
 package io.github.gonalez.znpcs.commands;
 
-import static io.github.gonalez.znpcs.ZNPConfigUtils.getConfig;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import io.github.gonalez.znpcs.ServersNPC;
 import io.github.gonalez.znpcs.command.Command;
-import io.github.gonalez.znpcs.command.CommandProvider;
+import io.github.gonalez.znpcs.command.CommandEnvironment;
 import io.github.gonalez.znpcs.command.CommandResult;
 import io.github.gonalez.znpcs.configuration.DataConfiguration;
 import io.github.gonalez.znpcs.configuration.MessagesConfiguration;
@@ -21,12 +19,8 @@ public class NPCreateCommand extends Command {
   }
 
   @Override
-  protected int getMandatoryArguments() {
-    return 3;
-  }
-
-  @Override
-  protected CommandResult execute(CommandProvider commandProvider, ImmutableList<String> args) {
+  protected CommandResult execute(
+      ImmutableList<String> args, CommandEnvironment commandEnvironment) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
       return newCommandResult().setErrorMessage(getConfig(MessagesConfiguration.class).invalidNumber);
@@ -49,5 +43,10 @@ public class NPCreateCommand extends Command {
       //commandProvider.getCommand(NPCSkinCommand.class).execute(commandProvider, ImmutableList.of(String.valueOf(id), name));
     }
     return newCommandResult().setSuccessMessage(getConfig(MessagesConfiguration.class).success);
+  }
+
+  @Override
+  protected int getMandatoryArguments() {
+    return 3;
   }
 }

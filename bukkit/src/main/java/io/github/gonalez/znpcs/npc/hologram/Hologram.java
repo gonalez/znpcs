@@ -1,7 +1,6 @@
 package io.github.gonalez.znpcs.npc.hologram;
 
 import io.github.gonalez.znpcs.UnexpectedCallException;
-import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.npc.NPC;

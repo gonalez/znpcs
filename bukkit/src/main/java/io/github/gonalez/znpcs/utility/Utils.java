@@ -1,6 +1,5 @@
 package io.github.gonalez.znpcs.utility;
 
-import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.user.ZUser;

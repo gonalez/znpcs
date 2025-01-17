@@ -1,6 +1,5 @@
 package io.github.gonalez.znpcs.npc.conversation;
 
-import io.github.gonalez.znpcs.ZNPConfigUtils;
 import io.github.gonalez.znpcs.configuration.ConversationsConfiguration;
 import java.util.ArrayList;
 import java.util.List;

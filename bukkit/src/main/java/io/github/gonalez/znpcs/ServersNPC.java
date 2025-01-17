@@ -2,9 +2,7 @@ package io.github.gonalez.znpcs;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.github.gonalez.znpcs.ZNPConfigUtils.PluginConfigConfigurationFormat;
 import io.github.gonalez.znpcs.commands.list.DefaultCommand;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
 import io.github.gonalez.znpcs.configuration.DataConfiguration;
 import io.github.gonalez.znpcs.listeners.InventoryListener;
 import io.github.gonalez.znpcs.listeners.PlayerListener;
@@ -55,8 +53,6 @@ public class ServersNPC extends JavaPlugin {
 
   public static BungeeUtils BUNGEE_UTILS;
 
-  private ZNPConfigSaveTask configSaveTask;
-
   @Override
   public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
@@ -71,8 +67,6 @@ public class ServersNPC extends JavaPlugin {
     getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     new MetricsLite(this, 8054);
 
-    ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationFormat(pluginPath, GSON));
-
     SkinFetcher skinFetcher =
         SkinFetcherImpl.builder()
             .setSkinExecutor(Executors.newSingleThreadExecutor())
@@ -86,8 +80,6 @@ public class ServersNPC extends JavaPlugin {
     Bukkit.getOnlinePlayers().forEach(ZUser::find);
 
     new NPCManagerTask(this);
-    (configSaveTask = new ZNPConfigSaveTask()).runTaskTimerAsynchronously(this, 300,
-        ZNPConfigUtils.getConfig(ConfigConfiguration.class).saveNpcsDelaySeconds);
     new NpcRefreshSkinTask(skinFetcher).runTaskTimerAsynchronously(this, 0L, 20L);
 
     new PlayerListener(this);
@@ -97,9 +89,6 @@ public class ServersNPC extends JavaPlugin {
   @Override
   public void onDisable() {
     Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
-    if (configSaveTask != null) {
-      configSaveTask.run();
-    }
   }
 
   /**
