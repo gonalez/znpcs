@@ -16,8 +16,14 @@
 
 package io.github.gonalez.znpcs.configuration;
 
+import com.google.common.collect.ImmutableMap;
+
 /** Base class for all configurations. */
 public abstract class Configuration {
 
   protected Configuration() {}
+
+  public ImmutableMap<String, Object> getFieldMap() {
+    return ImmutableMap.copyOf(ConfigurationCache.getConfigFieldValues(this));
+  }
 }

@@ -24,7 +24,7 @@ public abstract class GsonConfigurationIndex extends PathConfigurationIndex {
   @Override
   protected ImmutableMap<String, Object> readConfiguration(
       Reader reader, Class<? extends Configuration> configClass) {
-    ImmutableMap<String, Field> allFields = getConfigFields(configClass);
+    ImmutableMap<String, Field> allFields = ConfigurationCache.getConfigFields(configClass);
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     JsonElement json = JsonParser.parseReader(reader);
     if (json.isJsonObject()) {
