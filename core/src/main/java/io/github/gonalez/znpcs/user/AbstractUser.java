@@ -28,12 +28,11 @@ public abstract class AbstractUser implements User {
   @Override
   public void sendDefinedText(String text) {
     Configuration configuration = configurationProvider.provideConfiguration(definedTextConfiguration);
-    if (configuration == null) {
-      return;
-    }
-    Object value = configuration.getFieldMap().get(text);
-    if (value != null) {
-      sendChatText(value.toString());
+    if (configuration != null) {
+      Object value = configuration.getFieldMap().get(text);
+      if (value != null) {
+        sendChatText(value.toString());
+      }
     }
   }
 }

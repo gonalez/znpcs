@@ -1,6 +1,7 @@
 package io.github.gonalez.znpcs.command;
 
 import com.google.common.collect.ImmutableList;
+import io.github.gonalez.znpcs.configuration.ConfigurationProvider;
 import javax.annotation.Nullable;
 
 public interface CommandEnvironment {
@@ -8,5 +9,7 @@ public interface CommandEnvironment {
       Command command,
       ImmutableList<String> args);
 
-  @Nullable Command getKnownConfiguration(Class<? extends Command> configClass);
+  @Nullable Command getKnownCommand(Class<? extends Command> commandClass);
+
+  ConfigurationProvider getConfigurationProvider();
 }

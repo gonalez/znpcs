@@ -5,16 +5,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import io.github.gonalez.znpcs.configuration.ConfigurationProvider;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
 public class BaseCommandEnvironment implements CommandEnvironment {
   private final ImmutableClassToInstanceMap<Command> commands;
+  private final ConfigurationProvider configurationProvider;
 
   public BaseCommandEnvironment(
-      ImmutableClassToInstanceMap<Command> commands) {
+      ImmutableClassToInstanceMap<Command> commands,
+      ConfigurationProvider configurationProvider) {
     this.commands = checkNotNull(commands);
+    this.configurationProvider = checkNotNull(configurationProvider);
   }
 
   @Override
@@ -35,7 +39,13 @@ public class BaseCommandEnvironment implements CommandEnvironment {
       }
     }
     command = possibleCommands.isEmpty() ? command : possibleCommands.get(possibleCommands.size() - 1);
-    return command.execute(args, this);
+    try {
+      CommandHooks commandHooks = new CommandHooks(command, args, this);
+      return command.execute(args, this, commandHooks);
+    } catch (CommandException commandException) {
+      validateCommandResult.setError(commandException);
+      return validateCommandResult;
+    }
   }
 
   private CommandResult validateCommand(Command command, ImmutableList<String> args) {
@@ -51,7 +61,12 @@ public class BaseCommandEnvironment implements CommandEnvironment {
 
   @Nullable
   @Override
-  public Command getKnownConfiguration(Class<? extends Command> configClass) {
+  public Command getKnownCommand(Class<? extends Command> configClass) {
     return commands.getInstance(configClass);
+  }
+
+  @Override
+  public ConfigurationProvider getConfigurationProvider() {
+    return configurationProvider;
   }
 }

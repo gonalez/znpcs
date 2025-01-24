@@ -11,7 +11,9 @@ public abstract class Command {
   public abstract String getName();
 
   protected abstract CommandResult execute(
-      ImmutableList<String> args, CommandEnvironment commandEnvironment);
+      ImmutableList<String> args,
+      CommandEnvironment commandEnvironment,
+      CommandHooks hooks) throws CommandException;
 
   protected abstract int getMandatoryArguments();
 

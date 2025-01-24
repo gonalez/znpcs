@@ -6,7 +6,7 @@ public final class CommandResult {
     return new CommandResult(command);
   }
 
-  private Throwable error = null;
+  private CommandException error = null;
   private String errorMessage;
 
   private String successMessage;
@@ -21,12 +21,12 @@ public final class CommandResult {
     return errorMessage != null || error != null;
   }
 
-  public CommandResult setError(Throwable error) {
+  public CommandResult setError(CommandException error) {
     this.error = error;
     return this;
   }
 
-  public Throwable getError() {
+  public CommandException getError() {
     return error;
   }
 
