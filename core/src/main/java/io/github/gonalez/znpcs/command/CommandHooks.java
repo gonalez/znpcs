@@ -27,7 +27,7 @@ public final class CommandHooks {
     return args;
   }
 
-  public <C extends Configuration> C getCommandConfigurationOrThrow(
+  public <C extends Configuration> C getConfigurationOrThrow(
       Class<? extends C> configDependency) throws MissingConfigurationCommandException {
     ConfigurationProvider configurationProvider = commandEnvironment.getConfigurationProvider();
     Configuration maybeGetConfig = configurationProvider.provideConfiguration(configDependency);

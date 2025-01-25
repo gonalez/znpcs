@@ -23,7 +23,7 @@ public class NPCreateCommand extends Command {
   protected CommandResult execute(
       ImmutableList<String> args, CommandEnvironment commandEnvironment, CommandHooks hooks)
       throws CommandException {
-    MessagesConfiguration messagesConfig = hooks.getCommandConfigurationOrThrow(MessagesConfiguration.class);
+    MessagesConfiguration messagesConfig = hooks.getConfigurationOrThrow(MessagesConfiguration.class);
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
       return newCommandResult().setErrorMessage(messagesConfig.invalidNumber);

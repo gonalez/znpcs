@@ -84,7 +84,7 @@ public class CommandTest {
     @Override
     protected CommandResult execute(ImmutableList<String> args,
         CommandEnvironment commandEnvironment, CommandHooks hooks) throws CommandException {
-      hooks.getCommandConfigurationOrThrow(RequiredConfig.class);
+      hooks.getConfigurationOrThrow(RequiredConfig.class);
       return CommandResult.create(this);
     }
 
