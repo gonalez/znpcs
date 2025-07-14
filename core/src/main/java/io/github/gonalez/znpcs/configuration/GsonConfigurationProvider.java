@@ -3,27 +3,29 @@ package io.github.gonalez.znpcs.configuration;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Map.Entry;
 
-/** A {@link PathConfigurationIndex} that reads and writes configurations from JSON file. */
-public abstract class GsonConfigurationIndex extends PathConfigurationIndex {
+/** A {@link PathConfigurationProvider} that reads and writes configurations from JSON file. */
+public abstract class GsonConfigurationProvider extends PathConfigurationProvider {
   private final Gson gson;
 
-  public GsonConfigurationIndex(Gson gson) {
+  public GsonConfigurationProvider(Gson gson) {
     this.gson = checkNotNull(gson);
   }
 
   @Override
-  protected ImmutableMap<String, Object> readConfiguration(
-      Reader reader, Class<? extends Configuration> configClass) {
+  ImmutableMap<String, Object> readConfiguration(Class<? extends Configuration> configClass,
+      ImmutableSet<String> keys, Reader reader) throws IOException {
     ImmutableMap<String, Field> allFields = getConfigFields(configClass);
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     JsonElement json = JsonParser.parseReader(reader);
@@ -44,10 +46,5 @@ public abstract class GsonConfigurationIndex extends PathConfigurationIndex {
         builder.put(entry.getKey(), gson.fromJson(element, entry.getValue().getType()));
       }
     }
-  }
-
-  @Override
-  protected void writeConfiguration(Writer writer, ImmutableMap<String, Object> values) {
-    gson.toJson(values, writer);
   }
 }

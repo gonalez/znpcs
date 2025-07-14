@@ -8,7 +8,6 @@ import io.github.gonalez.znpcs.ServersNPC;
 import io.github.gonalez.znpcs.command.Command;
 import io.github.gonalez.znpcs.command.CommandProvider;
 import io.github.gonalez.znpcs.command.CommandResult;
-import io.github.gonalez.znpcs.configuration.DataConfiguration;
 import io.github.gonalez.znpcs.configuration.MessagesConfiguration;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.NPCType;

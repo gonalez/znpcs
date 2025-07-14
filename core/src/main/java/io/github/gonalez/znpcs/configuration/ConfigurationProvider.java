@@ -17,8 +17,11 @@
 package io.github.gonalez.znpcs.configuration;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 @FunctionalInterface
-public interface ConfigurationIndex {
-  <T extends Configuration> T createConfiguration(Class<T> type) throws IOException;
+public interface ConfigurationProvider {
+
+  @Nullable
+  <C extends Configuration> C getConfiguration(Class<C> configClass) throws IOException;
 }

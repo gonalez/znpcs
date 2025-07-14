@@ -16,24 +16,16 @@
 
 package io.github.gonalez.znpcs.configuration;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Indicates a field should be exported for use in a Configuration. */
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ConfigurationKey {
 
-  /** The name by which the annotated field should be identified within the configuration. */
   String name();
 
-  /**
-   * A short description of the annotated field, explaining its purpose or significance
-   * in the configuration. By default, it's empty.
-   */
   String description() default "";
 }

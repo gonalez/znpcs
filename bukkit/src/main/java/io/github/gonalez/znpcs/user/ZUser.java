@@ -102,41 +102,4 @@ public class ZUser {
       .filter(npc -> npc.getViewers().contains(zUser))
       .forEach(npc -> npc.delete(zUser));
   }
-  
-  class ZNPCSocketDecoder extends MessageToMessageDecoder<Object> {
-    protected void decode(ChannelHandlerContext channelHandlerContext, Object packet, List<Object> out) throws Exception {
-      out.add(packet);
-      if (packet.getClass() == CacheRegistry.PACKET_PLAY_IN_USE_ENTITY_CLASS) {
-        long lastInteractNanos = System.nanoTime() - ZUser.this.lastInteract;
-        if (ZUser.this.lastInteract != 0L && lastInteractNanos < 1000000000L)
-          return; 
-        int entityId = CacheRegistry.PACKET_IN_USE_ENTITY_ID_FIELD.load().getInt(packet);
-        NPC npc = NPC.all().stream().filter(npc1 -> (npc1.getEntityID() == entityId)).findFirst().orElse(null);
-        if (npc == null)
-          return; 
-        ClickType clickName = ClickType.forName(npc.getPackets().getProxyInstance().getClickType(packet).toString());
-        ZUser.this.lastInteract = System.nanoTime();
-        ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> {
-              Bukkit.getServer().getPluginManager().callEvent(new NPCInteractEvent(ZUser.this.toPlayer(), clickName, npc));
-              List<NPCAction> actions = npc.getNpcPojo().getClickActions();
-              if (actions == null || actions.isEmpty())
-                return; 
-              for (NPCAction npcAction : actions) {
-                if (npcAction.getClickType() != ClickType.DEFAULT && clickName != npcAction.getClickType())
-                  continue; 
-                if (npcAction.getDelay() > 0) {
-                  int actionId = npc.getNpcPojo().getClickActions().indexOf(npcAction);
-                  if (ZUser.this.lastClicked.containsKey(actionId)) {
-                    long lastClickNanos = System.nanoTime() - ZUser.this.lastClicked.get(actionId);
-                    if (lastClickNanos < npcAction.getFixedDelay())
-                      continue; 
-                  } 
-                  ZUser.this.lastClicked.put(actionId, System.nanoTime());
-                } 
-                npcAction.run(ZUser.this, npcAction.getAction());
-              } 
-            }, 1);
-      } 
-    }
-  }
 }
