@@ -27,17 +27,19 @@ public abstract class Command {
     }
     List<Command> possibleCommands = new ArrayList<>();
     for (int i = 0; i < args.size(); i++) {
-      Iterable<Command> commands = (i == 0)
-          ? getChildren()
-          : Iterables.concat(Iterables.transform(possibleCommands, Command::getChildren));
+      Iterable<Command> commands;
+      if (i == 0) {
+        commands = getChildren();
+      } else {
+        commands = Iterables.concat(Iterables.transform(possibleCommands, Command::getChildren));
+      }
       for (Command command : ImmutableList.copyOf(commands)) {
         if (command.getName().startsWith(args.get(i))) {
           possibleCommands.add(command);
         }
       }
     }
-    Command command = possibleCommands.isEmpty()
-        ? this : possibleCommands.get(possibleCommands.size() - 1);
+    Command command = Iterables.getLast(possibleCommands, this);
     return command.execute(commandProvider, args);
   }
 
@@ -47,8 +49,13 @@ public abstract class Command {
 
   CommandResult validateCommand(ImmutableList<String> args) {
     CommandResult commandResult = newCommandResult();
-    if (args.size() < getMandatoryArguments()) {
-      commandResult.setErrorMessage("not enough args");
+    int mandatoryArguments = getMandatoryArguments();
+    // Check if we have enough arguments for this command
+    if (args.size() < mandatoryArguments) {
+      commandResult.setErrorMessage(
+          String.format(
+              "Not enough arguments: expected at least %d, but got %d.",
+              mandatoryArguments, args.size()));
     }
     return commandResult;
   }
