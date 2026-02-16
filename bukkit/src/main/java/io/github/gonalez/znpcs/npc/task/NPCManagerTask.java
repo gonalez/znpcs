@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.npc.task;
 
 import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
+import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.npc.FunctionFactory;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.conversation.ConversationModel;
@@ -23,7 +23,8 @@ public class NPCManagerTask extends BukkitRunnable {
       for (Player player : Bukkit.getOnlinePlayers()) {
         ZUser zUser = ZUser.find(player);
         boolean canSeeNPC = (player.getWorld() == npc.getLocation().getWorld()
-            && player.getLocation().distance(npc.getLocation()) <= ZNPConfigUtils.getConfig(ConfigConfiguration.class).viewDistance);
+            && player.getLocation().distance(npc.getLocation()) <= ZNPConfigUtils.getConfig(
+            ConfigConfig.class).viewDistance);
         if (npc.getViewers().contains(zUser) && !canSeeNPC) {
           npc.delete(zUser);
           continue;

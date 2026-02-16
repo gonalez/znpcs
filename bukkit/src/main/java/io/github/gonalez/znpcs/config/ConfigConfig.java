@@ -1,38 +1,38 @@
-package io.github.gonalez.znpcs.configuration;
+package io.github.gonalez.znpcs.config;
 
-public class ConfigConfiguration extends Configuration {
+public class ConfigConfig extends Config {
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "VIEW_DISTANCE",
       description = "View distance in blocks")
   public int viewDistance = 32;
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "REPLACE_SYMBOL",
       description = "Symbol for replacement")
   public String replaceSymbol = "-";
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "SAVE_NPCS_DELAY_SECONDS",
       description = "Delay in seconds to save NPCs")
   public int saveNpcsDelaySeconds = 600;
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "MAX_PATH_LOCATIONS",
       description = "Maximum path locations")
   public int maxPathLocations = 500;
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "DEBUG_ENABLED",
       description = "Is debug enabled")
   public boolean debugEnabled = true;
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "LINE_SPACING",
       description = "Spacing between lines")
   public double lineSpacing = 0.3;
 
-  @ConfigurationKey(
+  @ConfigOption(
       name = "ANIMATION_RGB",
       description = "Is animation RGB enabled")
   public boolean animationRgb = false;

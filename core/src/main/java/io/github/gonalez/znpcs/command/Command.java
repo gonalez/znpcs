@@ -2,7 +2,6 @@ package io.github.gonalez.znpcs.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import io.github.gonalez.znpcs.configuration.ConfigurationProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,10 +60,9 @@ public abstract class Command {
 
   private static CommandResult mergeCommandResultDeps(
       @Nullable CommandResult saved, CommandResult result) {
-    if (saved == null) {
-      return result;
+    if (saved != null) {
+      result.dependencies.putAll(saved.dependencies);
     }
-    result.dependencies.putAll(saved.dependencies);
     return result;
   }
 

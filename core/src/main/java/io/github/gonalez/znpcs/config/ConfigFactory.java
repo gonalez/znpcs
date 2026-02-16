@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package io.github.gonalez.znpcs.configuration;
+package io.github.gonalez.znpcs.config;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.IOException;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface ConfigurationKey {
-
-  String name();
-
-  String description() default "";
+@FunctionalInterface
+public interface ConfigFactory {
+  <C extends Config> C create(Class<C> configClass) throws IOException;
 }

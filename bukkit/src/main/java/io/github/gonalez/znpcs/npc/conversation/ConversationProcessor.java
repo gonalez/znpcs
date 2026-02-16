@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.npc.conversation;
 
 import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
+import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.hologram.replacer.LineReplacer;
 import io.github.gonalez.znpcs.user.ZUser;
@@ -58,7 +58,7 @@ public class ConversationProcessor {
               return; 
             ZUser user = ZUser.find(ConversationProcessor.this.player);
             conversationKey.getLines().forEach(s -> ConversationProcessor.this.player.sendMessage(LineReplacer.makeAll(user, s)
-                .replace(ZNPConfigUtils.getConfig(ConfigConfiguration.class).replaceSymbol, " ")));
+                .replace(ZNPConfigUtils.getConfig(ConfigConfig.class).replaceSymbol, " ")));
             if (conversationKey.getActions().size() > 0)
               conversationKey.getActions().forEach(action -> action.run(user, action.getAction())); 
             if (conversationKey.getSoundName() != null && conversationKey

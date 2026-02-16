@@ -2,25 +2,28 @@ package io.github.gonalez.znpcs.command;
 
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableMap;
-import io.github.gonalez.znpcs.configuration.Configuration;
-import io.github.gonalez.znpcs.configuration.ConfigurationProvider;
-import java.io.IOException;
+import io.github.gonalez.znpcs.config.Config;
+import io.github.gonalez.znpcs.config.ConfigFactory;
+import io.github.gonalez.znpcs.config.ConfigProvider;
 import java.util.HashMap;
 import java.util.Map;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import javax.annotation.Nullable;
 
-public class CommandEnvironment implements CommandProvider {
-  private final ConfigurationProvider configurationProvider;
+public class CommandEnvironment {
+  private final ConfigProvider configProvider;
   private final ImmutableClassToInstanceMap<Command> commands;
-
-  CommandResult mergedCommandResult;
-  Map<Command, CommandResult> executedCommands = new HashMap<>();
+  final Map<Command, CommandResult> executedCommands = new HashMap<>();
+  @Nullable CommandResult mergedCommandResult;
 
   public CommandEnvironment(
-      ConfigurationProvider configurationProvider,
+      ConfigProvider configProvider,
       ImmutableClassToInstanceMap<Command> commands) {
-    this.configurationProvider = configurationProvider;
+    this.configProvider = configProvider;
     this.commands = commands;
+  }
+
+  public ConfigProvider getConfigProvider() {
+    return configProvider;
   }
 
   public ImmutableMap<Command, CommandResult> getExecutedCommands() {
@@ -31,20 +34,13 @@ public class CommandEnvironment implements CommandProvider {
     return mergedCommandResult;
   }
 
-  public ConfigurationProvider getConfigurationProvider() {
-    return configurationProvider;
+  // shortcut for configProvider
+  public <C extends Config> C getConfig(Class<C> configClass) {
+    return configProvider.getConfig(configClass);
   }
 
-  public <C extends Configuration> C getConfig(Class<C> configClass) {
-    try {
-      return configurationProvider.getConfiguration(configClass);
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
-  @Override
-  public @Nullable Command provideCommand(Class<? extends Command> commandClass) {
+  @Nullable
+  public Command provideCommand(Class<? extends Command> commandClass) {
     return commands.get(commandClass);
   }
 }

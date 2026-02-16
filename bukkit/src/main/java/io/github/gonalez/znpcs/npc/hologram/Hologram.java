@@ -2,7 +2,7 @@ package io.github.gonalez.znpcs.npc.hologram;
 
 import io.github.gonalez.znpcs.UnexpectedCallException;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
+import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.hologram.replacer.LineReplacer;
 import io.github.gonalez.znpcs.user.ZUser;
@@ -45,9 +45,9 @@ public class Hologram {
           updateLine(line, armorStand, null);
         }
         CacheRegistry.SET_INVISIBLE_METHOD.load().invoke(armorStand, true);
-        hologramLines.add(new HologramLine(line.replace(ZNPConfigUtils.getConfig(ConfigConfiguration.class).replaceSymbol, WHITESPACE),
+        hologramLines.add(new HologramLine(line.replace(ZNPConfigUtils.getConfig(ConfigConfig.class).replaceSymbol, WHITESPACE),
             armorStand, (Integer) CacheRegistry.GET_ENTITY_ID.load().invoke(armorStand)));
-        y+= ZNPConfigUtils.getConfig(ConfigConfiguration.class).lineSpacing;
+        y+= ZNPConfigUtils.getConfig(ConfigConfig.class).lineSpacing;
       }
       setLocation(location, 0);
       npc.getPackets().flushCache("getHologramSpawnPacket");
@@ -136,7 +136,7 @@ public class Hologram {
         CacheRegistry.SET_LOCATION_METHOD.load().invoke(hologramLine.armorStand,
             location.getX(), (location.getY() - 0.15) + y,
             location.getZ(), location.getYaw(), location.getPitch());
-        y+=ZNPConfigUtils.getConfig(ConfigConfiguration.class).lineSpacing;
+        y+=ZNPConfigUtils.getConfig(ConfigConfig.class).lineSpacing;
       }
       updateLocation();
     } catch (ReflectiveOperationException operationException) {

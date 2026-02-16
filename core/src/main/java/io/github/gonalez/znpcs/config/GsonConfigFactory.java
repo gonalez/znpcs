@@ -1,4 +1,4 @@
-package io.github.gonalez.znpcs.configuration;
+package io.github.gonalez.znpcs.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -8,24 +8,23 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Map.Entry;
 
-/** A {@link PathConfigurationProvider} that reads and writes configurations from JSON file. */
-public abstract class GsonConfigurationProvider extends PathConfigurationProvider {
+/** A {@link PathConfigFactory} that reads and writes configurations from JSON file. */
+public abstract class GsonConfigFactory extends PathConfigFactory {
   private final Gson gson;
 
-  public GsonConfigurationProvider(Gson gson) {
+  public GsonConfigFactory(Gson gson) {
     this.gson = checkNotNull(gson);
   }
 
   @Override
-  ImmutableMap<String, Object> readConfiguration(Class<? extends Configuration> configClass,
-      ImmutableSet<String> keys, Reader reader) throws IOException {
+  protected ImmutableMap<String, Object> readConfiguration(
+      Class<? extends Config> configClass, ImmutableSet<String> keys, Reader reader) {
     ImmutableMap<String, Field> allFields = getConfigFields(configClass);
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
     JsonElement json = JsonParser.parseReader(reader);
@@ -46,5 +45,10 @@ public abstract class GsonConfigurationProvider extends PathConfigurationProvide
         builder.put(entry.getKey(), gson.fromJson(element, entry.getValue().getType()));
       }
     }
+  }
+
+  @Override
+  protected void writeConfig(Config config, Writer writer) {
+    gson.toJson(config.getFieldMap(), writer);
   }
 }

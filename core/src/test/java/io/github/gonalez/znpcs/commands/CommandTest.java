@@ -10,19 +10,23 @@ import io.github.gonalez.znpcs.command.CommandEnvironment;
 import io.github.gonalez.znpcs.command.CommandResult;
 import io.github.gonalez.znpcs.command.NoopCommandContext;
 import io.github.gonalez.znpcs.command.OutputStreamCommandContext;
+import io.github.gonalez.znpcs.config.ConfigProvider;
 import java.io.ByteArrayOutputStream;
 import java.util.Collection;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link Command}. */
+@RunWith(JUnit4.class)
 public class CommandTest {
-  private static CommandEnvironment commandEnvironment;
+  private CommandEnvironment commandEnvironment;
 
-  @BeforeAll
-  static void setup() {
-    commandEnvironment = new CommandEnvironment(null, ImmutableClassToInstanceMap.of());
+  @Before
+  public void setup() {
+    commandEnvironment = new CommandEnvironment(ConfigProvider.EMPTY, ImmutableClassToInstanceMap.of());
   }
 
   public static class ExampleCommand extends Command {

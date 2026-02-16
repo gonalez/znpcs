@@ -7,7 +7,7 @@ import io.github.gonalez.znpcs.command.Command;
 import io.github.gonalez.znpcs.command.CommandContext;
 import io.github.gonalez.znpcs.command.CommandEnvironment;
 import io.github.gonalez.znpcs.command.CommandResult;
-import io.github.gonalez.znpcs.configuration.MessagesConfiguration;
+import io.github.gonalez.znpcs.config.MessagesConfig;
 import io.github.gonalez.znpcs.npc.NPC;
 import java.util.Collection;
 import org.bukkit.ChatColor;
@@ -28,15 +28,15 @@ public final class NPCLinesCommand extends Command {
   protected CommandResult execute(CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).invalidNumber);
+      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).invalidNumber);
     }
     NPC npc = NPC.find(id);
     if (npc == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).npcNotFound);
+      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).npcNotFound);
     }
     return newCommandResult()
         .addDependency(NPC.class, npc)
-        .setSuccessMessage(env.getConfig(MessagesConfiguration.class).success);
+        .setSuccessMessage(env.getConfig(MessagesConfig.class).success);
   }
 
   @Override

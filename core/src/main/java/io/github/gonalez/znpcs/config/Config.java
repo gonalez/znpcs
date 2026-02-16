@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package io.github.gonalez.znpcs.configuration;
+package io.github.gonalez.znpcs.config;
 
-import java.io.IOException;
-import javax.annotation.Nullable;
+import static io.github.gonalez.znpcs.config.AbstractConfig.getConfigFieldValues;
 
-@FunctionalInterface
-public interface ConfigurationProvider {
+import com.google.common.collect.ImmutableMap;
 
-  @Nullable
-  <C extends Configuration> C getConfiguration(Class<C> configClass) throws IOException;
+/** Base class for all configurations. */
+public abstract class Config {
+
+  protected ConfigContext configContext;
+
+  protected Config() {}
+
+  public ConfigContext getConfigContext() {
+    return configContext;
+  }
+
+  ImmutableMap<String, Object> getFieldMap() {
+    return ImmutableMap.copyOf(getConfigFieldValues(this));
+  }
 }

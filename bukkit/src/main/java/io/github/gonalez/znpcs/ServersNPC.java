@@ -1,11 +1,14 @@
 package io.github.gonalez.znpcs;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.github.gonalez.znpcs.ZNPConfigUtils.PluginConfigConfigurationFormat;
-import io.github.gonalez.znpcs.commands.list.DefaultCommand;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
-import io.github.gonalez.znpcs.configuration.DataConfiguration;
+import io.github.gonalez.znpcs.config.Config;
+import io.github.gonalez.znpcs.config.ConfigConfig;
+import io.github.gonalez.znpcs.config.ConfigProvider;
+import io.github.gonalez.znpcs.config.DefaultConfigProvider;
+import io.github.gonalez.znpcs.config.GsonConfigFactory;
+import io.github.gonalez.znpcs.config.MessagesConfig;
 import io.github.gonalez.znpcs.listeners.InventoryListener;
 import io.github.gonalez.znpcs.listeners.PlayerListener;
 import io.github.gonalez.znpcs.npc.NPC;
@@ -61,9 +64,15 @@ public class ServersNPC extends JavaPlugin {
   public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
 
-    Path pathPath = pluginPath.resolve("paths");
+    ConfigProvider configProvider;
     try {
-      loadAllPaths(pathPath);
+      configProvider = createConfigProvider(pluginPath);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to load config", e);
+    }
+
+    try {
+      loadAllPaths(pluginPath.resolve("paths"));
     } catch (IOException e) {
       getLogger().log(Level.WARNING, "Could not load paths", e);
     }
@@ -71,14 +80,11 @@ public class ServersNPC extends JavaPlugin {
     getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
     new MetricsLite(this, 8054);
 
-    ZNPConfigUtils.setConfigurationManager(new PluginConfigConfigurationFormat(pluginPath, GSON));
-
     SkinFetcher skinFetcher =
         SkinFetcherImpl.builder()
             .setSkinExecutor(Executors.newSingleThreadExecutor())
             .addSkinFetcherServer(new AshconSkinFetcherServer(), new MineSkinFetcher())
             .build();
-    new DefaultCommand(pathPath, skinFetcher);
 
     SCHEDULER = new SchedulerUtils(this);
     BUNGEE_UTILS = new BungeeUtils(this);
@@ -87,7 +93,7 @@ public class ServersNPC extends JavaPlugin {
 
     new NPCManagerTask(this);
     (configSaveTask = new ZNPConfigSaveTask()).runTaskTimerAsynchronously(this, 300,
-        ZNPConfigUtils.getConfig(ConfigConfiguration.class).saveNpcsDelaySeconds);
+        configProvider.getConfig(ConfigConfig.class).saveNpcsDelaySeconds);
     new NpcRefreshSkinTask(skinFetcher).runTaskTimerAsynchronously(this, 0L, 20L);
 
     new PlayerListener(this);
@@ -100,6 +106,22 @@ public class ServersNPC extends JavaPlugin {
     if (configSaveTask != null) {
       configSaveTask.run();
     }
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private ConfigProvider createConfigProvider(Path basedir) throws IOException {
+    GsonConfigFactory configFactory = new GsonConfigFactory(GSON) {
+      @Override
+      protected Path getConfigFilePath(Class<? extends Config> configClass) {
+        return basedir.resolve(CONFIG_FILE_NAMES.get(configClass));
+      }
+    };
+    DefaultConfigProvider.Builder builder = DefaultConfigProvider.builder();
+    for (Class<? extends Config> configClass : CONFIG_FILE_NAMES.keySet()) {
+      Config config = configFactory.create(configClass);
+      builder.addConfig((Class)configClass, config);
+    }
+    return builder.build();
   }
 
   /**
@@ -151,4 +173,10 @@ public class ServersNPC extends JavaPlugin {
     // TODO: Make a proper npc saving
     ZNPConfigUtils.getConfig(DataConfiguration.class).npcList.remove(npc.getNpcPojo());
   }
+
+  private static final ImmutableMap<Class<? extends Config>, String> CONFIG_FILE_NAMES =
+      ImmutableMap.of(
+          ConfigConfig.class, "config.yml",
+          MessagesConfig.class, "messages.yml"
+      );
 }

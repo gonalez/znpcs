@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.utility;
 
 import io.github.gonalez.znpcs.cache.CacheRegistry;
-import io.github.gonalez.znpcs.configuration.ConfigConfiguration;
+import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.user.ZUser;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.math.NumberUtils;
@@ -44,7 +44,7 @@ public final class Utils {
   
   public static String getWithPlaceholders(String string, Player player) {
     return PlaceholderAPI.setPlaceholders(player, string).replace(
-        ZNPConfigUtils.getConfig(ConfigConfiguration.class).replaceSymbol, " ");
+        ZNPConfigUtils.getConfig(ConfigConfig.class).replaceSymbol, " ");
   }
   
   public static String randomString(int length) {

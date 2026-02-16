@@ -10,18 +10,20 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeAll;
-import org.junitpioneer.jupiter.RetryingTest;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link SkinFetcher}. */
+@RunWith(JUnit4.class)
 public class SkinFetcherTest {
-  private static SkinFetcher skinFetcher;
+  private SkinFetcher skinFetcher;
 
-  @BeforeAll
-  static void setup() {
+  @Before
+  public void setup() {
     skinFetcher = SkinFetcherImpl.builder()
-        .setSkinExecutor(Executors.newSingleThreadExecutor())
+        .setSkinExecutor(Executors.newCachedThreadPool())
         .addSkinFetcherServer(new AshconSkinFetcherServer(), new MineSkinFetcher())
         .build();
   }
@@ -39,7 +41,7 @@ public class SkinFetcherTest {
     assertThat(property.getSignature()).isEqualTo("WOQe4LOqACX9y3KXeZATfXUP81VsYqnARGSB+P1BWhBmV3Ty1D3JbdHuPauPvJB0uCCSUBgCgjryzRl23PxwnsPoF6cCLQp0uqGjyrBVJ94TzR86fzXSdVHtw10N/Fpbz6PRAMZ/roA+rmcjY2aVXWUtr4w2dWGEeLzRFtmnUSR1sPaXom3XlG+51VU51yRBc+0DbPb/WnD297qYlzUYxmSUl6F93EQHvkbD9fbUdPXErsT7DwSQYvjDm9fy4vT98LRmZiSTyefN/OUMERRcI/EDWHwHiix0jhwb3j4JVBueVdsI7Wt+5Lp3GQmAkEeuS0WA+ovOuWiFgtSZ6WO0LkmIPzjtef49G8hrn2GEj3JWHGTysTiowqtGb7S7Q4BeQy9dYFBECKQ4tWoGsKjHLFve2bVXz1S5V7MptG83vhTSYmvwZQ0/rbOMfKGVSrPqOK4fClASkAkT35mVW8AcXSC1jD38+GLwPaJ948Ju8PW8fcgxvya24y/D876xNo4FD3ny3SG4uEqIGeM/wrSrPImDhXmMRBxdqmhvoD3qg/2+UVNcjo2WrzNjJ+hXaozTs9tlpgvIkfHqN3s5c0Pvlk9IcNAMe6sQxeKz20Cl6CG0/0bxSGr4SEkZ2oSAq6aLMUSH3ymq9TKVYKcXIB12WpTyO9Wa8zt3Hoq9oLoPO3Q=");
   }
 
-  @RetryingTest(maxAttempts = 3, suspendForMs = 1000)
+  @Test
   public void testSkinFetcher_image() throws Exception {
     Future<GameProfile> fetched = skinFetcher.fetchGameProfile("https://i.imgur.com/pVeIlTz.png", null);
 
@@ -56,6 +58,6 @@ public class SkinFetcherTest {
     ListenableFuture<GameProfile> fetched = skinFetcher.fetchGameProfile("https://textures.minecraft.net", null);
 
     ExecutionException e = assertThrows(ExecutionException.class, fetched::get);
-    assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("Skin not found");
+    assertThat(e).hasCauseThat().hasMessageThat().startsWith("No skin found for");
   }
 }
