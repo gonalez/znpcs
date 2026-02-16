@@ -2,25 +2,24 @@ package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
-import io.github.gonalez.znpcs.ServersNPC;
 import io.github.gonalez.znpcs.command.Command;
 import io.github.gonalez.znpcs.command.CommandContext;
 import io.github.gonalez.znpcs.command.CommandEnvironment;
 import io.github.gonalez.znpcs.command.CommandResult;
 import io.github.gonalez.znpcs.configuration.MessagesConfiguration;
-import io.github.gonalez.znpcs.npc.NPC;
-import io.github.gonalez.znpcs.npc.NPCType;
+import io.github.gonalez.znpcs.npc.ItemSlot;
+import org.bukkit.inventory.ItemStack;
 
-public class NPCreateCommand extends Command {
+public final class NPCEquipCommand extends Command {
 
   @Override
   public String getName() {
-    return "create";
+    return "equip";
   }
 
   @Override
   protected int getMandatoryArguments() {
-    return 1;
+    return 2;
   }
 
   @Override
@@ -29,24 +28,13 @@ public class NPCreateCommand extends Command {
     if (id == null) {
       return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).invalidNumber);
     }
-    NPCType npcType;
+    ItemSlot itemSlot;
     try {
-      npcType = NPCType.valueOf(args.get(1).toUpperCase());
+      itemSlot = ItemSlot.valueOf(args.get(1).toUpperCase());
     } catch (IllegalArgumentException e) {
       return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).incorrectUsage);
     }
-    String name = args.get(2).trim();
-    if (name.length() < 3 || name.length() > 16) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).invalidNumber);
-    }
-    NPC npc = ServersNPC.createNPC(id, npcType, null, name);
-    if (npcType == NPCType.PLAYER) {
-      CommandResult skinCommandExecResult = env.provideCommand(NPCSkinCommand.class)
-          .executeCommand(env, ctx, ImmutableList.of(String.valueOf(id), name));
-      if (!skinCommandExecResult.hasError()) {
-        // log
-      }
-    }
-    return newCommandResult().setErrorMessage(env.getConfig(MessagesConfiguration.class).success);
+    ItemStack equipItem = ((BukkitPlayerCommandContext)ctx).getPlayer().getInventory().getItemInHand();
+    return newCommandResult().setSuccessMessage(env.getConfig(MessagesConfiguration.class).success);
   }
 }

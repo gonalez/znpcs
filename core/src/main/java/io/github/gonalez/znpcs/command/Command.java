@@ -2,16 +2,18 @@ package io.github.gonalez.znpcs.command;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import io.github.gonalez.znpcs.configuration.ConfigurationProvider;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nullable;
 
 public abstract class Command {
 
   public abstract String getName();
 
   protected abstract CommandResult execute(
-      CommandProvider commandProvider, ImmutableList<String> args);
+      CommandEnvironment env, CommandContext ctx, ImmutableList<String> args);
 
   protected abstract int getMandatoryArguments();
 
@@ -19,8 +21,12 @@ public abstract class Command {
     return ImmutableList.of();
   }
 
+  protected boolean executeOnChildrenFound() {
+    return true;
+  }
+
   public CommandResult executeCommand(
-      CommandProvider commandProvider, ImmutableList<String> args) {
+      CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
     CommandResult validateCommandResult = validateCommand(args);
     if (validateCommandResult.hasError()) {
       return validateCommandResult;
@@ -39,8 +45,27 @@ public abstract class Command {
         }
       }
     }
-    Command command = Iterables.getLast(possibleCommands, this);
-    return command.execute(commandProvider, args);
+    if (!possibleCommands.isEmpty()) {
+      if (executeOnChildrenFound()) {
+        CommandResult result = execute(env, ctx, args);
+        env.executedCommands.put(this, result);
+        if (result.hasError()) {
+          return result;
+        }
+        env.mergedCommandResult = mergeCommandResultDeps(env.mergedCommandResult, result);
+      }
+      return Iterables.getLast(possibleCommands).executeCommand(env, ctx, args);
+    }
+    return execute(env, ctx, args);
+  }
+
+  private static CommandResult mergeCommandResultDeps(
+      @Nullable CommandResult saved, CommandResult result) {
+    if (saved == null) {
+      return result;
+    }
+    result.dependencies.putAll(saved.dependencies);
+    return result;
   }
 
   protected CommandResult newCommandResult() {
@@ -49,6 +74,7 @@ public abstract class Command {
 
   CommandResult validateCommand(ImmutableList<String> args) {
     CommandResult commandResult = newCommandResult();
+
     int mandatoryArguments = getMandatoryArguments();
     // Check if we have enough arguments for this command
     if (args.size() < mandatoryArguments) {
@@ -57,6 +83,7 @@ public abstract class Command {
               "Not enough arguments: expected at least %d, but got %d.",
               mandatoryArguments, args.size()));
     }
+
     return commandResult;
   }
 }
