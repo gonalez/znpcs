@@ -1,7 +1,6 @@
 package io.github.gonalez.znpcs.npc;
 
-import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.config.ConfigConfig;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.location.ZLocation;
 import org.bukkit.Location;
@@ -240,7 +239,7 @@ public interface NPCPath {
       public void start() {
         this.npcUser.setHasPath(true);
         int maxPathLocations = ZNPConfigUtils.getConfig(ConfigConfig.class).maxPathLocations;
-        this.bukkitTask = ServersNPC.SCHEDULER.runTaskTimerAsynchronously(() -> {
+        this.bukkitTask = NPCPlugin.SCHEDULER.runTaskTimerAsynchronously(() -> {
               if (this.npcUser.toPlayer() != null && this.npcUser.isHasPath()
                   && maxPathLocations > getLocationList().size()) {
                 Location location = this.npcUser.toPlayer().getLocation();

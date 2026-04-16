@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs.listeners;
 
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.npc.conversation.ConversationModel;
 import io.github.gonalez.znpcs.npc.event.NPCInteractEvent;
 import io.github.gonalez.znpcs.user.EventService;
@@ -12,8 +12,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerListener implements Listener {
-  public PlayerListener(ServersNPC serversNPC) {
-    serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
+  public PlayerListener(NPCPlugin NPCPlugin) {
+    NPCPlugin.getServer().getPluginManager().registerEvents(this, NPCPlugin);
   }
   
   @EventHandler

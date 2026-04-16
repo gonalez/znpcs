@@ -1,20 +1,8 @@
 package io.github.gonalez.znpcs;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.github.gonalez.znpcs.config.Config;
-import io.github.gonalez.znpcs.config.ConfigConfig;
-import io.github.gonalez.znpcs.config.ConfigProvider;
-import io.github.gonalez.znpcs.config.DefaultConfigProvider;
-import io.github.gonalez.znpcs.config.GsonConfigFactory;
-import io.github.gonalez.znpcs.config.MessagesConfig;
 import io.github.gonalez.znpcs.listeners.InventoryListener;
 import io.github.gonalez.znpcs.listeners.PlayerListener;
-import io.github.gonalez.znpcs.npc.NPC;
-import io.github.gonalez.znpcs.npc.NPCModel;
 import io.github.gonalez.znpcs.npc.NPCPath;
-import io.github.gonalez.znpcs.npc.NPCType;
 import io.github.gonalez.znpcs.npc.task.NPCManagerTask;
 import io.github.gonalez.znpcs.npc.task.NpcRefreshSkinTask;
 import io.github.gonalez.znpcs.skin.AshconSkinFetcherServer;
@@ -25,12 +13,8 @@ import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.BungeeUtils;
 import io.github.gonalez.znpcs.utility.MetricsLite;
 import io.github.gonalez.znpcs.utility.SchedulerUtils;
-import io.github.gonalez.znpcs.utility.itemstack.ItemStackSerializer;
-import io.github.gonalez.znpcs.utility.location.ZLocation;
 import java.util.concurrent.Executors;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -40,20 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
 import java.util.logging.Level;
 
-public class ServersNPC extends JavaPlugin {
+public class NPCPlugin extends JavaPlugin {
   public static final String PATH_EXTENSION = ".path";
-
-  public static final Gson GSON =
-      (new GsonBuilder())
-          .registerTypeAdapter(ZLocation.class, ZLocation.SERIALIZER)
-          .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackSerializer())
-          .setPrettyPrinting()
-          .disableHtmlEscaping()
-          .create();
-
   public static SchedulerUtils SCHEDULER;
 
   public static BungeeUtils BUNGEE_UTILS;
@@ -63,14 +37,6 @@ public class ServersNPC extends JavaPlugin {
   @Override
   public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
-
-    ConfigProvider configProvider;
-    try {
-      configProvider = createConfigProvider(pluginPath);
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to load config", e);
-    }
-
     try {
       loadAllPaths(pluginPath.resolve("paths"));
     } catch (IOException e) {
@@ -108,22 +74,6 @@ public class ServersNPC extends JavaPlugin {
     }
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private ConfigProvider createConfigProvider(Path basedir) throws IOException {
-    GsonConfigFactory configFactory = new GsonConfigFactory(GSON) {
-      @Override
-      protected Path getConfigFilePath(Class<? extends Config> configClass) {
-        return basedir.resolve(CONFIG_FILE_NAMES.get(configClass));
-      }
-    };
-    DefaultConfigProvider.Builder builder = DefaultConfigProvider.builder();
-    for (Class<? extends Config> configClass : CONFIG_FILE_NAMES.keySet()) {
-      Config config = configFactory.create(configClass);
-      builder.addConfig((Class)configClass, config);
-    }
-    return builder.build();
-  }
-
   /**
    * Finds all files that qualify as NPC paths. A file is considered a valid NPC path file
    * if its name ends with {@link #PATH_EXTENSION}. This method reads each qualifying file
@@ -151,32 +101,4 @@ public class ServersNPC extends JavaPlugin {
     }
     Files.createDirectories(directory);
   }
-
-  public static NPC createNPC(int id, NPCType npcType, Location location, String name) {
-    NPC find = NPC.find(id);
-    if (find != null) return find;
-    NPCModel pojo =
-        (new NPCModel(id))
-            .withHologramLines(Collections.singletonList(name))
-            .withLocation(new ZLocation(location))
-            .withNpcType(npcType);
-    // TODO: Make a proper npc saving
-    ZNPConfigUtils.getConfig(DataConfiguration.class).npcList.add(pojo);
-    return new NPC(pojo, true);
-  }
-
-  public static void deleteNPC(int npcID) {
-    NPC npc = NPC.find(npcID);
-    if (npc == null)
-      throw new IllegalStateException("can't find npc:  " + npcID);
-    NPC.unregister(npcID);
-    // TODO: Make a proper npc saving
-    ZNPConfigUtils.getConfig(DataConfiguration.class).npcList.remove(npc.getNpcPojo());
-  }
-
-  private static final ImmutableMap<Class<? extends Config>, String> CONFIG_FILE_NAMES =
-      ImmutableMap.of(
-          ConfigConfig.class, "config.yml",
-          MessagesConfig.class, "messages.yml"
-      );
 }

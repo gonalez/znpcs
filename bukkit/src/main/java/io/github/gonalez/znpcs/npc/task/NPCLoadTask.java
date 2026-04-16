@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs.npc.task;
 
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -17,7 +17,7 @@ public class NPCLoadTask extends BukkitRunnable {
   
   public NPCLoadTask(NPC npc) {
     this.npc = npc;
-    ServersNPC.SCHEDULER.runTaskTimer(this, 40);
+    NPCPlugin.SCHEDULER.runTaskTimer(this, 40);
   }
   
   public void run() {

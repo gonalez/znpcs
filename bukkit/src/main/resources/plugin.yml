@@ -1,5 +1,5 @@
-name: ServersNPC
-main: io.github.gonalez.znpcs.ServersNPC
-version: 4.1
+name: ZNPCs
+main: io.github.gonalez.znpcs.NPCPlugin
+version: 1.0.0
 api-version: 1.13
 softdepend: [ PlaceholderAPI ]

@@ -1,11 +1,8 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
-import io.github.gonalez.znpcs.command.Command;
-import io.github.gonalez.znpcs.command.CommandContext;
-import io.github.gonalez.znpcs.command.CommandEnvironment;
-import io.github.gonalez.znpcs.command.CommandResult;
 import java.util.Collection;
+import org.bukkit.command.CommandSender;
 
 public class NPCMainCommand extends Command {
 
@@ -22,9 +19,8 @@ public class NPCMainCommand extends Command {
   @Override
   protected CommandResult execute(
       CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-    // help message (no child commands used)
     for (Command command : getChildren()) {
-      ctx.log(command.getName());
+      ctx.get(CommandSender.class).sendMessage(command.getName());
     }
     return newCommandResult();
   }

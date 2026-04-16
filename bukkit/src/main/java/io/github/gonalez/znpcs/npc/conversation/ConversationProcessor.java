@@ -1,7 +1,6 @@
 package io.github.gonalez.znpcs.npc.conversation;
 
-import io.github.gonalez.znpcs.ServersNPC;
-import io.github.gonalez.znpcs.config.ConfigConfig;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.hologram.replacer.LineReplacer;
 import io.github.gonalez.znpcs.user.ZUser;
@@ -42,7 +41,7 @@ public class ConversationProcessor {
   }
   
   private void start() {
-    ServersNPC.SCHEDULER.runTaskTimer(new BukkitRunnable() {
+    NPCPlugin.SCHEDULER.runTaskTimer(new BukkitRunnable() {
           public void run() {
             if (Bukkit.getPlayer(ConversationProcessor.this.player.getUniqueId()) == null || ConversationProcessor.this
               .conversationIndex > ConversationProcessor.this.conversationModel.getConversation().getTexts().size() - 1 || ConversationProcessor.this

@@ -3,16 +3,12 @@ package io.github.gonalez.znpcs.commands;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
-import io.github.gonalez.znpcs.command.Command;
-import io.github.gonalez.znpcs.command.CommandContext;
-import io.github.gonalez.znpcs.command.CommandEnvironment;
-import io.github.gonalez.znpcs.command.CommandResult;
-import io.github.gonalez.znpcs.config.MessagesConfig;
 import io.github.gonalez.znpcs.npc.NPC;
+import io.github.gonalez.znpcs.util.Translation;
 import java.util.Collection;
-import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 
-public final class NPCLinesCommand extends Command {
+public class NPCLinesCommand extends Command {
 
   @Override
   public String getName() {
@@ -28,15 +24,15 @@ public final class NPCLinesCommand extends Command {
   protected CommandResult execute(CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).invalidNumber);
+      return newCommandResult().errorKey("command.invalid_number");
     }
     NPC npc = NPC.find(id);
     if (npc == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).npcNotFound);
+      return newCommandResult().errorKey("npc.not_found");
     }
     return newCommandResult()
-        .addDependency(NPC.class, npc)
-        .setSuccessMessage(env.getConfig(MessagesConfig.class).success);
+        .setContextPropagator(b -> b.put(NPC.class, npc))
+        .successKey(Translation.get("command.success"));
   }
 
   @Override
@@ -63,8 +59,7 @@ public final class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      NPC npc = env.getMergedCommandResult().getDependency(NPC.class);
-      npc.getNpcPojo().getHologramLines().clear();
+      ctx.get(NPC.class).getNpcPojo().getHologramLines().clear();
       return newCommandResult();
     }
   }
@@ -84,8 +79,7 @@ public final class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      NPC npc = env.getMergedCommandResult().getDependency(NPC.class);
-      npc.getNpcPojo().getHologramLines().add(Joiner.on(' ').join(args.subList(0, args.size())));
+      ctx.get(NPC.class).getNpcPojo().getHologramLines().add(Joiner.on(' ').join(args.subList(0, args.size())));
       return newCommandResult();
     }
   }
@@ -105,8 +99,7 @@ public final class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      NPC npc = env.getMergedCommandResult().getDependency(NPC.class);
-      npc.getNpcPojo().getHologramLines().clear();
+      ctx.get(NPC.class).getNpcPojo().getHologramLines().clear();
       return newCommandResult();
     }
   }
@@ -126,12 +119,17 @@ public final class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      NPC npc = env.getMergedCommandResult().getDependency(NPC.class);
-      ctx.log(ChatColor.YELLOW + "NPC Lines:");
+      CommandSender commandSender = ctx.get(CommandSender.class);
+      NPC npc = ctx.get(NPC.class);
+
+      commandSender.sendMessage(Translation.get("command.list.header"));
       for (int i = 0; i < npc.getNpcPojo().getHologramLines().size(); i++) {
-        ctx.log(ChatColor.translateAlternateColorCodes('&',
-            String.format("&a%d &7- " + npc.getNpcPojo().getHologramLines().get(i), i)));
+        String line = npc.getNpcPojo().getHologramLines().get(i);
+        commandSender.sendMessage(
+            Translation.get("command.list.line", i, line)
+        );
       }
+
       return newCommandResult();
     }
   }

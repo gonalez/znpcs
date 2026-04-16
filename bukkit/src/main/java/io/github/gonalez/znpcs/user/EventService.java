@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs.user;
 
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import org.bukkit.event.Event;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class EventService<T extends Event> {
 
 
   public void runAll(T event) {
-    ServersNPC.SCHEDULER.runTask(() -> {
+    NPCPlugin.SCHEDULER.runTask(() -> {
       this.eventConsumers.forEach((consumer) -> {
         consumer.accept(event);
       });

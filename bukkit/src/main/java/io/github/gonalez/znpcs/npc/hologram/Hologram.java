@@ -2,7 +2,6 @@ package io.github.gonalez.znpcs.npc.hologram;
 
 import io.github.gonalez.znpcs.UnexpectedCallException;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
-import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.hologram.replacer.LineReplacer;
 import io.github.gonalez.znpcs.user.ZUser;

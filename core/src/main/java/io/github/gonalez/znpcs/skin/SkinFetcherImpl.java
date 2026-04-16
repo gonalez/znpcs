@@ -23,12 +23,6 @@ import javax.annotation.Nullable;
 
 public class SkinFetcherImpl implements SkinFetcher {
 
-  /** Receiver for output of {@link #fetchGameProfile}. */
-  public interface SkinGameProfileCollector {
-    void acceptSkinGameProfile(String name, GameProfile profile);
-    void acceptSkinError(String name, Throwable t);
-  }
-
   /** Builder for {@link SkinFetcherImpl}. */
   public static final class Builder {
     private Executor skinExecutor;
@@ -77,6 +71,12 @@ public class SkinFetcherImpl implements SkinFetcher {
   /** Returns a Builder for {@link SkinFetcherImpl}. */
   public static Builder builder() {
     return new Builder();
+  }
+
+  /** Receiver for output of {@link #fetchGameProfile}. */
+  public interface SkinGameProfileCollector {
+    void acceptSkinGameProfile(String name, GameProfile profile);
+    void acceptSkinError(String name, Throwable t);
   }
 
   private final HttpClient httpClient;

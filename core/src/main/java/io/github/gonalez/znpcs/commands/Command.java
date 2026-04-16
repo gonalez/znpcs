@@ -1,11 +1,10 @@
-package io.github.gonalez.znpcs.command;
+package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nullable;
 
 public abstract class Command {
 
@@ -47,23 +46,27 @@ public abstract class Command {
     if (!possibleCommands.isEmpty()) {
       if (executeOnChildrenFound()) {
         CommandResult result = execute(env, ctx, args);
-        env.executedCommands.put(this, result);
         if (result.hasError()) {
           return result;
         }
-        env.mergedCommandResult = mergeCommandResultDeps(env.mergedCommandResult, result);
+        ctx = resolveContext(ctx, result);
       }
       return Iterables.getLast(possibleCommands).executeCommand(env, ctx, args);
     }
     return execute(env, ctx, args);
   }
 
-  private static CommandResult mergeCommandResultDeps(
-      @Nullable CommandResult saved, CommandResult result) {
-    if (saved != null) {
-      result.dependencies.putAll(saved.dependencies);
+  private CommandContext resolveContext(CommandContext context, CommandResult result) {
+    CommandContext resultContext = result.getContext();
+    if (resultContext != null) {
+      return resultContext;
     }
-    return result;
+    if (result.contextPropagator != null) {
+      CommandContext.Builder builder = context.toBuilder();
+      result.contextPropagator.accept(builder);
+      return builder.build();
+    }
+    return context;
   }
 
   protected CommandResult newCommandResult() {

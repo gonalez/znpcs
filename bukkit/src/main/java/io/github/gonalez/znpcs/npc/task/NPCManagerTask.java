@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs.npc.task;
 
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.config.ConfigConfig;
 import io.github.gonalez.znpcs.npc.FunctionFactory;
 import io.github.gonalez.znpcs.npc.NPC;
@@ -11,8 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class NPCManagerTask extends BukkitRunnable {
-  public NPCManagerTask(ServersNPC serversNPC) {
-    runTaskTimerAsynchronously(serversNPC, 60L, 1L);
+  public NPCManagerTask(NPCPlugin NPCPlugin) {
+    runTaskTimerAsynchronously(NPCPlugin, 60L, 1L);
   }
   
   public void run() {

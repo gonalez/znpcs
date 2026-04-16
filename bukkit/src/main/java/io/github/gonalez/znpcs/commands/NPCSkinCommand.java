@@ -3,28 +3,13 @@ package io.github.gonalez.znpcs.commands;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import com.mojang.authlib.GameProfile;
-import io.github.gonalez.znpcs.command.Command;
-import io.github.gonalez.znpcs.command.CommandContext;
-import io.github.gonalez.znpcs.command.CommandEnvironment;
-import io.github.gonalez.znpcs.command.CommandResult;
-import io.github.gonalez.znpcs.config.Config;
-import io.github.gonalez.znpcs.config.ConfigOption;
-import io.github.gonalez.znpcs.config.MessagesConfig;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.skin.ApplySkinFetcherListener;
 import io.github.gonalez.znpcs.skin.SkinFetcher;
+import io.github.gonalez.znpcs.util.Translation;
+import org.bukkit.command.CommandSender;
 
-public final class NPCSkinCommand extends Command {
-
-  public static class Configuration extends Config {
-
-    @ConfigOption(
-        name = "skin_fetcher",
-        description = "Skin fetcher is used for fetching skins"
-    )
-    public SkinFetcher skinFetcher;
-  }
-
+public class NPCSkinCommand extends Command {
 
   @Override
   public String getName() {
@@ -40,30 +25,29 @@ public final class NPCSkinCommand extends Command {
   protected CommandResult execute(CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).invalidNumber);
+      return newCommandResult().errorKey("command.invalid_number");
     }
     NPC npc = NPC.find(id);
     if (npc == null) {
-      return newCommandResult().setErrorMessage(env.getConfig(MessagesConfig.class).invalidNumber);
+      return newCommandResult().errorKey("npc.not_found");
     }
 
+    CommandSender commandSender = ctx.get(CommandSender.class);
     String skinName = args.get(1).trim();
 
-    ctx.log(env.getConfig(MessagesConfig.class).fetchingSkin, skinName);
-    env.getConfig(Configuration.class).skinFetcher
+    ctx.get(SkinFetcher.class)
         .fetchGameProfile(skinName, new ApplySkinFetcherListener(npc) {
           @Override
           public void onComplete(GameProfile gameProfile) {
-            ctx.log(env.getConfig(MessagesConfig.class).getSkin, skinName);
             super.onComplete(gameProfile);
+            commandSender.sendMessage(Translation.get("npc.skin_fetched", skinName));
           }
 
           @Override
           public void onError(Throwable error) {
-            ctx.log(env.getConfig(MessagesConfig.class).cantGetSkin, skinName);
+            commandSender.sendMessage(Translation.get("npc.skin_not_found", skinName));;
           }
         });
-
-    return newCommandResult().setSuccessMessage(env.getConfig(MessagesConfig.class).success);
+    return newCommandResult().successKey("command.success");
   }
 }

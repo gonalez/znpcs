@@ -1,15 +1,9 @@
 package io.github.gonalez.znpcs.user;
 
 import com.mojang.authlib.GameProfile;
-import io.github.gonalez.znpcs.ServersNPC;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.npc.NPC;
-import io.github.gonalez.znpcs.npc.NPCAction;
-import io.github.gonalez.znpcs.npc.event.ClickType;
-import io.github.gonalez.znpcs.npc.event.NPCInteractEvent;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

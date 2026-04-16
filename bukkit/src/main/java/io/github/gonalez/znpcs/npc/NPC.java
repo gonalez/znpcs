@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.UnexpectedCallException;
 import io.github.gonalez.znpcs.cache.CacheRegistry;
 import io.github.gonalez.znpcs.npc.conversation.ConversationModel;
@@ -229,7 +229,7 @@ public class NPC {
       lookAt(user, getLocation(), true);
       if (npcIsPlayer) {
         Object removeTabPacket = this.packets.getProxyInstance().getTabRemovePacket(this.nmsEntity);
-        ServersNPC.SCHEDULER.scheduleSyncDelayedTask(() -> Utils.sendPackets(user,
+        NPCPlugin.SCHEDULER.scheduleSyncDelayedTask(() -> Utils.sendPackets(user,
             removeTabPacket, updateTabConstructor), 60);
       } 
     } catch (ReflectiveOperationException operationException) {

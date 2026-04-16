@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.npc;
 
 import com.google.common.base.MoreObjects;
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.npc.event.ClickType;
 import io.github.gonalez.znpcs.user.ZUser;
 import io.github.gonalez.znpcs.utility.Utils;
@@ -88,7 +88,7 @@ public class NPCAction {
     },
     SERVER {
       public void run(ZUser user, String actionValue) {
-        ServersNPC.BUNGEE_UTILS.sendPlayerToServer(user.toPlayer(), actionValue);
+        NPCPlugin.BUNGEE_UTILS.sendPlayerToServer(user.toPlayer(), actionValue);
       }
     };
     

@@ -1,6 +1,6 @@
 package io.github.gonalez.znpcs.listeners;
 
-import io.github.gonalez.znpcs.ServersNPC;
+import io.github.gonalez.znpcs.NPCPlugin;
 import io.github.gonalez.znpcs.utility.inventory.ZInventory;
 import io.github.gonalez.znpcs.utility.inventory.ZInventoryHolder;
 import org.bukkit.entity.Player;
@@ -9,8 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class InventoryListener implements Listener {
-  public InventoryListener(ServersNPC serversNPC) {
-    serversNPC.getServer().getPluginManager().registerEvents(this, serversNPC);
+  public InventoryListener(NPCPlugin NPCPlugin) {
+    NPCPlugin.getServer().getPluginManager().registerEvents(this, NPCPlugin);
   }
   
   @EventHandler
