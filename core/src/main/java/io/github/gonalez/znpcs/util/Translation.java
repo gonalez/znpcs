@@ -22,7 +22,7 @@ public final class Translation {
     registry.putIfAbsent(key, message);
   }
 
-  /** Returns the translation of a given {@code errorCode}. */
+  /** Returns the translation of a given {@code key}. */
   @Nonnull
   public static String get(String key, Object... args) {
     return String.format(registry.getOrDefault(key, INVALID_ENTRY_MESSAGE), args);

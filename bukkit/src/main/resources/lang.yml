@@ -1,0 +1,8 @@
+command:
+  invalid_number: "&cThe inserted number/id does not look like a number."
+  incorrect_usage: "Incorrect command usage."
+  success: "&aDone..."
+npc:
+  not_found: "&cNo NPC found with ID '%s'."
+  skin_not_found: "&cNo skin found with name '%s'."
+  unknown_type: "&cInvalid NPC type '%s'."
