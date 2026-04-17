@@ -1,0 +1,7 @@
+npc:
+  settings:
+    display_name: SkyWars
+    type: PLAYER
+  data:
+    body:
+      rotation: 90

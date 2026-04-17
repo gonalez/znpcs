@@ -32,8 +32,6 @@ public class NPCPlugin extends JavaPlugin {
 
   public static BungeeUtils BUNGEE_UTILS;
 
-  private ZNPConfigSaveTask configSaveTask;
-
   @Override
   public void onEnable() {
     Path pluginPath = getDataFolder().toPath();
@@ -58,8 +56,6 @@ public class NPCPlugin extends JavaPlugin {
     Bukkit.getOnlinePlayers().forEach(ZUser::find);
 
     new NPCManagerTask(this);
-    (configSaveTask = new ZNPConfigSaveTask()).runTaskTimerAsynchronously(this, 300,
-        configProvider.getConfig(ConfigConfig.class).saveNpcsDelaySeconds);
     new NpcRefreshSkinTask(skinFetcher).runTaskTimerAsynchronously(this, 0L, 20L);
 
     new PlayerListener(this);
@@ -69,9 +65,6 @@ public class NPCPlugin extends JavaPlugin {
   @Override
   public void onDisable() {
     Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
-    if (configSaveTask != null) {
-      configSaveTask.run();
-    }
   }
 
   /**
