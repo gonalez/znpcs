@@ -1,5 +1,10 @@
+plugins {
+    id 'net.ltgt.errorprone' version '5.1.0'
+}
+
 subprojects {
-    apply plugin: "java-library"
+    apply plugin: 'java'
+    apply plugin: 'net.ltgt.errorprone'
 
     group = project.property("GROUP_ID")
     version = project.property("VERSION_NAME")
@@ -10,7 +15,8 @@ subprojects {
     }
 
     dependencies {
-        testImplementation 'junit:junit:4.13.2'
+        errorprone("com.google.errorprone:error_prone_core:2.42.0")
+        testImplementation("junit:junit:4.13.2")
         testImplementation("com.google.truth:truth:1.4.1")
     }
 

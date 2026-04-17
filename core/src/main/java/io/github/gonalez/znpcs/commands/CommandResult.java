@@ -19,13 +19,9 @@ public final class CommandResult {
     this.actualCommand = actualCommand;
   }
 
-  CommandResult setContextPropagator(Consumer<Builder> contextPropagator) {
+  CommandResult setContextPropagator(Consumer<CommandContext.Builder> contextPropagator) {
     this.contextPropagator = contextPropagator;
     return this;
-  }
-
-  private Consumer<Builder> getContextPropagator() {
-    return contextPropagator;
   }
 
   public static CommandResult create(Command command) {

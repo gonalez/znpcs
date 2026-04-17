@@ -17,9 +17,9 @@ public final class Translation {
   private static final HashMap<String, String> registry = new HashMap<>();
 
   @CanIgnoreReturnValue
-  public static void register(String key, String message) {
+  public static String register(String key, String message) {
     checkArgument(ALLOWED_CHARS.matchesAllOf(key), "'%s' must only contain letters and/or digits", key);
-    registry.putIfAbsent(key, message);
+    return registry.putIfAbsent(key, message);
   }
 
   /** Returns the translation of a given {@code key}. */
