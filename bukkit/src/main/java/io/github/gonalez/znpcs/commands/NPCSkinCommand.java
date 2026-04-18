@@ -2,11 +2,9 @@ package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
-import com.mojang.authlib.GameProfile;
 import io.github.gonalez.znpcs.npc.NPC;
-import io.github.gonalez.znpcs.skin.ApplySkinFetcherListener;
-import io.github.gonalez.znpcs.skin.SkinFetcher;
-import io.github.gonalez.znpcs.util.Translation;
+import io.github.gonalez.znpcs.npc.NPCManager;
+import java.util.Optional;
 import org.bukkit.command.CommandSender;
 
 public class NPCSkinCommand extends Command {
@@ -27,27 +25,14 @@ public class NPCSkinCommand extends Command {
     if (id == null) {
       return newCommandResult().errorKey("command.invalid_number");
     }
-    NPC npc = NPC.find(id);
-    if (npc == null) {
+    Optional<NPC> npcOptional = ctx.get(NPCManager.class).getNpc(id);
+    if (!npcOptional.isPresent()) {
       return newCommandResult().errorKey("npc.not_found");
     }
 
     CommandSender commandSender = ctx.get(CommandSender.class);
     String skinName = args.get(1).trim();
 
-    ctx.get(SkinFetcher.class)
-        .fetchGameProfile(skinName, new ApplySkinFetcherListener(npc) {
-          @Override
-          public void onComplete(GameProfile gameProfile) {
-            super.onComplete(gameProfile);
-            commandSender.sendMessage(Translation.get("npc.skin_fetched", skinName));
-          }
-
-          @Override
-          public void onError(Throwable error) {
-            commandSender.sendMessage(Translation.get("npc.skin_not_found", skinName));;
-          }
-        });
     return newCommandResult().successKey("command.success");
   }
 }

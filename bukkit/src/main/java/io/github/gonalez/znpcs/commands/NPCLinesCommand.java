@@ -4,8 +4,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import io.github.gonalez.znpcs.npc.NPC;
+import io.github.gonalez.znpcs.npc.NPCManager;
 import io.github.gonalez.znpcs.util.Translation;
 import java.util.Collection;
+import java.util.Optional;
 import org.bukkit.command.CommandSender;
 
 public class NPCLinesCommand extends Command {
@@ -26,10 +28,11 @@ public class NPCLinesCommand extends Command {
     if (id == null) {
       return newCommandResult().errorKey("command.invalid_number");
     }
-    NPC npc = NPC.find(id);
-    if (npc == null) {
+    Optional<NPC> npcOptional = ctx.get(NPCManager.class).getNpc(id);
+    if (!npcOptional.isPresent()) {
       return newCommandResult().errorKey("npc.not_found");
     }
+    NPC npc = npcOptional.get();
     return newCommandResult()
         .setContextPropagator(b -> b.put(NPC.class, npc))
         .successKey(Translation.get("command.success"));
@@ -59,7 +62,6 @@ public class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      ctx.get(NPC.class).getNpcPojo().getHologramLines().clear();
       return newCommandResult();
     }
   }
@@ -79,7 +81,6 @@ public class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      ctx.get(NPC.class).getNpcPojo().getHologramLines().add(Joiner.on(' ').join(args.subList(0, args.size())));
       return newCommandResult();
     }
   }
@@ -99,7 +100,6 @@ public class NPCLinesCommand extends Command {
     @Override
     protected CommandResult execute(
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
-      ctx.get(NPC.class).getNpcPojo().getHologramLines().clear();
       return newCommandResult();
     }
   }
@@ -121,15 +121,6 @@ public class NPCLinesCommand extends Command {
         CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
       CommandSender commandSender = ctx.get(CommandSender.class);
       NPC npc = ctx.get(NPC.class);
-
-      commandSender.sendMessage(Translation.get("command.list.header"));
-      for (int i = 0; i < npc.getNpcPojo().getHologramLines().size(); i++) {
-        String line = npc.getNpcPojo().getHologramLines().get(i);
-        commandSender.sendMessage(
-            Translation.get("command.list.line", i, line)
-        );
-      }
-
       return newCommandResult();
     }
   }

@@ -1,97 +1,20 @@
 package io.github.gonalez.znpcs;
 
-import io.github.gonalez.znpcs.listeners.InventoryListener;
-import io.github.gonalez.znpcs.listeners.PlayerListener;
-import io.github.gonalez.znpcs.npc.NPCPath;
-import io.github.gonalez.znpcs.npc.task.NPCManagerTask;
-import io.github.gonalez.znpcs.npc.task.NpcRefreshSkinTask;
 import io.github.gonalez.znpcs.skin.AshconSkinFetcherServer;
 import io.github.gonalez.znpcs.skin.MineSkinFetcher;
 import io.github.gonalez.znpcs.skin.SkinFetcher;
 import io.github.gonalez.znpcs.skin.SkinFetcherImpl;
-import io.github.gonalez.znpcs.user.ZUser;
-import io.github.gonalez.znpcs.utility.BungeeUtils;
-import io.github.gonalez.znpcs.utility.MetricsLite;
-import io.github.gonalez.znpcs.utility.SchedulerUtils;
 import java.util.concurrent.Executors;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.logging.Level;
-
 public class NPCPlugin extends JavaPlugin {
-  public static final String PATH_EXTENSION = ".path";
-  public static SchedulerUtils SCHEDULER;
-
-  public static BungeeUtils BUNGEE_UTILS;
 
   @Override
   public void onEnable() {
-    Path pluginPath = getDataFolder().toPath();
-    try {
-      loadAllPaths(pluginPath.resolve("paths"));
-    } catch (IOException e) {
-      getLogger().log(Level.WARNING, "Could not load paths", e);
-    }
-
-    getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-    new MetricsLite(this, 8054);
-
     SkinFetcher skinFetcher =
         SkinFetcherImpl.builder()
             .setSkinExecutor(Executors.newSingleThreadExecutor())
             .addSkinFetcherServer(new AshconSkinFetcherServer(), new MineSkinFetcher())
             .build();
-
-    SCHEDULER = new SchedulerUtils(this);
-    BUNGEE_UTILS = new BungeeUtils(this);
-
-    Bukkit.getOnlinePlayers().forEach(ZUser::find);
-
-    new NPCManagerTask(this);
-    new NpcRefreshSkinTask(skinFetcher).runTaskTimerAsynchronously(this, 0L, 20L);
-
-    new PlayerListener(this);
-    new InventoryListener(this);
-  }
-
-  @Override
-  public void onDisable() {
-    Bukkit.getOnlinePlayers().forEach(ZUser::unregister);
-  }
-
-  /**
-   * Finds all files that qualify as NPC paths. A file is considered a valid NPC path file
-   * if its name ends with {@link #PATH_EXTENSION}. This method reads each qualifying file
-   * and converts it to an NPC path & initializes it.
-   */
-  private void loadAllPaths(Path directory) throws IOException {
-    if (Files.isDirectory(directory)) {
-      Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-          if (!Files.isDirectory(file)
-              && file.getFileName().toString().endsWith(PATH_EXTENSION)) {
-            loadPath(file.toFile());
-          }
-          return FileVisitResult.CONTINUE;
-        }
-
-        void loadPath(File file) {
-          NPCPath.AbstractTypeWriter abstractTypeWriter =
-              NPCPath.AbstractTypeWriter.forFile(
-                  file, NPCPath.AbstractTypeWriter.TypeWriter.MOVEMENT);
-          abstractTypeWriter.load();
-        }
-      });
-    }
-    Files.createDirectories(directory);
   }
 }
