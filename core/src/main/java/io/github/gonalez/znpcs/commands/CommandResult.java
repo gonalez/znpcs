@@ -1,9 +1,8 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import io.github.gonalez.znpcs.commands.CommandContext.Builder;
+import io.github.gonalez.znpcs.context.Context;
 import io.github.gonalez.znpcs.util.Translation;
-import java.util.function.Consumer;
 
 /** Contains information about the result of {@link Command#execute}. This class is mutable. */
 public final class CommandResult {
@@ -12,16 +11,10 @@ public final class CommandResult {
   private Throwable error;
   private String errorMessage;
   private String successMessage;
-  private CommandContext context;
-  Consumer<CommandContext.Builder> contextPropagator;
+  private Context context;
 
   private CommandResult(Command actualCommand) {
     this.actualCommand = actualCommand;
-  }
-
-  CommandResult setContextPropagator(Consumer<CommandContext.Builder> contextPropagator) {
-    this.contextPropagator = contextPropagator;
-    return this;
   }
 
   public static CommandResult create(Command command) {
@@ -79,12 +72,12 @@ public final class CommandResult {
   }
 
   @CanIgnoreReturnValue
-  public CommandResult setContext(CommandContext context) {
+  public CommandResult setContext(Context context) {
     this.context = context;
     return this;
   }
 
-  public CommandContext getContext() {
+  public Context getContext() {
     return context;
   }
 }

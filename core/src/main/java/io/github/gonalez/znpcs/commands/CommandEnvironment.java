@@ -1,21 +1,22 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableClassToInstanceMap;
-import com.google.common.collect.ImmutableMap;
-import java.util.HashMap;
-import java.util.Map;
+import io.github.gonalez.znpcs.context.Context;
 import javax.annotation.Nullable;
 
 public class CommandEnvironment {
+  @Nullable private final Context defaultContext;
   private final ImmutableClassToInstanceMap<Command> commands;
-  final Map<Command, CommandResult> executedCommands = new HashMap<>();
 
-  public CommandEnvironment(ImmutableClassToInstanceMap<Command> commands) {
+  public CommandEnvironment(
+      @Nullable Context defaultContext,
+      ImmutableClassToInstanceMap<Command> commands) {
+    this.defaultContext = defaultContext;
     this.commands = commands;
   }
 
-  public ImmutableMap<Command, CommandResult> getExecutedCommands() {
-    return ImmutableMap.copyOf(executedCommands);
+  public @Nullable Context getDefaultContext() {
+    return defaultContext;
   }
 
   @Nullable

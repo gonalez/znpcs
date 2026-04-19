@@ -2,6 +2,7 @@ package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
+import io.github.gonalez.znpcs.context.Context;
 
 public class NPCreateCommand extends Command {
 
@@ -16,7 +17,7 @@ public class NPCreateCommand extends Command {
   }
 
   @Override
-  protected CommandResult execute(CommandEnvironment env, CommandContext ctx, ImmutableList<String> args) {
+  protected CommandResult execute(CommandEnvironment env, Context ctx, ImmutableList<String> args) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
       return newCommandResult().errorKey("command.invalid_number");
