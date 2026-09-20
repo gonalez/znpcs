@@ -24,7 +24,7 @@ public class SkinFetcherTest {
   public void setup() {
     skinFetcher = SkinFetcherImpl.builder()
         .setSkinExecutor(Executors.newCachedThreadPool())
-        .addSkinFetcherServer(new AshconSkinFetcherServer(), new MineSkinFetcher())
+        .addSkinFetcherServer(new AshconSkinProfileProvider(), new MineSkinProfileProvider())
         .build();
   }
 

@@ -8,8 +8,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import java.net.ProxySelector;
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -27,10 +30,10 @@ public class SkinFetcherImpl implements SkinFetcher {
   public static final class Builder {
     private Executor skinExecutor;
     private HttpClient httpClient;
-    private final ImmutableList.Builder<SkinFetcherServer> serverBuilder = ImmutableList.builder();
+    private final ImmutableList.Builder<SkinProfileProvider> serverBuilder = ImmutableList.builder();
     private Optional<SkinGameProfileCollector> optionalSkinGameProfileCollector = Optional.empty();
 
-    public Builder addSkinFetcherServer(SkinFetcherServer... skinFetcherServers) {
+    public Builder addSkinFetcherServer(SkinProfileProvider... skinFetcherServers) {
       serverBuilder.addAll(ImmutableList.copyOf(skinFetcherServers));
       return this;
     }
@@ -81,7 +84,7 @@ public class SkinFetcherImpl implements SkinFetcher {
 
   private final HttpClient httpClient;
   private final Executor executor;
-  private final ImmutableList<SkinFetcherServer> skinFetcherServers;
+  private final ImmutableList<SkinProfileProvider> skinFetcherServers;
   private Optional<SkinGameProfileCollector> optionalSkinGameProfileCollector;
 
   private SkinFetcherImpl(Builder builder) {
@@ -144,15 +147,18 @@ public class SkinFetcherImpl implements SkinFetcher {
 
   private List<ListenableFuture<GameProfile>> getAllProfiles(String name) {
     List<ListenableFuture<GameProfile>> fetchedGameProfilesFuture = new ArrayList<>();
-    for (SkinFetcherServer skinServer : skinFetcherServers) {
+    for (SkinProfileProvider skinServer : skinFetcherServers) {
       try {
-        HttpResponse<String> httpResponse = httpClient.send(
-            skinServer.prepareRequest(name).build(), BodyHandlers.ofString());
-        fetchedGameProfilesFuture.add(
-            immediateFuture(skinServer.readProfile(name, httpResponse)));
+        HttpResponse<String> httpResponse =
+          httpClient.send(
+            skinServer.prepareRequest(URI.create(skinServer.getTargetUrl(name)), name).build(),
+            BodyHandlers.ofString());
+
+        JsonElement json = JsonParser.parseString(httpResponse.body());
+        fetchedGameProfilesFuture.add(immediateFuture(skinServer.readProfile(name, json)));
       } catch (Exception e) {
         ListenableFuture<GameProfile> errorFuture =
-            immediateFailedFuture(new SkinException(name, e));
+          immediateFailedFuture(new SkinException(name, e));
         fetchedGameProfilesFuture.add(errorFuture);
       }
     }
