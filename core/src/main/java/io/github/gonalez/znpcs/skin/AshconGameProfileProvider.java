@@ -3,17 +3,22 @@ package io.github.gonalez.znpcs.skin;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
+import java.net.http.HttpClient;
 import java.util.UUID;
 
-public class AshconSkinProfileProvider extends SkinProfileProvider {
+public class AshconGameProfileProvider extends HttpGameProfileProvider {
 
-  @Override
-  public String getTargetUrl(String skin) {
-    return String.format("https://api.ashcon.app/mojang/v2/user/%s", skin);
+  public AshconGameProfileProvider(HttpClient httpClient) {
+    super(httpClient);
   }
 
   @Override
-  protected GameProfile readProfile(String skin, JsonElement value) {
+  public String getTargetUrl(String skin) {
+    return "https://api.ashcon.app/mojang/v2/user/%s";
+  }
+
+  @Override
+  protected GameProfile provideGameProfile(String name, JsonElement value) {
     JsonObject jsonObject = value.getAsJsonObject();
 
     UUID uuid = UUID.fromString(jsonObject.get("uuid").getAsString());

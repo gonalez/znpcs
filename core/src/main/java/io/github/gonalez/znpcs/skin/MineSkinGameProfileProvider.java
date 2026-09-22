@@ -9,18 +9,17 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.ryanharter.auto.value.gson.GenerateTypeAdapter;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest.Builder;
 import java.util.UUID;
 
-public class MineSkinProfileProvider extends SkinProfileProvider {
+public class MineSkinGameProfileProvider extends HttpGameProfileProvider {
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapterFactory(GenerateTypeAdapter.FACTORY).create();
 
-  @Override
-
-  public String getTargetUrl(String skinName) {
-    return "https://api.mineskin.org/v2/generate";
+  public MineSkinGameProfileProvider(HttpClient httpClient) {
+    super(httpClient);
   }
 
   @Override
@@ -36,7 +35,12 @@ public class MineSkinProfileProvider extends SkinProfileProvider {
   }
 
   @Override
-  protected GameProfile readProfile(String skin, JsonElement value) {
+  public String getTargetUrl(String skinName) {
+    return "https://api.mineskin.org/v2/generate";
+  }
+
+  @Override
+  protected GameProfile provideGameProfile(String skin, JsonElement value) {
     JsonObject skinObject = value.getAsJsonObject()
       .getAsJsonObject("skin");
 
