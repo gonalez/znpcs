@@ -45,12 +45,6 @@ public class SkinFetcherTest {
         .build();
   }
 
-  private static JsonObject withoutTimestamp(JsonElement element) {
-    JsonObject object = element.getAsJsonObject().deepCopy();
-    object.remove("timestamp");
-    return object;
-  }
-
   @Test
   public void testSkinFetcher_name() throws Exception {
     Future<GameProfile> fetched = skinFetcher.fetchGameProfile("Qentin", null);

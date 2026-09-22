@@ -11,7 +11,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 
 public abstract class HttpGameProfileProvider implements GameProfileProvider {
-
   private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
 
   private final HttpClient httpClient;

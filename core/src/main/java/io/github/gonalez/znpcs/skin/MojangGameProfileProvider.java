@@ -8,7 +8,6 @@ import java.net.http.HttpClient;
 import java.util.UUID;
 
 public final class MojangGameProfileProvider extends HttpGameProfileProvider {
-
   private final ByUuid byUuid;
 
   public MojangGameProfileProvider(HttpClient httpClient) {
@@ -48,34 +47,15 @@ public final class MojangGameProfileProvider extends HttpGameProfileProvider {
     }
 
     @Override
-    protected GameProfile provideGameProfile(
-      String name,
-      JsonElement value
-    ) {
-      JsonObject textures = null;
+    protected GameProfile provideGameProfile(String name, JsonElement value) {
       JsonArray properties = value.getAsJsonObject().getAsJsonArray("properties");
-
-      for (JsonElement element : properties) {
-        JsonObject property = element.getAsJsonObject();
-
-        if ("textures".equals(property.get("name").getAsString())) {
-          textures = property;
-          break;
-        }
-      }
-
-        if (textures == null) {
-          throw new IllegalStateException(
-            "Mojang profile has no textures property"
-          );
-        }
+      JsonObject textures = properties.get(0).getAsJsonObject();
 
       return GameProfiles.newGameProfile(
         UUID.fromString(formatUuid(value.getAsJsonObject().get("id").getAsString())),
         value.getAsJsonObject().get("name").getAsString(),
         textures.get("value").getAsString(),
-        textures.get("signature").getAsString()
-      );
+        textures.get("signature").getAsString());
     }
   }
 }
