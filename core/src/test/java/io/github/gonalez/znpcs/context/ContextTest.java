@@ -14,10 +14,7 @@ public class ContextTest {
   public void testBuilder_put_returnValues() throws Exception {
     Context.Key<String> key = Context.Key.of("foo");
 
-    Context context = Context.builder()
-        .put(key, "bar")
-        .put(String.class, "baz")
-        .build();
+    Context context = Context.builder().put(key, "bar").put(String.class, "baz").build();
 
     assertThat(context.get(key)).isEqualTo("bar");
     assertThat(context.get(String.class)).isEqualTo("baz");

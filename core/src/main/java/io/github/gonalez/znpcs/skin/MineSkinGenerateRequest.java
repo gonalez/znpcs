@@ -44,10 +44,10 @@ public abstract class MineSkinGenerateRequest {
 
   public static Builder newBuilder() {
     return new AutoValue_MineSkinGenerateRequest.Builder()
-      .setSkinVariant(SkinVariant.CLASSIC)
-      .setName("My Example Skin")
-      .setVisibility(SkinVisibility.PUBLIC)
-      .setCape(null);
+        .setSkinVariant(SkinVariant.CLASSIC)
+        .setName("My Example Skin")
+        .setVisibility(SkinVisibility.PUBLIC)
+        .setCape(null);
   }
 
   /** Builder for {@link MineSkinGenerateRequest}. */

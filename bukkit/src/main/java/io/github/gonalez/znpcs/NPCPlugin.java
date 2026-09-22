@@ -14,7 +14,8 @@ public class NPCPlugin extends JavaPlugin {
     SkinFetcher skinFetcher =
         SkinFetcherImpl.builder()
             .setSkinExecutor(Executors.newSingleThreadExecutor())
-            .addSkinFetcherServer(new AshconGameProfileProvider(), new MineSkinGameProfileProvider())
+            .addSkinFetcherServer(
+                new AshconGameProfileProvider(), new MineSkinGameProfileProvider())
             .build();
   }
 }

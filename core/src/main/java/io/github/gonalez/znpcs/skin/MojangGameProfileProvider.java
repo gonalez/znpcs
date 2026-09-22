@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import java.net.http.HttpClient;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public final class MojangGameProfileProvider extends HttpGameProfileProvider {
   private final ByUuid byUuid;
@@ -22,13 +23,13 @@ public final class MojangGameProfileProvider extends HttpGameProfileProvider {
 
   @Override
   protected GameProfile provideGameProfile(String name, JsonElement value) {
-    String uuid = value.getAsJsonObject()
-      .get("id")
-      .getAsString();
+    String uuid = value.getAsJsonObject().get("id").getAsString();
     return byUuid.provideGameProfile(uuid);
   }
 
   private static final class ByUuid extends HttpGameProfileProvider {
+    private static final Pattern UUID_PATTERN =
+        Pattern.compile("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})");
 
     private ByUuid(HttpClient httpClient) {
       super(httpClient);
@@ -39,23 +40,22 @@ public final class MojangGameProfileProvider extends HttpGameProfileProvider {
       return "https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false";
     }
 
-    private static String formatUuid(String uuid) {
-      return uuid.replaceFirst(
-        "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
-        "$1-$2-$3-$4-$5"
-      );
-    }
-
     @Override
     protected GameProfile provideGameProfile(String name, JsonElement value) {
       JsonArray properties = value.getAsJsonObject().getAsJsonArray("properties");
       JsonObject textures = properties.get(0).getAsJsonObject();
 
+      UUID uuid =
+          UUID.fromString(
+              UUID_PATTERN
+                  .matcher(value.getAsJsonObject().get("id").getAsString())
+                  .replaceFirst("$1-$2-$3-$4-$5"));
+
       return GameProfiles.newGameProfile(
-        UUID.fromString(formatUuid(value.getAsJsonObject().get("id").getAsString())),
-        value.getAsJsonObject().get("name").getAsString(),
-        textures.get("value").getAsString(),
-        textures.get("signature").getAsString());
+          uuid,
+          value.getAsJsonObject().get("name").getAsString(),
+          textures.get("value").getAsString(),
+          textures.get("signature").getAsString());
     }
   }
 }

@@ -28,9 +28,6 @@ public class AshconGameProfileProvider extends HttpGameProfileProvider {
     JsonObject raw = textures.get("raw").getAsJsonObject();
 
     return GameProfiles.newGameProfile(
-      uuid,
-      username,
-      raw.get("value").getAsString(),
-      raw.get("signature").getAsString());
+        uuid, username, raw.get("value").getAsString(), raw.get("signature").getAsString());
   }
 }

@@ -26,9 +26,11 @@ public class TranslationTest {
   public void test_invalid_key_characters_should_fail() throws Exception {
     IllegalArgumentException expected =
         assertThrows(
-            IllegalArgumentException.class, () -> Translation.register(INVALID_TRANSLATION_KEY, TEST_TRANSLATION_KEY));
+            IllegalArgumentException.class,
+            () -> Translation.register(INVALID_TRANSLATION_KEY, TEST_TRANSLATION_KEY));
     assertThat(expected)
         .hasMessageThat()
-        .isEqualTo(String.format("'%s' must only contain letters and/or digits", INVALID_TRANSLATION_KEY));
+        .isEqualTo(
+            String.format("'%s' must only contain letters and/or digits", INVALID_TRANSLATION_KEY));
   }
 }

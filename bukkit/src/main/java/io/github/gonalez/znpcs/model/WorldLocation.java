@@ -41,7 +41,7 @@ public class WorldLocation extends Point {
   public int compareTo(Point o) {
     int result = super.compareTo(o);
     if (!(o instanceof WorldLocation) || result != 0) return result;
-    WorldLocation other = (WorldLocation)o;
+    WorldLocation other = (WorldLocation) o;
     return ComparisonChain.start()
         .compare(worldName, other.worldName)
         .compare(yaw, other.yaw)

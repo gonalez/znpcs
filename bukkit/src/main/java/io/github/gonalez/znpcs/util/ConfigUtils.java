@@ -13,8 +13,8 @@ import org.bukkit.plugin.Plugin;
 
 public final class ConfigUtils {
 
-  public static FileConfiguration getOrCreatePluginConfig(
-      Plugin plugin, String path) throws IOException {
+  public static FileConfiguration getOrCreatePluginConfig(Plugin plugin, String path)
+      throws IOException {
     return getOrCreatePluginConfig(plugin, path, Function.identity());
   }
 

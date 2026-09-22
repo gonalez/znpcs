@@ -19,9 +19,9 @@ public class CommandTest {
 
   @Before
   public void setup() {
-    commandEnvironment = new CommandEnvironment(
-        Context.builder().put(Integer.class, 5).build(),
-        ImmutableClassToInstanceMap.of());
+    commandEnvironment =
+        new CommandEnvironment(
+            Context.builder().put(Integer.class, 5).build(), ImmutableClassToInstanceMap.of());
   }
 
   public static class ExampleCommand extends Command {
@@ -55,16 +55,18 @@ public class CommandTest {
   @Test
   public void testExecuteCommand_defaultContext() throws Exception {
     ExampleCommand exampleCommand = new ExampleCommand("ctx");
-    CommandResult commandResult = exampleCommand.executeCommand(
-        commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of());
+    CommandResult commandResult =
+        exampleCommand.executeCommand(
+            commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of());
     assertThat(commandResult.getContext().get(Integer.class)).isEqualTo(5);
   }
 
   @Test
   public void testExecuteCommand_commandResult() throws Exception {
     ExampleCommand exampleCommand = new ExampleCommand("hello");
-    CommandResult commandResult = exampleCommand.executeCommand(
-        commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of());
+    CommandResult commandResult =
+        exampleCommand.executeCommand(
+            commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of());
     assertThat(commandResult.getActualCommand()).isEqualTo(exampleCommand);
     assertThat(commandResult.getActualCommand().getName()).isEqualTo("hello");
   }
@@ -88,24 +90,27 @@ public class CommandTest {
 
     @Override
     protected Collection<Command> getChildren() {
-      return ImmutableList.of(new ExampleCommand("foo") {
-        @Override
-        protected Collection<Command> getChildren() {
-          return ImmutableList.of(new ExampleCommand("bar"));
-        }
-      });
+      return ImmutableList.of(
+          new ExampleCommand("foo") {
+            @Override
+            protected Collection<Command> getChildren() {
+              return ImmutableList.of(new ExampleCommand("bar"));
+            }
+          });
     }
   }
 
   @Test
   public void testExecuteCommand_withChildren_returnsCorrectCommandInstance() throws Exception {
     Command treeCommand = new ExampleTreeCommand();
-    CommandResult commandResult = treeCommand.executeCommand(
-        commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("foo", "bar"));
+    CommandResult commandResult =
+        treeCommand.executeCommand(
+            commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("foo", "bar"));
     assertThat(commandResult.getActualCommand()).isInstanceOf(CommandTest.ExampleCommand.class);
     assertThat(commandResult.getActualCommand().getName()).isEqualTo("bar");
-    commandResult = treeCommand.executeCommand(
-        commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("bar", "foo"));
+    commandResult =
+        treeCommand.executeCommand(
+            commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("bar", "foo"));
     assertThat(commandResult.getActualCommand()).isNotInstanceOf(ExampleCommand.class);
   }
 
@@ -118,7 +123,8 @@ public class CommandTest {
 
     @Override
     public CommandResult execute(CommandEnvironment env, Context ctx, ImmutableList<String> args) {
-      return newCommandResult().setContext(ctx.toBuilder().put(String.class, "hello world").build());
+      return newCommandResult()
+          .setContext(ctx.toBuilder().put(String.class, "hello world").build());
     }
 
     @Override
@@ -128,22 +134,24 @@ public class CommandTest {
 
     @Override
     protected Collection<Command> getChildren() {
-      return ImmutableList.of(new ExampleCommand("foo") {
-        @Override
-        public CommandResult execute(CommandEnvironment env, Context ctx,
-            ImmutableList<String> args) {
-          String value = ctx.get(String.class);
-          return newCommandResult().setSuccessMessage(Optional.ofNullable(value).orElse(""));
-        }
-      });
+      return ImmutableList.of(
+          new ExampleCommand("foo") {
+            @Override
+            public CommandResult execute(
+                CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+              String value = ctx.get(String.class);
+              return newCommandResult().setSuccessMessage(Optional.ofNullable(value).orElse(""));
+            }
+          });
     }
   }
 
   @Test
   public void testExecuteCommand_childrenDependency() throws Exception {
     Command treeCommand = new ExampleTreeCommandWithDependency();
-    CommandResult commandResult = treeCommand.executeCommand(
-        commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("foo"));
+    CommandResult commandResult =
+        treeCommand.executeCommand(
+            commandEnvironment, Context.DEFAULT_INSTANCE, ImmutableList.of("foo"));
     assertThat(commandResult.getSuccessMessage()).isEqualTo("hello world");
   }
 }

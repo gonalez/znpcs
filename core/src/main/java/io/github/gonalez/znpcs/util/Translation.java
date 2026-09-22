@@ -2,11 +2,11 @@ package io.github.gonalez.znpcs.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.base.CharMatcher;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.HashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
-import com.google.common.base.CharMatcher;
 
 @Immutable
 public final class Translation {
@@ -18,7 +18,8 @@ public final class Translation {
 
   @CanIgnoreReturnValue
   public static String register(String key, String message) {
-    checkArgument(ALLOWED_CHARS.matchesAllOf(key), "'%s' must only contain letters and/or digits", key);
+    checkArgument(
+        ALLOWED_CHARS.matchesAllOf(key), "'%s' must only contain letters and/or digits", key);
     return registry.putIfAbsent(key, message);
   }
 

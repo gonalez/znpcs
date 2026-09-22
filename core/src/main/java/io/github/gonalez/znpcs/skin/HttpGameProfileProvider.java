@@ -3,6 +3,7 @@ package io.github.gonalez.znpcs.skin;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -24,21 +25,20 @@ public abstract class HttpGameProfileProvider implements GameProfileProvider {
   protected abstract GameProfile provideGameProfile(String name, JsonElement value);
 
   HttpRequest.Builder prepareRequest(URI uri, String skin) {
-    return HttpRequest.newBuilder()
-      .uri(uri)
-      .timeout(DEFAULT_TIMEOUT);
+    return HttpRequest.newBuilder().uri(uri).timeout(DEFAULT_TIMEOUT);
   }
 
   @Override
   public GameProfile provideGameProfile(String name) {
     try {
-      HttpResponse<String> httpResponse =
-        httpClient.send(
-          prepareRequest(
-            URI.create(String.format(getTargetUrl(name), name)),
-            name).build(),
-          BodyHandlers.ofString());
-      return provideGameProfile(name, JsonParser.parseString(httpResponse.body()));
+      HttpResponse<String> response =
+          httpClient.send(
+              prepareRequest(URI.create(String.format(getTargetUrl(name), name)), name).build(),
+              BodyHandlers.ofString());
+      if (response.statusCode() < 200 || response.statusCode() >= 300) {
+        throw new IOException("Error fetching profile. Code: " + response.statusCode());
+      }
+      return provideGameProfile(name, JsonParser.parseString(response.body()));
     } catch (Exception e) {
       return null;
     }

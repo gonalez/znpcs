@@ -8,7 +8,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.mojang.authlib.GameProfile;
-import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,8 @@ public class SkinFetcherImpl implements SkinFetcher {
   /** Builder for {@link SkinFetcherImpl}. */
   public static final class Builder {
     private Executor skinExecutor;
-    private final ImmutableList.Builder<GameProfileProvider> gameProfileProviderBuilder = ImmutableList.builder();
+    private final ImmutableList.Builder<GameProfileProvider> gameProfileProviderBuilder =
+        ImmutableList.builder();
     private Optional<SkinGameProfileCollector> optionalSkinGameProfileCollector = Optional.empty();
 
     public Builder addSkinFetcherServer(GameProfileProvider... providers) {
@@ -58,6 +58,7 @@ public class SkinFetcherImpl implements SkinFetcher {
   /** Receiver for output of {@link #fetchGameProfile}. */
   public interface SkinGameProfileCollector {
     void acceptSkinGameProfile(String name, GameProfile profile);
+
     void acceptSkinError(String name, Throwable t);
   }
 
@@ -78,29 +79,31 @@ public class SkinFetcherImpl implements SkinFetcher {
     ListenableFuture<GameProfile> fetchGameProfileFuture =
         Futures.transformAsync(
             Futures.whenAllComplete(allProfiles)
-                .callAsync(() -> {
-                  List<GameProfile> retrievedGameProfiles = new ArrayList<>();
-                  for (ListenableFuture<GameProfile> allProfile : allProfiles) {
-                    try {
-                      GameProfile gameProfile = Futures.getDone(allProfile);
-                      if (gameProfile == null) {
-                        continue;
-                      }
-                      retrievedGameProfiles.add(gameProfile);
-                      optionalSkinGameProfileCollector.ifPresent(
-                          collector -> collector.acceptSkinGameProfile(name, gameProfile));
-                    } catch (ExecutionException e) {
-                      if (e.getCause() instanceof SkinException) {
-                        if (allProfiles.size() == 1) {
-                          return immediateFailedFuture(e);
+                .callAsync(
+                    () -> {
+                      List<GameProfile> retrievedGameProfiles = new ArrayList<>();
+                      for (ListenableFuture<GameProfile> allProfile : allProfiles) {
+                        try {
+                          GameProfile gameProfile = Futures.getDone(allProfile);
+                          if (gameProfile == null) {
+                            continue;
+                          }
+                          retrievedGameProfiles.add(gameProfile);
+                          optionalSkinGameProfileCollector.ifPresent(
+                              collector -> collector.acceptSkinGameProfile(name, gameProfile));
+                        } catch (ExecutionException e) {
+                          if (e.getCause() instanceof SkinException) {
+                            if (allProfiles.size() == 1) {
+                              return immediateFailedFuture(e);
+                            }
+                          }
+                          optionalSkinGameProfileCollector.ifPresent(
+                              collector -> collector.acceptSkinError(name, e));
                         }
                       }
-                      optionalSkinGameProfileCollector.ifPresent(
-                          collector -> collector.acceptSkinError(name, e));
-                    }
-                  }
-                  return immediateFuture(retrievedGameProfiles);
-                }, executor),
+                      return immediateFuture(retrievedGameProfiles);
+                    },
+                    executor),
             gameProfiles -> {
               if (!gameProfiles.isEmpty()) {
                 GameProfile gameProfile = gameProfiles.get(0);
@@ -110,7 +113,8 @@ public class SkinFetcherImpl implements SkinFetcher {
                 return Futures.immediateFuture(gameProfile);
               }
               return Futures.immediateFailedFuture(new SkinException("No skin found for: " + name));
-            }, executor);
+            },
+            executor);
     return Futures.catchingAsync(
         fetchGameProfileFuture,
         Exception.class,
@@ -119,7 +123,8 @@ public class SkinFetcherImpl implements SkinFetcher {
             listener.onError(exception);
           }
           return immediateFailedFuture(exception);
-        }, executor);
+        },
+        executor);
   }
 
   private List<ListenableFuture<GameProfile>> getAllProfiles(String name) {
@@ -133,7 +138,7 @@ public class SkinFetcherImpl implements SkinFetcher {
         fetchedGameProfilesFuture.add(immediateFuture(gameProfile));
       } catch (Exception e) {
         ListenableFuture<GameProfile> errorFuture =
-          immediateFailedFuture(new SkinException(name, e));
+            immediateFailedFuture(new SkinException(name, e));
         fetchedGameProfilesFuture.add(errorFuture);
       }
     }

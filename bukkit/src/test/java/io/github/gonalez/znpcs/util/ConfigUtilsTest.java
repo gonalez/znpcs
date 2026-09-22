@@ -19,8 +19,7 @@ public class ConfigUtilsTest {
 
   @Test
   public void testNestedKeys_dotNotation() throws Exception {
-    try (InputStream in =
-        Resources.getResource("nested_config.yml").openStream();
+    try (InputStream in = Resources.getResource("nested_config.yml").openStream();
         Reader reader = new InputStreamReader(in)) {
 
       YamlConfiguration config = YamlConfiguration.loadConfiguration(reader);

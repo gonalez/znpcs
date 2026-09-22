@@ -1,5 +1,3 @@
 package io.github.gonalez.znpcs.npc;
 
-public interface NPC {
-
-}
+public interface NPC {}

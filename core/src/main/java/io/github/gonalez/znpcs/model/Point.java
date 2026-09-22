@@ -37,11 +37,7 @@ public class Point implements Comparable<Point>, Cloneable {
 
   @Override
   public int compareTo(Point o) {
-    return ComparisonChain.start()
-        .compare(x, o.x)
-        .compare(y, o.y)
-        .compare(z, o.z)
-        .result();
+    return ComparisonChain.start().compare(x, o.x).compare(y, o.y).compare(z, o.z).result();
   }
 
   @Override

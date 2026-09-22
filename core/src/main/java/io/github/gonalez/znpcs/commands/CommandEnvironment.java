@@ -9,8 +9,7 @@ public class CommandEnvironment {
   private final ImmutableClassToInstanceMap<Command> commands;
 
   public CommandEnvironment(
-      @Nullable Context defaultContext,
-      ImmutableClassToInstanceMap<Command> commands) {
+      @Nullable Context defaultContext, ImmutableClassToInstanceMap<Command> commands) {
     this.defaultContext = defaultContext;
     this.commands = commands;
   }
