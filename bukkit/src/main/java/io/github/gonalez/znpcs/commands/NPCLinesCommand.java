@@ -2,7 +2,7 @@ package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
-import io.github.gonalez.znpcs.context.Context;
+import io.github.gonalez.znpcs.metadata.Metadata;
 import io.github.gonalez.znpcs.npc.NPC;
 import io.github.gonalez.znpcs.npc.NPCManager;
 import io.github.gonalez.znpcs.util.Translation;
@@ -22,7 +22,8 @@ public class NPCLinesCommand extends Command {
   }
 
   @Override
-  protected CommandResult execute(CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+  protected CommandResult execute(
+      CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
     Integer id = Ints.tryParse(args.get(0));
     if (id == null) {
       return newCommandResult().errorKey("command.invalid_number");
@@ -33,7 +34,7 @@ public class NPCLinesCommand extends Command {
     }
     NPC npc = npcOptional.get();
     return newCommandResult()
-        .setContext(Context.builder().put(NPC.class, npc).build())
+        .setContext(Metadata.builder().put(NPC.class, npc).build())
         .successKey(Translation.get("command.success"));
   }
 
@@ -60,7 +61,7 @@ public class NPCLinesCommand extends Command {
 
     @Override
     protected CommandResult execute(
-        CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+        CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
       return newCommandResult();
     }
   }
@@ -79,7 +80,7 @@ public class NPCLinesCommand extends Command {
 
     @Override
     protected CommandResult execute(
-        CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+        CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
       return newCommandResult();
     }
   }
@@ -98,7 +99,7 @@ public class NPCLinesCommand extends Command {
 
     @Override
     protected CommandResult execute(
-        CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+        CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
       return newCommandResult();
     }
   }
@@ -117,7 +118,7 @@ public class NPCLinesCommand extends Command {
 
     @Override
     protected CommandResult execute(
-        CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+        CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
       NPC npc = ctx.get(NPC.class);
       return newCommandResult();
     }

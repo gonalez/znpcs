@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
-import io.github.gonalez.znpcs.context.Context;
+import io.github.gonalez.znpcs.metadata.Metadata;
 import java.util.Collection;
 import org.bukkit.command.CommandSender;
 
@@ -18,7 +18,8 @@ public class NPCMainCommand extends Command {
   }
 
   @Override
-  protected CommandResult execute(CommandEnvironment env, Context ctx, ImmutableList<String> args) {
+  protected CommandResult execute(
+      CommandEnvironment env, Metadata ctx, ImmutableList<String> args) {
     for (Command command : getChildren()) {
       ctx.get(CommandSender.class).sendMessage(command.getName());
     }
