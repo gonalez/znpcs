@@ -1,20 +1,20 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableClassToInstanceMap;
-import io.github.gonalez.znpcs.context.Context;
+import io.github.gonalez.znpcs.metadata.Metadata;
 import javax.annotation.Nullable;
 
 public class CommandEnvironment {
-  @Nullable private final Context defaultContext;
+  @Nullable private final Metadata defaultContext;
   private final ImmutableClassToInstanceMap<Command> commands;
 
   public CommandEnvironment(
-      @Nullable Context defaultContext, ImmutableClassToInstanceMap<Command> commands) {
+      @Nullable Metadata defaultContext, ImmutableClassToInstanceMap<Command> commands) {
     this.defaultContext = defaultContext;
     this.commands = commands;
   }
 
-  public @Nullable Context getDefaultContext() {
+  public @Nullable Metadata getDefaultContext() {
     return defaultContext;
   }
 

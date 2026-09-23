@@ -1,3 +1,8 @@
 package io.github.gonalez.znpcs.npc;
 
-public interface NPC {}
+import io.github.gonalez.znpcs.metadata.Metadata;
+
+public interface NPC {
+
+  Metadata getMetadata();
+}

@@ -1,7 +1,7 @@
 package io.github.gonalez.znpcs.commands;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import io.github.gonalez.znpcs.context.Context;
+import io.github.gonalez.znpcs.metadata.Metadata;
 import io.github.gonalez.znpcs.util.Translation;
 
 /** Contains information about the result of {@link Command#execute}. This class is mutable. */
@@ -11,7 +11,7 @@ public final class CommandResult {
   private Throwable error;
   private String errorMessage;
   private String successMessage;
-  private Context context;
+  private Metadata context;
 
   private CommandResult(Command actualCommand) {
     this.actualCommand = actualCommand;
@@ -72,12 +72,12 @@ public final class CommandResult {
   }
 
   @CanIgnoreReturnValue
-  public CommandResult setContext(Context context) {
+  public CommandResult setContext(Metadata context) {
     this.context = context;
     return this;
   }
 
-  public Context getContext() {
+  public Metadata getContext() {
     return context;
   }
 }

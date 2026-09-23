@@ -2,7 +2,7 @@ package io.github.gonalez.znpcs.commands;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import io.github.gonalez.znpcs.context.Context;
+import io.github.gonalez.znpcs.metadata.Metadata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,7 +12,7 @@ public abstract class Command {
   public abstract String getName();
 
   protected abstract CommandResult execute(
-      CommandEnvironment env, Context context, ImmutableList<String> args);
+      CommandEnvironment env, Metadata context, ImmutableList<String> args);
 
   protected abstract int getMandatoryArguments();
 
@@ -25,13 +25,13 @@ public abstract class Command {
   }
 
   public CommandResult executeCommand(
-      CommandEnvironment env, Context context, ImmutableList<String> args) {
-    Context mergedContext = context.mergeWith(env.getDefaultContext());
+      CommandEnvironment env, Metadata context, ImmutableList<String> args) {
+    Metadata mergedContext = context.mergeWith(env.getDefaultContext());
     return executeCommandRecursive(env, mergedContext, args);
   }
 
   private CommandResult executeCommandRecursive(
-      CommandEnvironment env, Context context, ImmutableList<String> args) {
+      CommandEnvironment env, Metadata context, ImmutableList<String> args) {
     CommandResult validateCommandResult = validateCommand(context, args);
     if (validateCommandResult.hasError()) {
       return validateCommandResult;
@@ -57,13 +57,13 @@ public abstract class Command {
     return run(env, context, args);
   }
 
-  private CommandResult run(CommandEnvironment env, Context context, ImmutableList<String> args) {
+  private CommandResult run(CommandEnvironment env, Metadata context, ImmutableList<String> args) {
     CommandResult result = execute(env, context, args);
     result.setContext(context.mergeWith(result.getContext()));
     return result;
   }
 
-  CommandResult validateCommand(Context context, ImmutableList<String> args) {
+  CommandResult validateCommand(Metadata context, ImmutableList<String> args) {
     CommandResult commandResult = newCommandResult();
 
     int mandatoryArguments = getMandatoryArguments();

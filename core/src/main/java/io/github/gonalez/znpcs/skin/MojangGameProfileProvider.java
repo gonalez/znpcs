@@ -9,11 +9,11 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 public final class MojangGameProfileProvider extends HttpGameProfileProvider {
-  private final ByUuid byUuid;
+  private final ImplUuid implUuid;
 
   public MojangGameProfileProvider(HttpClient httpClient) {
     super(httpClient);
-    this.byUuid = new ByUuid(httpClient);
+    this.implUuid = new ImplUuid(httpClient);
   }
 
   @Override
@@ -24,14 +24,15 @@ public final class MojangGameProfileProvider extends HttpGameProfileProvider {
   @Override
   protected GameProfile provideGameProfile(String name, JsonElement value) {
     String uuid = value.getAsJsonObject().get("id").getAsString();
-    return byUuid.provideGameProfile(uuid);
+    return implUuid.provideGameProfile(uuid);
   }
 
-  private static final class ByUuid extends HttpGameProfileProvider {
+  // Implementation when the contained skin in the url is UUID.
+  private static final class ImplUuid extends HttpGameProfileProvider {
     private static final Pattern UUID_PATTERN =
         Pattern.compile("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})");
 
-    private ByUuid(HttpClient httpClient) {
+    private ImplUuid(HttpClient httpClient) {
       super(httpClient);
     }
 
