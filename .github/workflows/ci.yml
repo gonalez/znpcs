@@ -27,5 +27,13 @@ jobs:
       - name: Check formatting
         run: ./gradlew spotlessCheck
 
-      - name: Run unit tests
-        run: ./gradlew test
+      - name: Run unit tests with coverage
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: "**/build/reports/jacoco/**/*.xml"
+          flags: unit-tests
+          fail_ci_if_error: false

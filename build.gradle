@@ -1,12 +1,14 @@
 plugins {
     id 'net.ltgt.errorprone' version '5.1.0'
     id 'com.diffplug.spotless' version '7.2.1'
+    id 'jacoco'
 }
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'net.ltgt.errorprone'
     apply plugin: 'com.diffplug.spotless'
+    apply plugin: 'jacoco'
 
     group = project.property("GROUP_ID")
     version = project.property("VERSION_NAME")
@@ -19,6 +21,15 @@ subprojects {
     spotless {
         java {
             googleJavaFormat('1.27.0')
+        }
+    }
+
+    jacocoTestReport {
+        dependsOn test
+
+        reports {
+            html.required = true
+            xml.required = true
         }
     }
 
