@@ -3,6 +3,9 @@
 
 # ZNPCs
 
+[![CI](https://github.com/gonalez/znpcs/actions/workflows/ci.yml/badge.svg)](https://github.com/gonalez/znpcs/actions/workflows/ci.yml)
+[![codecov.io](https://codecov.io/github/gonalez/znpcs/branch/master/graph/badge.svg)](https://codecov.io/github/gonalez/znpcs)
+
 ZNPCs is a [minecraft plugin][spigot-link] to create NPCs (non-player entities).
 
 ### Learn more
