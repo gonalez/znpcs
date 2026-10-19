@@ -25,7 +25,7 @@ public class NPCEquipCommand extends Command {
     if (id == null) {
       return newCommandResult().errorKey("command.invalid_number");
     }
-    ItemStack equipItem = ctx.get(Player.class).getInventory().getItemInHand();
+    ItemStack equipItem = ctx.get(Player.class).getInventory().getItemInMainHand();
     return newCommandResult().successKey("command.success");
   }
 }

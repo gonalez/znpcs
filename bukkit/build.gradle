@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.gradleup.shadow' version '9.6.1'
 }
 
 repositories {
@@ -10,14 +10,17 @@ repositories {
 
 dependencies {
     implementation project(":core")
-    compileOnly("io.netty:netty-all:4.1.77.Final")
-    compileOnly("org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT")
-    testImplementation("org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT")
+    compileOnly("io.netty:netty-all:4.2.7.Final")
+    compileOnly("org.spigotmc:spigot-api:26.1.1-R0.1-SNAPSHOT")
+    testImplementation("org.spigotmc:spigot-api:26.1.1-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.5")
 }
 
 shadowJar {
     dependencies {
         include(dependency("io.github.gonalez.znpcs:.*"))
+        // Not provided by the server.
+        include(dependency("com.ryanharter.auto.value:auto-value-gson-runtime:.*"))
+        include(dependency("io.sweers.autotransient:autotransient:.*"))
     }
 }

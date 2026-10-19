@@ -7,11 +7,11 @@ repositories {
 }
 
 dependencies {
-    api("com.google.code.gson:gson:2.8.9")
-    api("com.google.guava:guava:31.0-jre")
-    api("org.yaml:snakeyaml:1.26")
-    api("com.mojang:authlib:1.5.21")
-    api("com.mojang:datafixerupper:3.0.25")
+    api("com.google.code.gson:gson:2.13.2")
+    api("com.google.guava:guava:33.5.0-jre")
+    api("org.yaml:snakeyaml:2.2")
+    api("com.mojang:authlib:7.0.63")
+    api("com.mojang:datafixerupper:9.0.19")
 
     api("com.google.auto.value:auto-value-annotations:1.11.0")
     annotationProcessor("com.google.auto.value:auto-value:1.11.0")

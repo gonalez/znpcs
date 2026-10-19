@@ -1,5 +1,5 @@
 plugins {
-    id 'net.ltgt.errorprone' version '5.1.0'
+    id 'net.ltgt.errorprone' version '5.1.1'
     id 'com.diffplug.spotless' version '7.2.1'
     id 'jacoco'
 }
@@ -34,14 +34,14 @@ subprojects {
     }
 
     dependencies {
-        errorprone("com.google.errorprone:error_prone_core:2.42.0")
+        errorprone("com.google.errorprone:error_prone_core:2.50.0")
         testImplementation("junit:junit:4.13.2")
         testImplementation("com.google.truth:truth:1.4.1")
     }
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        // Minecraft 26.1 requires Java 25.
+        options.release = 25
 
         options.encoding = "UTF-8"
     }
