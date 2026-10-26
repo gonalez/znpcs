@@ -1,0 +1,15 @@
+PASS 56 skin-fetch integration checks
+Oct 26, 2026 9:46:14 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for NotAPlayer; Mojang: Mojang returned HTTP 404 (Minecraft profile or skin not found)
+Oct 26, 2026 9:46:14 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for Broken; Mojang: Mojang profile response is missing a valid UUID
+Oct 26, 2026 9:46:14 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for Notch; Broken fixture provider: Provider did not return signed texture data
+Oct 26, 2026 9:46:14 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for Notch; Broken fixture provider: Broken fixture provider returned HTTP 429 (rate limited; retry later)
+Oct 26, 2026 9:46:16 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for skin image host example.invalid; MineSkin: MineSkin returned HTTP 401 (configure mineskin-api-key in plugins/ServersNPC/skins.properties)
+Oct 26, 2026 9:46:17 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for skin image host example.invalid; MineSkin: MineSkin could not generate this image; check its URL and API-key permissions
+Oct 26, 2026 9:46:17 AM io.github.gonalez.znpcs.skin.SkinFetcher fetch
+WARNING: No skin provider succeeded for skin image host example.invalid; MineSkin: MineSkin generation timed out; try again later

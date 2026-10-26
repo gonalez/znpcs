@@ -1,0 +1,41 @@
+[
+  {
+    "id": 42,
+    "hologramHeight": 0.4,
+    "skin": "dGVzdA==",
+    "signature": "signature-fixture",
+    "skinName": "Steve",
+    "glowName": "RED",
+    "location": {
+      "world": "world",
+      "x": 0.5,
+      "y": -59,
+      "z": 0.5,
+      "yaw": 35,
+      "pitch": 5
+    },
+    "npcType": "PLAYER",
+    "hologramLines": [
+      "&aWillkommen – Test",
+      "&eZweite Zeile"
+    ],
+    "refreshSkinDuration": 0,
+    "clickActions": [
+      {
+        "actionType": "CONSOLE",
+        "clickType": "RIGHT",
+        "action": "say migration-ok",
+        "delay": 3
+      }
+    ],
+    "npcEquip": {},
+    "npcFunctions": {
+      "look": true,
+      "glow": true
+    },
+    "customizationMap": {},
+    "unknownLegacyExtension": {
+      "keep": true
+    }
+  }
+]

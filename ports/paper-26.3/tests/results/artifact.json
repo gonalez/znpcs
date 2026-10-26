@@ -1,0 +1,21 @@
+{
+  "filename": "znpcs-5.4-SNAPSHOT-paper-26.3.jar",
+  "sha256": "76b16a5a8b693aba0b1b37f4f6a9a928d7cb438e720cd750823cd14d0fcfb067",
+  "bytes": 258400,
+  "tested_build_sha256": "e5801ae24cbcfc5258ab6c4656e396d0ca79d7042fafebf530171fe5c5571de0",
+  "all_class_files_identical_to_tested_build": true,
+  "post_test_changes": [
+    "NOTICE"
+  ],
+  "baseline": "ZNPCs 5.3",
+  "baseline_sha256": "e26b8d912fee7177e2ec5342c28157cf588b96a4c5052f9402b0755fee9426b1",
+  "paper": "26.3-223-main@e415f5e",
+  "checks": {
+    "server": 622,
+    "skin_http": 56,
+    "live_mojang": true,
+    "protocol_client_skin_received": true,
+    "malformed_json_preserved": true,
+    "invalid_equipment_preserved": true
+  }
+}

@@ -1,0 +1,2 @@
+PASS: real Mojang skin command, updated signed profile, scale, colours, join, spawn and left/right actions
+events=2

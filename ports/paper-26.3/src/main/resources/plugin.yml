@@ -1,0 +1,6 @@
+name: ServersNPC
+main: io.github.gonalez.znpcs.ServersNPC
+version: 5.4-SNAPSHOT
+api-version: '26.3'
+description: ZNPCs 5.3 compatibility port for Paper 26.3, preserving the original data schema.
+softdepend: [PlaceholderAPI]

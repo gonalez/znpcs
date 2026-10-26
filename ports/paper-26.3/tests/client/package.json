@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@wp2508/minecraft-protocol": "^1.69.5",
+    "minecraft-data": "npm:@wp2508/minecraft-data@^3.111.7",
+    "minecraft-protocol": "^1.68.0"
+  }
+}

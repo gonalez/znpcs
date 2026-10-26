@@ -1,0 +1,17 @@
+ZNPCs 5.4-SNAPSHOT — independent Paper 26.3 compatibility proposal
+
+Based on the released ZNPCs 5.3 by Gaston Gonzalez (Gonalez / ZNetwork).
+Original repository: https://github.com/gonalez/znpcs
+Release page: https://www.spigotmc.org/resources/znpcs.80940/
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+Baseline binary SHA-256:
+e26b8d912fee7177e2ec5342c28157cf588b96a4c5052f9402b0755fee9426b1
+Unchanged classes are copied from that exact 5.3 binary.
+Changed classes were reconstructed and adapted; source is in this module.
+Changes include Paper 26.3 networking/profiles, legacy data preservation,
+Mojang and MineSkin V2 skin fetching, and server-thread/lifecycle handling.
+Target: Paper 26.3 build 223, Java 25. Changes made 2026-10-26.
+
+This is not an official upstream release. The proposed 5.4-SNAPSHOT version
+is subject to maintainer review. Development and tests were AI-assisted.

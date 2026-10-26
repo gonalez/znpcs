@@ -1,0 +1,4 @@
+{
+  "malformed-json": "PASS: plugin disabled, original data.json preserved byte-for-byte",
+  "unreadable-equipment": "PASS: plugin disabled, original data.json preserved byte-for-byte"
+}
